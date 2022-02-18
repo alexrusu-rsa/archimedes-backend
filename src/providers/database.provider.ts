@@ -4,7 +4,7 @@ import { createConnection } from 'typeorm';
 export const databaseProvider = [
   {
     provide: 'DATABASE_CONNECTION',
-    useFactory: async () => {
+    useFactory: async () =>
       await createConnection({
         type: 'postgres',
         host: 'ec2-52-209-185-5.eu-west-1.compute.amazonaws.com',
@@ -16,7 +16,6 @@ export const databaseProvider = [
         entities: [Activity],
         ssl: { rejectUnauthorized: false },
         synchronize: true,
-      });
-    },
+      }),
   },
 ];
