@@ -22,10 +22,10 @@ export class ActivityService {
   }
 
   async updateById(id: number, activity: Activity): Promise<Activity> {
-    const activityToUpdate = await this.findOne(id);
+    const activityToUpdate = await this.activityRepository.findOne(id);
     if (activityToUpdate === undefined) throw new NotFoundException();
     await this.activityRepository.update(id, activity);
-    return this.findOne(id);
+    return this.activityRepository.findOne(id);
   }
 
   async deleteActivity(id: number): Promise<DeleteResult> {

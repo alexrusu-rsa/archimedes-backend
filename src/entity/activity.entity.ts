@@ -12,6 +12,12 @@ export class Activity {
   date: Date;
 
   @Column()
+  start: string;
+
+  @Column()
+  end: string;
+
+  @Column()
   break: number;
 
   @Column()
