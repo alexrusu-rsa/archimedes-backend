@@ -27,16 +27,16 @@ export class DayController {
 
   @Get(':id')
   getOneDay(@Param('id') id: string): Promise<Day> {
-    return this.dayService.findOne(Number(id));
+    return this.dayService.findOne(id);
   }
 
   @Put(':id')
   updateDay(@Body() day: Day, @Param('id') id: string): Promise<Day> {
-    return this.dayService.updateById(Number(id), day);
+    return this.dayService.updateById(id, day);
   }
 
   @Delete(':id')
   deleteDay(@Param('id') id: string): Promise<DeleteResult> {
-    return this.dayService.deleteDay(Number(id));
+    return this.dayService.deleteDay(id);
   }
 }

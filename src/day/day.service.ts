@@ -17,18 +17,18 @@ export class DayService {
     return this.dayRepository.insert(day);
   }
 
-  async findOne(id: number): Promise<Day> {
+  async findOne(id: string): Promise<Day> {
     return this.dayRepository.findOne(id);
   }
 
-  async updateById(id: number, day: Day): Promise<Day> {
+  async updateById(id: string, day: Day): Promise<Day> {
     const dayToUpdate = await this.dayRepository.findOne(id);
     if (dayToUpdate === undefined) throw new NotFoundException();
     await this.dayRepository.update(id, day);
     return this.dayRepository.findOne(id);
   }
 
-  async deleteDay(id: number): Promise<DeleteResult> {
+  async deleteDay(id: string): Promise<DeleteResult> {
     const dayToDelete = await this.findOne(id);
     if (dayToDelete === undefined) throw new NotFoundException();
     return this.dayRepository.delete(id);

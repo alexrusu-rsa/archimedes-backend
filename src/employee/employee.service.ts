@@ -16,20 +16,20 @@ export class EmployeeService {
     return this.employeeRepository.insert(employee);
   }
 
-  async updateById(id: number, employee: Employee): Promise<Employee> {
+  async updateById(id: string, employee: Employee): Promise<Employee> {
     const employeeToUpdate = await this.employeeRepository.findOne(id);
     if (employeeToUpdate === undefined) throw new NotFoundException();
     await this.employeeRepository.update(id, employee);
     return this.employeeRepository.findOne(id);
   }
 
-  async deleteEmployee(id: number): Promise<DeleteResult> {
+  async deleteEmployee(id: string): Promise<DeleteResult> {
     const employeeToDelete = await this.employeeRepository.findOne(id);
     if (employeeToDelete === undefined) throw new NotFoundException();
     return this.employeeRepository.delete(id);
   }
 
-  async findOne(id: number): Promise<Employee> {
+  async findOne(id: string): Promise<Employee> {
     return this.employeeRepository.findOne(id);
   }
 }

@@ -34,7 +34,7 @@ export class ActivityController {
   @Get(':id')
   getOneActivity(@Param('id') id: string): Promise<Activity> {
     console.log(id);
-    return this.activityService.findOne(Number(id));
+    return this.activityService.findOne(id);
   }
 
   @Put(':id')
@@ -42,12 +42,12 @@ export class ActivityController {
     @Body() activity: Activity,
     @Param('id') id: string,
   ): Promise<Activity> {
-    return this.activityService.updateById(Number(id), activity);
+    return this.activityService.updateById(id, activity);
   }
 
   @Delete(':id')
   deleteActivity(@Param('id') id: string): Promise<any> {
     console.log('STARTED DELETE');
-    return this.activityService.deleteActivity(Number(id));
+    return this.activityService.deleteActivity(id);
   }
 }

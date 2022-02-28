@@ -22,7 +22,7 @@ export class EmployeeController {
 
   @Get(':id')
   getOneEmployee(@Param('id') id: string): Promise<Employee> {
-    return this.employeeService.findOne(Number(id));
+    return this.employeeService.findOne(id);
   }
 
   @Post()
@@ -32,11 +32,11 @@ export class EmployeeController {
 
   @Put(':id')
   updateEmployee(@Body() employee: Employee, @Param('id') id: string) {
-    return this.employeeService.updateById(Number(id), employee);
+    return this.employeeService.updateById(id, employee);
   }
 
   @Delete(':id')
   deleteEmployee(@Param('id') id: string): Promise<DeleteResult> {
-    return this.employeeService.deleteEmployee(Number(id));
+    return this.employeeService.deleteEmployee(id);
   }
 }

@@ -18,18 +18,18 @@ export class ActivityService {
     return this.activityRepository.insert(activity);
   }
 
-  async findOne(id: number): Promise<Activity> {
+  async findOne(id: string): Promise<Activity> {
     return this.activityRepository.findOne(id);
   }
 
-  async updateById(id: number, activity: Activity): Promise<Activity> {
+  async updateById(id: string, activity: Activity): Promise<Activity> {
     const activityToUpdate = await this.activityRepository.findOne(id);
     if (activityToUpdate === undefined) throw new NotFoundException();
     await this.activityRepository.update(id, activity);
     return this.activityRepository.findOne(id);
   }
 
-  async deleteActivity(id: number): Promise<DeleteResult> {
+  async deleteActivity(id: string): Promise<DeleteResult> {
     const activityToDelete = await this.findOne(id);
     if (activityToDelete === undefined) throw new NotFoundException();
     return this.activityRepository.delete(id);
