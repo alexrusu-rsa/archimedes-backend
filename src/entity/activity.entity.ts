@@ -9,16 +9,16 @@ export class Activity {
   name: string;
 
   @Column()
-  date: Date;
+  employeeId: number;
+
+  @Column()
+  date: string;
 
   @Column()
   start: string;
 
   @Column()
   end: string;
-
-  @Column()
-  break: number;
 
   @Column()
   description: string;

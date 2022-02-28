@@ -6,9 +6,9 @@ import {
   Param,
   Post,
   Put,
+  Query,
 } from '@nestjs/common';
 import { Activity } from 'src/entity/activity.entity';
-import { DeleteResult } from 'typeorm';
 import { ActivityService } from './activity.service';
 
 @Controller()
@@ -22,11 +22,18 @@ export class ActivityController {
 
   @Post()
   addNewActivity(@Body() activity: Activity) {
+    console.log('test');
     return this.activityService.addActivity(activity);
+  }
+
+  @Get('/date')
+  getActivitiesTest(@Query('dateToFind') date): any {
+    return this.activityService.getActivitiesByDate(date);
   }
 
   @Get(':id')
   getOneActivity(@Param('id') id: string): Promise<Activity> {
+    console.log(id);
     return this.activityService.findOne(Number(id));
   }
 
@@ -39,7 +46,8 @@ export class ActivityController {
   }
 
   @Delete(':id')
-  deleteActivity(@Param('id') id: string): Promise<DeleteResult> {
+  deleteActivity(@Param('id') id: string): Promise<any> {
+    console.log('STARTED DELETE');
     return this.activityService.deleteActivity(Number(id));
   }
 }
