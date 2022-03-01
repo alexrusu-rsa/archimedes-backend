@@ -9,5 +9,5 @@ export class Employee {
   name: string;
 
   @Column()
-  role: string;
+  role?: string;
 }

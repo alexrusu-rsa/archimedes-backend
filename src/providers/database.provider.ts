@@ -1,5 +1,4 @@
 import { Activity } from 'src/entity/activity.entity';
-import { Day } from 'src/entity/day.entity';
 import { Employee } from 'src/entity/employee.entity';
 import { createConnection } from 'typeorm';
 
@@ -15,7 +14,7 @@ export const databaseProvider = [
         password:
           'f5d2d2108578782838d46cc0bef0b61adba2607b5ab4e7bff8ca0ea378be4d80',
         database: 'd56tk5ode151l3',
-        entities: [Activity, Employee, Day],
+        entities: [Activity, Employee],
         ssl: { rejectUnauthorized: false },
         synchronize: true,
       }),

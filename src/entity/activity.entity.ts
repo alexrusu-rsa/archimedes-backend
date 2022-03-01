@@ -21,8 +21,8 @@ export class Activity {
   end: string;
 
   @Column()
-  description: string;
+  description?: string;
 
   @Column()
-  extras: string;
+  extras?: string;
 }

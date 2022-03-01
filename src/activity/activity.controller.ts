@@ -22,7 +22,6 @@ export class ActivityController {
 
   @Post()
   addNewActivity(@Body() activity: Activity) {
-    console.log('test');
     return this.activityService.addActivity(activity);
   }
 
@@ -33,7 +32,6 @@ export class ActivityController {
 
   @Get(':id')
   getOneActivity(@Param('id') id: string): Promise<Activity> {
-    console.log(id);
     return this.activityService.findOne(id);
   }
 
@@ -47,7 +45,6 @@ export class ActivityController {
 
   @Delete(':id')
   deleteActivity(@Param('id') id: string): Promise<any> {
-    console.log('STARTED DELETE');
     return this.activityService.deleteActivity(id);
   }
 }
