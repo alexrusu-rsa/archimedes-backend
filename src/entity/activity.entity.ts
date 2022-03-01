@@ -2,21 +2,27 @@ import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
 export class Activity {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column()
   name: string;
 
   @Column()
-  date: Date;
+  employeeId: string;
 
   @Column()
-  break: number;
+  date: string;
 
   @Column()
-  description: string;
+  start: string;
 
   @Column()
-  extras: string;
+  end: string;
+
+  @Column()
+  description?: string;
+
+  @Column()
+  extras?: string;
 }
