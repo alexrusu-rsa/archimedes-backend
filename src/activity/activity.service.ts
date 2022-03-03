@@ -1,5 +1,4 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { get } from 'https';
 import { Activity } from 'src/entity/activity.entity';
 import { DeleteResult, getConnection, InsertResult, Repository } from 'typeorm';
 
