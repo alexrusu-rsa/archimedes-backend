@@ -22,7 +22,6 @@ export class ActivityController {
 
   @Post()
   addNewActivity(@Body() activity: Activity) {
-    console.log('test', activity);
     return this.activityService.addActivity(activity);
   }
 
