@@ -23,12 +23,12 @@ export class UserService {
     return this.userRepository.insert(user);
   }
 
-  async logUserIn(username: string, password: string): Promise<RequestWrapper> {
+  async logUserIn(email: string, password: string): Promise<RequestWrapper> {
     const userFound = await getConnection()
       .createQueryBuilder()
       .select('user')
       .from(User, 'user')
-      .where('user.username = :user', { user: username })
+      .where('user.email = :useremail', { useremail: email })
       .getOne();
     if (userFound) {
       if (userFound.password === password) {
@@ -52,12 +52,12 @@ export class UserService {
     return Math.random().toString(36).slice(-8);
   }
 
-  async resetUserPassword(userEmail: string): Promise<User> {
+  async resetUserPassword(email: string): Promise<User> {
     const userToUpdate = await getConnection()
       .createQueryBuilder()
       .select('user')
       .from(User, 'user')
-      .where('user.username=:user', { user: userEmail })
+      .where('user.email = :useremail', { useremail: email })
       .getOne();
     const updatedUser = userToUpdate;
     updatedUser.password = this.generateNewPassword();

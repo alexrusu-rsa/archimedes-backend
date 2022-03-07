@@ -8,11 +8,11 @@ export class MailService {
 
   async sendUserConfirmation(user: User, newPassword: string) {
     await this.mailerService.sendMail({
-      to: user.username,
+      to: user.email,
       subject: 'Welcome to Archimedes! Your Password has been reset!',
       template: 'src/mail/templates/passwordChangedTemplate.hbs',
       context: {
-        name: user.username,
+        name: user.name,
         newPassword: newPassword,
       },
     });

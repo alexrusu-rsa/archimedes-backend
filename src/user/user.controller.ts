@@ -19,12 +19,12 @@ export class UserController {
 
   @Post('/creds')
   logUserByUsername(@Body() user: User): Promise<RequestWrapper> {
-    return this.userService.logUserIn(user.username, user.password);
+    return this.userService.logUserIn(user.email, user.password);
   }
 
   @Put('/password')
   resetUserPassword(@Body() user: User) {
-    return this.userService.resetUserPassword(user.username);
+    return this.userService.resetUserPassword(user.email);
   }
 
   @Post()
