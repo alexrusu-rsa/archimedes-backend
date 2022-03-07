@@ -7,6 +7,7 @@ import { EmployeeModule } from './employee/employee.module';
 import { UserService } from './user/user.service';
 import { UserController } from './user/user.controller';
 import { UserModule } from './user/user.module';
+import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { UserModule } from './user/user.module';
       },
     ]),
     EmployeeModule,
+    MailModule,
   ],
   controllers: [AppController],
   providers: [AppService],

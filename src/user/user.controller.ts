@@ -1,7 +1,6 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put } from '@nestjs/common';
 import { RequestWrapper } from 'src/custom/requestwrapper';
 import { User } from 'src/entity/user.entity';
-import { InsertResult } from 'typeorm';
 import { UserService } from './user.service';
 
 @Controller()
@@ -17,9 +16,15 @@ export class UserController {
   getUser(@Param() id: string): Promise<User> {
     return this.userService.getUser(id);
   }
+
   @Post('/creds')
   logUserByUsername(@Body() user: User): Promise<RequestWrapper> {
     return this.userService.logUserIn(user.username, user.password);
+  }
+
+  @Put('/password')
+  resetUserPassword(@Body() user: User) {
+    return this.userService.resetUserPassword(user.username);
   }
 
   @Post()

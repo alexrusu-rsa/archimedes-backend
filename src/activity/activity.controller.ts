@@ -22,12 +22,21 @@ export class ActivityController {
 
   @Post()
   addNewActivity(@Body() activity: Activity) {
+    console.log('test', activity);
     return this.activityService.addActivity(activity);
   }
 
   @Get('/date')
   getActivitiesTest(@Query('dateToFind') date): any {
     return this.activityService.getActivitiesByDate(date);
+  }
+
+  @Get('/:id/date')
+  getActivitiesByDateEmployeeId(
+    @Param('id') id: string,
+    @Query('dateToFind') date,
+  ): Promise<Activity[]> {
+    return this.activityService.getActivitiesByDateEmployeeId(date, id);
   }
 
   @Get(':id')

@@ -43,4 +43,18 @@ export class ActivityService {
       .getMany();
     return activitiesFound;
   }
+
+  async getActivitiesByDateEmployeeId(
+    date: string,
+    id: string,
+  ): Promise<Activity[]> {
+    const activitiesEmployeeDate = await getConnection()
+      .createQueryBuilder()
+      .select('activity')
+      .from(Activity, 'activity')
+      .where('activity.date = :date', { date: date })
+      .andWhere('activity.employeeId = :employeeId', { employeeId: id })
+      .getMany();
+    return activitiesEmployeeDate;
+  }
 }
