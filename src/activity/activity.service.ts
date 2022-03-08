@@ -1,5 +1,4 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { get } from 'https';
 import { Activity } from 'src/entity/activity.entity';
 import { DeleteResult, getConnection, InsertResult, Repository } from 'typeorm';
 
@@ -43,5 +42,19 @@ export class ActivityService {
       .where('activity.date = :date', { date: dateToFind })
       .getMany();
     return activitiesFound;
+  }
+
+  async getActivitiesByDateEmployeeId(
+    date: string,
+    id: string,
+  ): Promise<Activity[]> {
+    const activitiesEmployeeDate = await getConnection()
+      .createQueryBuilder()
+      .select('activity')
+      .from(Activity, 'activity')
+      .where('activity.date = :date', { date: date })
+      .andWhere('activity.employeeId = :employeeId', { employeeId: id })
+      .getMany();
+    return activitiesEmployeeDate;
   }
 }

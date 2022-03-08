@@ -30,6 +30,14 @@ export class ActivityController {
     return this.activityService.getActivitiesByDate(date);
   }
 
+  @Get('/:id/date')
+  getActivitiesByDateEmployeeId(
+    @Param('id') id: string,
+    @Query('dateToFind') date,
+  ): Promise<Activity[]> {
+    return this.activityService.getActivitiesByDateEmployeeId(date, id);
+  }
+
   @Get(':id')
   getOneActivity(@Param('id') id: string): Promise<Activity> {
     return this.activityService.findOne(id);
