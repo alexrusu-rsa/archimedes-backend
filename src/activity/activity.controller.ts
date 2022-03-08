@@ -8,6 +8,7 @@ import {
   Put,
   Query,
 } from '@nestjs/common';
+import { RequestWrapper } from 'src/custom/requestwrapper';
 import { Activity } from 'src/entity/activity.entity';
 import { ActivityService } from './activity.service';
 
@@ -20,6 +21,16 @@ export class ActivityController {
     return this.activityService.getActivities();
   }
 
+  @Post('/date')
+  getActivitiesOfEmployeeOnCertainDate(
+    @Body() request: RequestWrapper,
+  ): Promise<Activity[]> {
+    return this.activityService.getActivitiesByDateEmployeeId(
+      request.data,
+      request.userId,
+    );
+  }
+
   @Post()
   addNewActivity(@Body() activity: Activity) {
     return this.activityService.addActivity(activity);
@@ -28,14 +39,6 @@ export class ActivityController {
   @Get('/date')
   getActivitiesTest(@Query('dateToFind') date): any {
     return this.activityService.getActivitiesByDate(date);
-  }
-
-  @Get('/:id/date')
-  getActivitiesByDateEmployeeId(
-    @Param('id') id: string,
-    @Query('dateToFind') date,
-  ): Promise<Activity[]> {
-    return this.activityService.getActivitiesByDateEmployeeId(date, id);
   }
 
   @Get(':id')

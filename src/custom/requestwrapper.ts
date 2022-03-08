@@ -1,4 +1,4 @@
 export class RequestWrapper {
-  data?: boolean;
+  data?: any;
   userId?: string;
 }
