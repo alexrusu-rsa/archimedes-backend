@@ -8,6 +8,6 @@ export class Employee {
   @Column()
   name: string;
 
-  @Column()
+  @Column({ nullable: true })
   role?: string;
 }

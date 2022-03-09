@@ -20,9 +20,9 @@ export class Activity {
   @Column()
   end: string;
 
-  @Column()
+  @Column({ nullable: true })
   description?: string;
 
-  @Column()
+  @Column({ nullable: true })
   extras?: string;
 }

@@ -11,15 +11,15 @@ export class User {
   @Column()
   email: string;
 
-  @Column()
+  @Column({ nullable: true })
   surname?: string;
 
-  @Column()
+  @Column({ nullable: true })
   name?: string;
 
-  @Column()
+  @Column({ nullable: true })
   role?: string;
 
-  @Column()
+  @Column({ nullable: true })
   seniority?: string;
 }
