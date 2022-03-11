@@ -1,5 +1,11 @@
 import { MailerService } from '@nestjs-modules/mailer';
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { RequestWrapper } from 'src/custom/requestwrapper';
 import { User } from 'src/entity/user.entity';
 import { MailService } from 'src/mail/mail.service';
@@ -14,38 +20,86 @@ export class UserService {
   ) {}
 
   async getUsers(): Promise<User[]> {
-    return this.userRepository.find();
+    try {
+      const foundUsers = this.userRepository.find();
+      if (foundUsers) return foundUsers;
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          error: 'We could not find any users!',
+        },
+        HttpStatus.NOT_FOUND,
+      );
+    } catch (err) {
+      return err;
+    }
   }
   async getUser(userToFindId: string): Promise<User> {
-    return this.userRepository.findOne(userToFindId);
+    try {
+      const userFound = this.userRepository.findOne(userToFindId);
+      if (userFound) return userFound;
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          error: 'We could not find the user!',
+        },
+        HttpStatus.NOT_FOUND,
+      );
+    } catch (err) {
+      return err;
+    }
   }
   async addUser(user: User): Promise<InsertResult> {
-    return this.userRepository.insert(user);
+    try {
+      const addedUser = this.userRepository.insert(user);
+      if (addedUser) return addedUser;
+      throw new HttpException(
+        {
+          status: HttpStatus.BAD_REQUEST,
+          error: 'Bad request when trying to add user!',
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    } catch (err) {
+      return err;
+    }
   }
 
   async logUserIn(email: string, password: string): Promise<RequestWrapper> {
-    const userFound = await getConnection()
-      .createQueryBuilder()
-      .select('user')
-      .from(User, 'user')
-      .where('user.email = :useremail', { useremail: email })
-      .getOne();
-    if (userFound) {
-      if (userFound.password === password) {
-        return {
-          data: true,
-          userId: userFound.id,
-        };
+    try {
+      const userFound = await getConnection()
+        .createQueryBuilder()
+        .select('user')
+        .from(User, 'user')
+        .where('user.email = :useremail', { useremail: email })
+        .getOne();
+      if (userFound) {
+        if (userFound.password === password) {
+          return {
+            data: true,
+            userId: userFound.id,
+          };
+        } else {
+          throw new HttpException(
+            {
+              status: HttpStatus.UNAUTHORIZED,
+              error: 'The password you entered is not correct!',
+            },
+            HttpStatus.UNAUTHORIZED,
+          );
+        }
+      } else {
+        throw new HttpException(
+          {
+            status: HttpStatus.NOT_FOUND,
+            error: 'User not found!',
+          },
+          HttpStatus.NOT_FOUND,
+        );
       }
-    } else {
-      throw new NotFoundException();
-      return {
-        data: false,
-      };
+    } catch (err) {
+      return err;
     }
-    return {
-      data: false,
-    };
   }
 
   generateNewPassword(): string {
@@ -53,16 +107,47 @@ export class UserService {
   }
 
   async resetUserPassword(email: string): Promise<User> {
-    const userToUpdate = await getConnection()
-      .createQueryBuilder()
-      .select('user')
-      .from(User, 'user')
-      .where('user.email = :useremail', { useremail: email })
-      .getOne();
-    const updatedUser = userToUpdate;
-    updatedUser.password = this.generateNewPassword();
-    this.mailService.sendUserConfirmation(updatedUser, updatedUser.password);
-    await this.userRepository.update(userToUpdate.id, updatedUser);
-    return this.userRepository.findOne(updatedUser.id);
+    try {
+      const userToUpdate = await getConnection()
+        .createQueryBuilder()
+        .select('user')
+        .from(User, 'user')
+        .where('user.email = :useremail', { useremail: email })
+        .getOne();
+      if (userToUpdate) {
+        const updatedUser = userToUpdate;
+        updatedUser.password = this.generateNewPassword();
+        this.mailService.sendUserConfirmation(
+          updatedUser,
+          updatedUser.password,
+        );
+        try {
+          const updatedUserResult = await this.userRepository.update(
+            userToUpdate.id,
+            updatedUser,
+          );
+          if (updatedUserResult)
+            return this.userRepository.findOne(updatedUser.id);
+          throw new HttpException(
+            {
+              status: HttpStatus.NOT_FOUND,
+              error: 'We did not find updated user!',
+            },
+            HttpStatus.NOT_FOUND,
+          );
+        } catch (err) {
+          return err;
+        }
+      }
+      throw new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          error: 'We could not find the user!',
+        },
+        HttpStatus.NOT_FOUND,
+      );
+    } catch (err) {
+      return err;
+    }
   }
 }
