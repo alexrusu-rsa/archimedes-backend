@@ -21,7 +21,7 @@ export class UserService {
 
   async getUsers(): Promise<User[]> {
     try {
-      const foundUsers = this.userRepository.find();
+      const foundUsers = await this.userRepository.find();
       if (foundUsers) return foundUsers;
       throw new HttpException(
         {
@@ -36,7 +36,7 @@ export class UserService {
   }
   async getUser(userToFindId: string): Promise<User> {
     try {
-      const userFound = this.userRepository.findOne(userToFindId);
+      const userFound = await this.userRepository.findOne(userToFindId);
       if (userFound) return userFound;
       throw new HttpException(
         {
@@ -51,7 +51,7 @@ export class UserService {
   }
   async addUser(user: User): Promise<InsertResult> {
     try {
-      const addedUser = this.userRepository.insert(user);
+      const addedUser = await this.userRepository.insert(user);
       if (addedUser) return addedUser;
       throw new HttpException(
         {
@@ -121,23 +121,19 @@ export class UserService {
           updatedUser,
           updatedUser.password,
         );
-        try {
-          const updatedUserResult = await this.userRepository.update(
-            userToUpdate.id,
-            updatedUser,
-          );
-          if (updatedUserResult)
-            return this.userRepository.findOne(updatedUser.id);
-          throw new HttpException(
-            {
-              status: HttpStatus.NOT_FOUND,
-              error: 'We did not find updated user!',
-            },
-            HttpStatus.NOT_FOUND,
-          );
-        } catch (err) {
-          return err;
-        }
+        const updatedUserResult = await this.userRepository.update(
+          userToUpdate.id,
+          updatedUser,
+        );
+        if (updatedUserResult)
+          return await this.userRepository.findOne(updatedUser.id);
+        throw new HttpException(
+          {
+            status: HttpStatus.NOT_FOUND,
+            error: 'We did not find updated user!',
+          },
+          HttpStatus.NOT_FOUND,
+        );
       }
       throw new HttpException(
         {

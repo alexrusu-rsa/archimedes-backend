@@ -25,6 +25,8 @@
     "@nestjs/common": "^8.4.0",
     "@nestjs/core": "^8.4.0",
     "@nestjs/platform-express": "^8.4.0",
+    "@types/bcrypt": "^5.0.0",
+    "bcrypt": "^5.0.1",
     "ejs": "^3.1.6",
     "handlebars": "^4.7.7",
     "nodemailer": "^6.7.2",

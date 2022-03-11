@@ -18,7 +18,7 @@ export class ActivityService {
 
   async getActivities(): Promise<Activity[]> {
     try {
-      const activities = this.activityRepository.find();
+      const activities = await this.activityRepository.find();
       if (activities) return activities;
       throw new HttpException(
         {
@@ -34,7 +34,7 @@ export class ActivityService {
 
   async addActivity(activity: Activity): Promise<InsertResult> {
     try {
-      const insertionResult = this.activityRepository.insert(activity);
+      const insertionResult = await this.activityRepository.insert(activity);
       if (insertionResult) return insertionResult;
       throw new HttpException(
         {
@@ -50,7 +50,7 @@ export class ActivityService {
 
   async findOne(id: string): Promise<Activity> {
     try {
-      const foundActivity = this.activityRepository.findOne(id);
+      const foundActivity = await this.activityRepository.findOne(id);
       if (foundActivity) return foundActivity;
       throw new HttpException(
         {
@@ -73,7 +73,7 @@ export class ActivityService {
             id,
             activity,
           );
-          if (updatedActivity) return this.activityRepository.findOne(id);
+          if (updatedActivity) return await this.activityRepository.findOne(id);
           throw new HttpException(
             {
               status: HttpStatus.BAD_REQUEST,
@@ -100,21 +100,17 @@ export class ActivityService {
     try {
       const activityToDelete = await this.findOne(id);
       if (activityToDelete) {
-        try {
-          const deletionResult = this.activityRepository.delete(id);
-          if (deletionResult) {
-            return deletionResult;
-          }
-          throw new HttpException(
-            {
-              status: HttpStatus.BAD_REQUEST,
-              error: 'Activity was not deleted!',
-            },
-            HttpStatus.BAD_REQUEST,
-          );
-        } catch (err) {
-          return err;
+        const deletionResult = await this.activityRepository.delete(id);
+        if (deletionResult) {
+          return deletionResult;
         }
+        throw new HttpException(
+          {
+            status: HttpStatus.BAD_REQUEST,
+            error: 'Activity was not deleted!',
+          },
+          HttpStatus.BAD_REQUEST,
+        );
       }
       throw new HttpException(
         {
