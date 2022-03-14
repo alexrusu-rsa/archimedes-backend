@@ -21,14 +21,11 @@ export class ActivityService {
       const activities = this.activityRepository.find();
       if (activities) return activities;
       throw new HttpException(
-        {
-          status: HttpStatus.NOT_FOUND,
-          error: 'We could not find the activites!',
-        },
+        'We could not find the activites!',
         HttpStatus.NOT_FOUND,
       );
     } catch (err) {
-      return err;
+      throw err;
     }
   }
 
@@ -37,14 +34,11 @@ export class ActivityService {
       const insertionResult = this.activityRepository.insert(activity);
       if (insertionResult) return insertionResult;
       throw new HttpException(
-        {
-          status: HttpStatus.BAD_REQUEST,
-          error: 'Activity insertion failed!',
-        },
+        'Activity insertion failed!',
         HttpStatus.BAD_REQUEST,
       );
     } catch (err) {
-      return err;
+      throw err;
     }
   }
 
@@ -53,14 +47,11 @@ export class ActivityService {
       const foundActivity = this.activityRepository.findOne(id);
       if (foundActivity) return foundActivity;
       throw new HttpException(
-        {
-          status: HttpStatus.NOT_FOUND,
-          error: 'We could not find the activity you were searching for!',
-        },
+        'We could not find the activity you were searching for!',
         HttpStatus.NOT_FOUND,
       );
     } catch (err) {
-      return err;
+      throw err;
     }
   }
 
@@ -75,24 +66,18 @@ export class ActivityService {
           );
           if (updatedActivity) return this.activityRepository.findOne(id);
           throw new HttpException(
-            {
-              status: HttpStatus.BAD_REQUEST,
-              error: 'We could not update the activity!',
-            },
+            'We could not update the activity!',
             HttpStatus.BAD_REQUEST,
           );
         } catch (err) {}
       } else {
         throw new HttpException(
-          {
-            status: HttpStatus.NOT_FOUND,
-            error: 'The activity you tried to update could not be found!',
-          },
+          'The activity you tried to update could not be found!',
           HttpStatus.NOT_FOUND,
         );
       }
     } catch (err) {
-      return err;
+      throw err;
     }
   }
 
@@ -106,10 +91,7 @@ export class ActivityService {
             return deletionResult;
           }
           throw new HttpException(
-            {
-              status: HttpStatus.BAD_REQUEST,
-              error: 'Activity was not deleted!',
-            },
+            'Activity was not deleted!',
             HttpStatus.BAD_REQUEST,
           );
         } catch (err) {
@@ -117,14 +99,11 @@ export class ActivityService {
         }
       }
       throw new HttpException(
-        {
-          status: HttpStatus.NOT_FOUND,
-          error: 'Activity could not be found!',
-        },
+        'Activity could not be found!',
         HttpStatus.NOT_FOUND,
       );
     } catch (err) {
-      return err;
+      throw err;
     }
   }
 
@@ -137,15 +116,9 @@ export class ActivityService {
         .where('activity.date = :date', { date: dateToFind })
         .getMany();
       if (activitiesFound) return activitiesFound;
-      throw new HttpException(
-        {
-          status: HttpStatus.NOT_FOUND,
-          error: 'No activities were found',
-        },
-        HttpStatus.NOT_FOUND,
-      );
+      throw new HttpException('No activities were found', HttpStatus.NOT_FOUND);
     } catch (err) {
-      return err;
+      throw err;
     }
   }
 
@@ -162,15 +135,9 @@ export class ActivityService {
         .andWhere('activity.employeeId = :employeeId', { employeeId: id })
         .getMany();
       if (activitiesEmployeeDate) return activitiesEmployeeDate;
-      throw new HttpException(
-        {
-          status: HttpStatus.NOT_FOUND,
-          error: 'No activities were found',
-        },
-        HttpStatus.NOT_FOUND,
-      );
+      throw new HttpException('No activities were found', HttpStatus.NOT_FOUND);
     } catch (err) {
-      return err;
+      throw err;
     }
   }
 }

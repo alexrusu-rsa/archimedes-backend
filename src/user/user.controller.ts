@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Param, Post, Put } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpException,
+  Param,
+  Post,
+  Put,
+} from '@nestjs/common';
 import { RequestWrapper } from 'src/custom/requestwrapper';
 import { User } from 'src/entity/user.entity';
 import { UserService } from './user.service';
@@ -18,7 +26,7 @@ export class UserController {
   }
 
   @Post('/creds')
-  logUserByUsername(@Body() user: User): Promise<RequestWrapper> {
+  logUserByEmail(@Body() user: User): Promise<RequestWrapper | HttpException> {
     return this.userService.logUserIn(user.email, user.password);
   }
 
