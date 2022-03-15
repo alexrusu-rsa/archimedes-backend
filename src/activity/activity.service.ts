@@ -71,17 +71,15 @@ export class ActivityService {
     try {
       const toUpdateActivity = await this.activityRepository.findOne(id);
       if (toUpdateActivity) {
-        try {
-          const updatedActivity = await this.activityRepository.update(
-            id,
-            activity,
-          );
-          if (updatedActivity) return this.activityRepository.findOne(id);
-          throw new HttpException(
-            'We could not update the activity!',
-            HttpStatus.BAD_REQUEST,
-          );
-        } catch (err) {}
+        const updatedActivity = await this.activityRepository.update(
+          id,
+          activity,
+        );
+        if (updatedActivity) return this.activityRepository.findOne(id);
+        throw new HttpException(
+          'We could not update the activity!',
+          HttpStatus.BAD_REQUEST,
+        );
       } else {
         throw new HttpException(
           'The activity you tried to update could not be found!',
@@ -97,18 +95,14 @@ export class ActivityService {
     try {
       const activityToDelete = await this.findOne(id);
       if (activityToDelete) {
-        try {
-          const deletionResult = this.activityRepository.delete(id);
-          if (deletionResult) {
-            return deletionResult;
-          }
-          throw new HttpException(
-            'Activity was not deleted!',
-            HttpStatus.BAD_REQUEST,
-          );
-        } catch (err) {
-          throw err;
+        const deletionResult = this.activityRepository.delete(id);
+        if (deletionResult) {
+          return deletionResult;
         }
+        throw new HttpException(
+          'Activity was not deleted!',
+          HttpStatus.BAD_REQUEST,
+        );
       }
       throw new HttpException(
         'Activity could not be found!',
