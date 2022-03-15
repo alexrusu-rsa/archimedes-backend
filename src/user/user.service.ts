@@ -54,7 +54,7 @@ export class UserService {
         HttpStatus.BAD_REQUEST,
       );
     } catch (err) {
-      return err;
+      throw err;
     }
   }
 
@@ -112,20 +112,16 @@ export class UserService {
           updatedUser,
           updatedUser.password,
         );
-        try {
-          const updatedUserResult = await this.userRepository.update(
-            userToUpdate.id,
-            updatedUser,
-          );
-          if (updatedUserResult)
-            return this.userRepository.findOne(updatedUser.id);
-          throw new HttpException(
-            'We did not find updated user!',
-            HttpStatus.NOT_FOUND,
-          );
-        } catch (err) {
-          return err;
-        }
+        const updatedUserResult = await this.userRepository.update(
+          userToUpdate.id,
+          updatedUser,
+        );
+        if (updatedUserResult)
+          return this.userRepository.findOne(updatedUser.id);
+        throw new HttpException(
+          'We did not find updated user!',
+          HttpStatus.NOT_FOUND,
+        );
       }
       throw new HttpException(
         'We could not find the user!',

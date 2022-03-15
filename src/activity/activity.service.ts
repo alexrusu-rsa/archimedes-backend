@@ -95,7 +95,7 @@ export class ActivityService {
             HttpStatus.BAD_REQUEST,
           );
         } catch (err) {
-          return err;
+          throw err;
         }
       }
       throw new HttpException(
