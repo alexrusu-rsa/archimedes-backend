@@ -31,11 +31,23 @@ export class ActivityService {
 
   async addActivity(activity: Activity): Promise<InsertResult> {
     try {
+      if (
+        !activity.date ||
+        !activity.start ||
+        !activity.employeeId ||
+        !activity.end ||
+        !activity.name
+      )
+        throw new HttpException(
+          'Make sure you add required information about the activity!',
+          HttpStatus.NOT_ACCEPTABLE,
+        );
       const insertionResult = this.activityRepository.insert(activity);
+
       if (insertionResult) return insertionResult;
       throw new HttpException(
         'Activity insertion failed!',
-        HttpStatus.BAD_REQUEST,
+        HttpStatus.NOT_ACCEPTABLE,
       );
     } catch (err) {
       throw err;
