@@ -33,9 +33,16 @@ export class UserService {
       throw err;
     }
   }
-  async getUser(userToFindId: string): Promise<User> {
+
+  async create(userData: User) {
+    const newUser = await this.userRepository.create(userData);
+    await this.userRepository.save(newUser);
+    return newUser;
+  }
+
+  async getUser(userId: string): Promise<User> {
     try {
-      const userFound = this.userRepository.findOne(userToFindId);
+      const userFound = this.userRepository.findOne(userId);
       if (userFound) return userFound;
       throw new HttpException(
         'We could not find the user!',
@@ -55,6 +62,46 @@ export class UserService {
       );
     } catch (err) {
       throw err;
+    }
+  }
+  private async verifyPassword(
+    plainTextPassword: string,
+    hashedPassword: string,
+  ) {
+    const isPasswordMatching = await bcrypt.compare(
+      plainTextPassword,
+      hashedPassword,
+    );
+    if (!isPasswordMatching) {
+      throw new HttpException(
+        'Wrong credentials provided',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
+
+  async getByEmail(email: string) {
+    const user = await this.userRepository.findOne({ email });
+    if (user) {
+      return user;
+    }
+    throw new HttpException(
+      'User with this email does not exist',
+      HttpStatus.NOT_FOUND,
+    );
+  }
+
+  async getAuthenticatedUser(email: string, plainTextPassword: string) {
+    try {
+      const user = await this.getByEmail(email);
+      await this.verifyPassword(plainTextPassword, user.password);
+      user.password = undefined;
+      return user;
+    } catch (error) {
+      throw new HttpException(
+        'Wrong credentials provided',
+        HttpStatus.BAD_REQUEST,
+      );
     }
   }
 
