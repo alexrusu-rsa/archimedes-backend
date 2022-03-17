@@ -124,11 +124,9 @@ export class UserService {
         .getOne();
       if (userToUpdate) {
         const updatedUser = userToUpdate;
-        updatedUser.password = this.generateNewPassword();
-        this.mailService.sendUserConfirmation(
-          updatedUser,
-          updatedUser.password,
-        );
+        const newPassword = this.generateNewPassword();
+        updatedUser.password = await this.hashPassword(newPassword);
+        this.mailService.sendUserConfirmation(updatedUser, newPassword);
         const updatedUserResult = await this.userRepository.update(
           userToUpdate.id,
           updatedUser,
@@ -152,6 +150,6 @@ export class UserService {
   async hashPassword(plainTextPassword: string) {
     const saltOrRounds = 10;
     const hash = await bcrypt.hash(plainTextPassword, saltOrRounds);
-    console.log(hash);
+    return hash;
   }
 }
