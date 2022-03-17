@@ -58,6 +58,23 @@ export class UserService {
     }
   }
 
+  async getUserByEmail(userEmail: string): Promise<User> {
+    try {
+      const foundUser = await getConnection()
+        .createQueryBuilder()
+        .select('user')
+        .from(User, 'user')
+        .where('user.email = :useremail', { useremail: userEmail })
+        .getOne();
+      if (foundUser) return foundUser;
+      throw new HttpException(
+        'User with this email was not found!',
+        HttpStatus.NOT_FOUND,
+      );
+    } catch (err) {
+      throw err;
+    }
+  }
   async logUserIn(
     email: string,
     password: string,
