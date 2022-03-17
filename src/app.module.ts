@@ -24,6 +24,7 @@ import { MailModule } from './mail/mail.module';
     ]),
     MailModule,
   ],
+
   controllers: [AppController],
   providers: [AppService],
 })
