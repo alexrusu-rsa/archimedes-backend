@@ -29,11 +29,11 @@ export class UserController {
     return this.userService.getUser(id);
   }
 
-  @UseGuards(JwtAuthGuard)
-  @Post('/creds')
-  logUserByEmail(@Body() user: User): Promise<RequestWrapper | HttpException> {
-    return this.userService.logUserIn(user.email, user.password);
-  }
+  // @UseGuards(JwtAuthGuard)
+  // @Post('/creds')
+  // logUserByEmail(@Body() user: User): Promise<RequestWrapper | HttpException> {
+  //   return this.userService.logUserIn(user.email, user.password);
+  // }
 
   @Put('/password')
   resetUserPassword(@Body() user: User) {
