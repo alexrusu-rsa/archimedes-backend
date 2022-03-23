@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpException,
   Param,
@@ -17,13 +18,13 @@ import { UserService } from './user.service';
 export class UserController {
   constructor(private userService: UserService) {}
 
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAuthGuard)
   @Get()
   getUsers(): Promise<User[]> {
     return this.userService.getUsers();
   }
 
-  @UseGuards(JwtAuthGuard)
+  // @UseGuards(JwtAuthGuard)
   @Get(':id')
   getUser(@Param() id: string): Promise<User> {
     return this.userService.getUser(id);
@@ -37,5 +38,10 @@ export class UserController {
   @Post()
   addUser(@Body() user: User) {
     return this.userService.addUser(user);
+  }
+
+  @Delete(':id')
+  deleteUser(@Param() userId: string) {
+    return this.userService.deleteUserById(userId);
   }
 }

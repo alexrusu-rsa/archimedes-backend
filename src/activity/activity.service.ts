@@ -146,4 +146,22 @@ export class ActivityService {
       throw err;
     }
   }
+
+  async getActivitiesByEmployeeId(id: string): Promise<Activity[]> {
+    try {
+      const activitiesByEmployeeId = await getConnection()
+        .createQueryBuilder()
+        .select('activity')
+        .from(Activity, 'activity')
+        .where('activity.employeeId = :employeeId', { employeeId: id })
+        .getMany();
+      if (activitiesByEmployeeId) return activitiesByEmployeeId;
+      throw new HttpException(
+        'No activities were found for this employee.',
+        HttpStatus.NOT_FOUND,
+      );
+    } catch (err) {
+      throw err;
+    }
+  }
 }

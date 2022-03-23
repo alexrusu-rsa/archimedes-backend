@@ -147,6 +147,25 @@ export class UserService {
     }
   }
 
+  async deleteUserById(userId: string) {
+    try {
+      const userToDelete = await this.userRepository.findOne(userId);
+      if (userToDelete) {
+        const deletionResult = this.userRepository.delete(userId);
+        if (deletionResult) {
+          return deletionResult;
+        }
+        throw new HttpException(
+          'User was not deleted!',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      throw new HttpException('User could not be found!', HttpStatus.NOT_FOUND);
+    } catch (err) {
+      throw err;
+    }
+  }
+
   async hashPassword(plainTextPassword: string) {
     const saltOrRounds = 10;
     const hash = await bcrypt.hash(plainTextPassword, saltOrRounds);

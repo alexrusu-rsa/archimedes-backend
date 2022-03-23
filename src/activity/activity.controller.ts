@@ -10,6 +10,8 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { Role } from 'src/auth/role.enum';
+import { Roles } from 'src/auth/roles.decorator';
 import { RequestWrapper } from 'src/custom/requestwrapper';
 import { Activity } from 'src/entity/activity.entity';
 import { ActivityService } from './activity.service';
@@ -33,6 +35,14 @@ export class ActivityController {
       request.data,
       request.userId,
     );
+  }
+
+  @Post('/employee')
+  @Roles(Role.Admin)
+  getActivitiesOfEmployee(
+    @Body() request: RequestWrapper,
+  ): Promise<Activity[]> {
+    return this.activityService.getActivitiesByEmployeeId(request.userId);
   }
 
   @UseGuards(JwtAuthGuard)
