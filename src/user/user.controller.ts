@@ -44,4 +44,9 @@ export class UserController {
   deleteUser(@Param() userId: string) {
     return this.userService.deleteUserById(userId);
   }
+
+  @Put(':id')
+  updateUser(@Body() user: User, @Param('id') id: string): Promise<User> {
+    return this.userService.updateUserById(id, user);
+  }
 }

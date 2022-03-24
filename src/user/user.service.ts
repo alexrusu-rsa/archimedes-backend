@@ -166,6 +166,27 @@ export class UserService {
     }
   }
 
+  async updateUserById(id: string, user: User): Promise<User> {
+    try {
+      const toUpdateUser = await this.userRepository.findOne(id);
+      if (toUpdateUser) {
+        const updatedUser = await this.userRepository.update(id, user);
+        if (updatedUser) return this.userRepository.findOne(id);
+        throw new HttpException(
+          'We could not update the user!',
+          HttpStatus.BAD_REQUEST,
+        );
+      } else {
+        throw new HttpException(
+          'The user you tried to update could not be found!',
+          HttpStatus.NOT_FOUND,
+        );
+      }
+    } catch (err) {
+      throw err;
+    }
+  }
+
   async hashPassword(plainTextPassword: string) {
     const saltOrRounds = 10;
     const hash = await bcrypt.hash(plainTextPassword, saltOrRounds);
