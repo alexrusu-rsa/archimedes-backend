@@ -6,7 +6,9 @@ import {
   Param,
   Post,
   Put,
+  UseGuards,
 } from '@nestjs/common';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { RequestWrapper } from 'src/custom/requestwrapper';
 import { User } from 'src/entity/user.entity';
 import { UserService } from './user.service';
@@ -15,19 +17,16 @@ import { UserService } from './user.service';
 export class UserController {
   constructor(private userService: UserService) {}
 
+  @UseGuards(JwtAuthGuard)
   @Get()
   getUsers(): Promise<User[]> {
     return this.userService.getUsers();
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get(':id')
   getUser(@Param() id: string): Promise<User> {
     return this.userService.getUser(id);
-  }
-
-  @Post('/creds')
-  logUserByEmail(@Body() user: User): Promise<RequestWrapper | HttpException> {
-    return this.userService.logUserIn(user.email, user.password);
   }
 
   @Put('/password')

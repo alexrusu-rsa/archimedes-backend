@@ -58,6 +58,23 @@ export class UserService {
     }
   }
 
+  async getUserByEmail(userEmail: string): Promise<User> {
+    try {
+      const foundUser = await getConnection()
+        .createQueryBuilder()
+        .select('user')
+        .from(User, 'user')
+        .where('user.email = :useremail', { useremail: userEmail })
+        .getOne();
+      if (foundUser) return foundUser;
+      throw new HttpException(
+        'User with this email was not found!',
+        HttpStatus.NOT_FOUND,
+      );
+    } catch (err) {
+      throw err;
+    }
+  }
   async logUserIn(
     email: string,
     password: string,
@@ -107,11 +124,9 @@ export class UserService {
         .getOne();
       if (userToUpdate) {
         const updatedUser = userToUpdate;
-        updatedUser.password = this.generateNewPassword();
-        this.mailService.sendUserConfirmation(
-          updatedUser,
-          updatedUser.password,
-        );
+        const newPassword = this.generateNewPassword();
+        updatedUser.password = await this.hashPassword(newPassword);
+        this.mailService.sendUserConfirmation(updatedUser, newPassword);
         const updatedUserResult = await this.userRepository.update(
           userToUpdate.id,
           updatedUser,
@@ -135,6 +150,6 @@ export class UserService {
   async hashPassword(plainTextPassword: string) {
     const saltOrRounds = 10;
     const hash = await bcrypt.hash(plainTextPassword, saltOrRounds);
-    console.log(hash);
+    return hash;
   }
 }
