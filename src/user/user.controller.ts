@@ -18,13 +18,13 @@ import { UserService } from './user.service';
 export class UserController {
   constructor(private userService: UserService) {}
 
-  // @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Get()
   getUsers(): Promise<User[]> {
     return this.userService.getUsers();
   }
 
-  // @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Get(':id')
   getUser(@Param() id: string): Promise<User> {
     return this.userService.getUser(id);
@@ -35,16 +35,19 @@ export class UserController {
     return this.userService.resetUserPassword(user.email);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post()
   addUser(@Body() user: User) {
     return this.userService.addUser(user);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Delete(':id')
   deleteUser(@Param() userId: string) {
     return this.userService.deleteUserById(userId);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Put(':id')
   updateUser(@Body() user: User, @Param('id') id: string): Promise<User> {
     return this.userService.updateUserById(id, user);
