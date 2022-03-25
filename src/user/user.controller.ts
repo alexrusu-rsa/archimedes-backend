@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpException,
   Param,
@@ -34,8 +35,21 @@ export class UserController {
     return this.userService.resetUserPassword(user.email);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post()
   addUser(@Body() user: User) {
     return this.userService.addUser(user);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete(':id')
+  deleteUser(@Param() userId: string) {
+    return this.userService.deleteUserById(userId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Put(':id')
+  updateUser(@Body() user: User, @Param('id') id: string): Promise<User> {
+    return this.userService.updateUserById(id, user);
   }
 }
