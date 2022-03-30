@@ -7,11 +7,13 @@ import { UserModule } from './user/user.module';
 import { MailModule } from './mail/mail.module';
 import { AuthModule } from './auth/auth.module';
 import { RolesGuard } from './auth/roles.guard';
+import { CustomerModule } from './customer/customer.module';
 
 @Module({
   imports: [
     ActivityModule,
     UserModule,
+    CustomerModule,
     AuthModule,
     RouterModule.register([
       {
@@ -21,6 +23,10 @@ import { RolesGuard } from './auth/roles.guard';
       {
         path: 'user',
         module: UserModule,
+      },
+      {
+        path: 'customer',
+        module: CustomerModule,
       },
     ]),
     MailModule,
