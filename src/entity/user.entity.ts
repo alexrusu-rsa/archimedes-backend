@@ -1,3 +1,4 @@
+import { Role } from 'src/auth/role.enum';
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
@@ -8,7 +9,7 @@ export class User {
   @Column()
   password: string;
 
-  @Column()
+  @Column({ unique: true })
   email: string;
 
   @Column({ nullable: true })
@@ -22,4 +23,7 @@ export class User {
 
   @Column({ nullable: true })
   seniority?: string;
+
+  @Column({ nullable: true })
+  roles?: string;
 }
