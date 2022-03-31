@@ -23,7 +23,11 @@ export class UserService {
 
   async getUsers(): Promise<User[]> {
     try {
-      const foundUsers = this.userRepository.find();
+      const foundUsers = await this.userRepository.find();
+      foundUsers.forEach((found) => {
+        const { password, ...foundUserNoPass } = found;
+        foundUsers[foundUsers.indexOf(found)] = foundUserNoPass;
+      });
       if (foundUsers) return foundUsers;
       throw new HttpException(
         'We could not find any users!',
@@ -35,8 +39,10 @@ export class UserService {
   }
   async getUser(userToFindId: string): Promise<User> {
     try {
-      const userFound = this.userRepository.findOne(userToFindId);
-      if (userFound) return userFound;
+      const userFound = await this.userRepository.findOne(userToFindId);
+      const { password, ...userFoundNoPassword } = userFound;
+      if (userFound) return userFoundNoPassword;
+
       throw new HttpException(
         'We could not find the user!',
         HttpStatus.NOT_FOUND,
