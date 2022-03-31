@@ -55,10 +55,7 @@ export class UserController {
 
   @Put(':id')
   @Roles(Role.Admin)
-  updateUser(
-    @Body() user: RequestWrapperWithUserRole,
-    @Param('id') id: string,
-  ): Promise<User> {
+  updateUser(@Body() user: User, @Param('id') id: string): Promise<User> {
     return this.userService.updateUserById(id, user);
   }
 }
