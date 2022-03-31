@@ -10,7 +10,10 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { Role } from 'src/auth/role.enum';
+import { Roles } from 'src/auth/roles.decorator';
 import { RequestWrapper } from 'src/custom/requestwrapper';
+import { RequestWrapperWithUserRole } from 'src/custom/requestWrapperWithUserRole';
 import { User } from 'src/entity/user.entity';
 import { UserService } from './user.service';
 
@@ -20,6 +23,7 @@ export class UserController {
 
   @UseGuards(JwtAuthGuard)
   @Get()
+  @Roles(Role.Admin)
   getUsers(): Promise<User[]> {
     return this.userService.getUsers();
   }
@@ -37,18 +41,20 @@ export class UserController {
 
   @UseGuards(JwtAuthGuard)
   @Post()
+  @Roles(Role.Admin)
   addUser(@Body() user: User) {
     return this.userService.addUser(user);
   }
 
   @UseGuards(JwtAuthGuard)
+  @Roles(Role.Admin)
   @Delete(':id')
   deleteUser(@Param() userId: string) {
     return this.userService.deleteUserById(userId);
   }
 
-  @UseGuards(JwtAuthGuard)
   @Put(':id')
+  @Roles(Role.Admin)
   updateUser(@Body() user: User, @Param('id') id: string): Promise<User> {
     return this.userService.updateUserById(id, user);
   }

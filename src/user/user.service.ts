@@ -47,6 +47,7 @@ export class UserService {
   }
   async addUser(user: User): Promise<InsertResult> {
     try {
+      user.password = await this.hashPassword(user.password);
       const addedUser = this.userRepository.insert(user);
       if (addedUser) return addedUser;
       throw new HttpException(
@@ -191,5 +192,18 @@ export class UserService {
     const saltOrRounds = 10;
     const hash = await bcrypt.hash(plainTextPassword, saltOrRounds);
     return hash;
+  }
+
+  async checkRoleOfUser(userId: string): Promise<string> {
+    try {
+      const foundUser = await this.userRepository.findOne(userId);
+      if (foundUser) return foundUser.roles;
+      throw new HttpException(
+        'We could not find the user in the database.',
+        HttpStatus.NOT_FOUND,
+      );
+    } catch (err) {
+      throw err;
+    }
   }
 }
