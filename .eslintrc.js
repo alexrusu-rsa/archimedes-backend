@@ -30,5 +30,6 @@ module.exports = {
     'no-console': ['warn'],
     'no-empty': ['warn'],
     'no-empty-function': ['warn'],
+    'no-ternary': ['warn'],
   },
 };
