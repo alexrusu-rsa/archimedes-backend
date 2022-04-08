@@ -19,7 +19,7 @@ import { ProjectModule } from './project/project.module';
     AuthModule,
     RouterModule.register([
       {
-        path: 'api/activity',
+        path: 'activity',
         module: ActivityModule,
       },
       {
