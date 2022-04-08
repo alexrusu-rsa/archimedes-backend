@@ -31,5 +31,6 @@ module.exports = {
     'no-empty': ['warn'],
     'no-empty-function': ['warn'],
     'no-ternary': ['warn'],
+    eqeqeq: ['warn'],
   },
 };
