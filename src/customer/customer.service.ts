@@ -22,10 +22,13 @@ export class CustomerService {
     }
   }
 
-  async addCustomer(customer: Customer): Promise<InsertResult> {
+  async addCustomer(customer: Customer): Promise<Customer> {
     try {
-      const insertionResult = this.customerRepository.insert(customer);
-      if (insertionResult) return insertionResult;
+      const newCustomerId = (await this.customerRepository.insert(customer))
+        .identifiers[0]?.id;
+      if (newCustomerId)
+        return await this.customerRepository.findOne(newCustomerId);
+
       throw new HttpException(
         'Customer insertion failed!',
         HttpStatus.NOT_ACCEPTABLE,
