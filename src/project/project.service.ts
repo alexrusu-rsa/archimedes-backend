@@ -22,10 +22,13 @@ export class ProjectService {
     }
   }
 
-  async addProject(project: Project): Promise<InsertResult> {
+  async addProject(project: Project): Promise<Project> {
     try {
-      const insertionResult = this.projectRepository.insert(project);
-      if (insertionResult) return insertionResult;
+      const newProjectId = (await this.projectRepository.insert(project))
+        .identifiers[0]?.id;
+      if (newProjectId)
+        return await this.projectRepository.findOne(newProjectId);
+
       throw new HttpException(
         'Project insertion failed!',
         HttpStatus.NOT_ACCEPTABLE,
