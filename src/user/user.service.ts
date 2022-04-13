@@ -56,7 +56,7 @@ export class UserService {
       user.password = await this.hashPassword(user.password);
       const newUserId = (await this.userRepository.insert(user)).identifiers[0]
         ?.id;
-      if (newUserId) await this.userRepository.findOne(newUserId);
+      if (newUserId) return await this.userRepository.findOne(newUserId);
       throw new HttpException(
         'Bad request when trying to add user!',
         HttpStatus.NOT_ACCEPTABLE,
