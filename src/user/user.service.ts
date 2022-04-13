@@ -51,14 +51,15 @@ export class UserService {
       throw err;
     }
   }
-  async addUser(user: User): Promise<InsertResult> {
+  async addUser(user: User): Promise<User> {
     try {
       user.password = await this.hashPassword(user.password);
-      const addedUser = this.userRepository.insert(user);
-      if (addedUser) return addedUser;
+      const newUserId = (await this.userRepository.insert(user)).identifiers[0]
+        ?.id;
+      if (newUserId) await this.userRepository.findOne(newUserId);
       throw new HttpException(
         'Bad request when trying to add user!',
-        HttpStatus.BAD_REQUEST,
+        HttpStatus.NOT_ACCEPTABLE,
       );
     } catch (err) {
       throw err;
