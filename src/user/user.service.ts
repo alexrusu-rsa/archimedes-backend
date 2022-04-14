@@ -170,6 +170,7 @@ export class UserService {
     try {
       const toUpdateUser = await this.userRepository.findOneBy({ id });
       if (toUpdateUser) {
+        user.password = await this.hashPassword(user.password);
         const updatedUser = await this.userRepository.update(id, user);
         if (updatedUser) return this.userRepository.findOneBy({ id });
         throw new HttpException(

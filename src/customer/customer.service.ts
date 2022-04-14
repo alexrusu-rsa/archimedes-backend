@@ -27,7 +27,7 @@ export class CustomerService {
       const newCustomerId = (await this.customerRepository.insert(customer))
         .identifiers[0]?.id;
       if (newCustomerId)
-        return await this.customerRepository.findOne(newCustomerId);
+        return await this.customerRepository.findOneBy({ id: newCustomerId });
 
       throw new HttpException(
         'Customer insertion failed!',
