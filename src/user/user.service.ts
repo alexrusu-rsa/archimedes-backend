@@ -37,9 +37,9 @@ export class UserService {
       throw err;
     }
   }
-  async getUser(userToFindId: string): Promise<User> {
+  async getUser(id: string): Promise<User> {
     try {
-      const userFound = await this.userRepository.findOne(userToFindId);
+      const userFound = await this.userRepository.findOneBy({ id });
       const { password, ...userFoundNoPassword } = userFound;
       if (userFound) return userFoundNoPassword;
 
@@ -140,7 +140,7 @@ export class UserService {
           updatedUser,
         );
         if (updatedUserResult)
-          return this.userRepository.findOne(updatedUser.id);
+          return this.userRepository.findOneBy({ id: updatedUser.id });
         throw new HttpException(
           'We did not find updated user!',
           HttpStatus.NOT_FOUND,
@@ -155,11 +155,11 @@ export class UserService {
     }
   }
 
-  async deleteUserById(userId: string) {
+  async deleteUserById(id: string) {
     try {
-      const userToDelete = await this.userRepository.findOne(userId);
+      const userToDelete = await this.userRepository.findOneBy({ id });
       if (userToDelete) {
-        const deletionResult = this.userRepository.delete(userId);
+        const deletionResult = this.userRepository.delete(id);
         if (deletionResult) {
           return deletionResult;
         }
@@ -176,10 +176,10 @@ export class UserService {
 
   async updateUserById(id: string, user: User): Promise<User> {
     try {
-      const toUpdateUser = await this.userRepository.findOne(id);
+      const toUpdateUser = await this.userRepository.findOneBy({ id });
       if (toUpdateUser) {
         const updatedUser = await this.userRepository.update(id, user);
-        if (updatedUser) return this.userRepository.findOne(id);
+        if (updatedUser) return this.userRepository.findOneBy({ id });
         throw new HttpException(
           'We could not update the user!',
           HttpStatus.BAD_REQUEST,
@@ -201,9 +201,9 @@ export class UserService {
     return hash;
   }
 
-  async checkRoleOfUser(userId: string): Promise<string> {
+  async checkRoleOfUser(id: string): Promise<string> {
     try {
-      const foundUser = await this.userRepository.findOne(userId);
+      const foundUser = await this.userRepository.findOneBy({ id });
       if (foundUser) return foundUser.roles;
       throw new HttpException(
         'We could not find the user in the database.',
