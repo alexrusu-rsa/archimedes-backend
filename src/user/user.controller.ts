@@ -30,7 +30,7 @@ export class UserController {
 
   @UseGuards(JwtAuthGuard)
   @Get(':id')
-  getUser(@Param('id') id): Promise<User> {
+  getUser(@Param() id: string): Promise<User> {
     return this.userService.getUser(id);
   }
 
@@ -49,7 +49,7 @@ export class UserController {
   @UseGuards(JwtAuthGuard)
   @Roles(Role.Admin)
   @Delete(':id')
-  deleteUser(@Param('id') userId) {
+  deleteUser(@Param() userId: string) {
     return this.userService.deleteUserById(userId);
   }
 
