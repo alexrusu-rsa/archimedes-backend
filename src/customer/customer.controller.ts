@@ -35,7 +35,7 @@ export class CustomerController {
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
   @Roles(Role.Admin)
-  deleteCustomer(@Param() customerId: string) {
+  deleteCustomer(@Param('id') customerId: string) {
     return this.customerService.deleteCustomer(customerId);
   }
 
@@ -43,7 +43,7 @@ export class CustomerController {
   @Put(':id')
   @Roles(Role.Admin)
   updateCustomer(
-    @Param() customerToUpdateId: string,
+    @Param('id') customerToUpdateId: string,
     @Body() customer: Customer,
   ) {
     return this.customerService.updateCustomerById(
