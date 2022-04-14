@@ -1,17 +1,9 @@
-import { MailerService } from '@nestjs-modules/mailer';
 import * as bcrypt from 'bcrypt';
-import {
-  HttpException,
-  HttpStatus,
-  Inject,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { RequestWrapper } from 'src/custom/requestwrapper';
 import { User } from 'src/entity/user.entity';
 import { MailService } from 'src/mail/mail.service';
-import { getConnection, InsertResult, Repository } from 'typeorm';
-import { response } from 'express';
+import { getConnection, Repository } from 'typeorm';
 
 @Injectable()
 export class UserService {

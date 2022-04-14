@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { Customer } from 'src/entity/customer.entity';
-import { DeleteResult, InsertResult, Repository } from 'typeorm';
+import { DeleteResult, Repository } from 'typeorm';
 
 @Injectable()
 export class CustomerService {
@@ -38,13 +38,11 @@ export class CustomerService {
     }
   }
 
-  async deleteCustomer(customerId: string): Promise<DeleteResult> {
+  async deleteCustomer(id: string): Promise<DeleteResult> {
     try {
-      const customerToDelete = await this.customerRepository.findOne(
-        customerId,
-      );
+      const customerToDelete = await this.customerRepository.findOneBy({ id });
       if (customerToDelete) {
-        const deletionResult = this.customerRepository.delete(customerId);
+        const deletionResult = this.customerRepository.delete(id);
         if (deletionResult) {
           return deletionResult;
         }
@@ -64,13 +62,13 @@ export class CustomerService {
 
   async updateCustomerById(id: string, customer: Customer): Promise<Customer> {
     try {
-      const toUpdateCustomer = await this.customerRepository.findOne(id);
+      const toUpdateCustomer = await this.customerRepository.findOneBy({ id });
       if (toUpdateCustomer) {
         const updatedCustomer = await this.customerRepository.update(
           id,
           customer,
         );
-        if (updatedCustomer) return this.customerRepository.findOne(id);
+        if (updatedCustomer) return this.customerRepository.findOneBy({ id });
         throw new HttpException(
           'We could not update the customer!',
           HttpStatus.BAD_REQUEST,
