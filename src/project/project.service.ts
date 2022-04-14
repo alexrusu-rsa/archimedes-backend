@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { Project } from 'src/entity/project.entity';
-import { DeleteResult, Repository } from 'typeorm';
+import { DeleteResult, InsertResult, Repository } from 'typeorm';
 
 @Injectable()
 export class ProjectService {
@@ -40,9 +40,7 @@ export class ProjectService {
 
   async deleteProject(projectId: string): Promise<DeleteResult> {
     try {
-      const projectToDelete = await this.projectRepository.findOneBy({
-        id: projectId,
-      });
+      const projectToDelete = await this.projectRepository.findOne(projectId);
       if (projectToDelete) {
         const deletionResult = this.projectRepository.delete(projectId);
         if (deletionResult) {
@@ -64,10 +62,10 @@ export class ProjectService {
 
   async updateProjectById(id: string, project: Project): Promise<Project> {
     try {
-      const toUpdateProject = await this.projectRepository.findOneBy({ id });
+      const toUpdateProject = await this.projectRepository.findOne(id);
       if (toUpdateProject) {
         const updatedProject = await this.projectRepository.update(id, project);
-        if (updatedProject) return this.projectRepository.findOneBy({ id });
+        if (updatedProject) return this.projectRepository.findOne(id);
         throw new HttpException(
           'We could not update the project!',
           HttpStatus.BAD_REQUEST,

@@ -35,17 +35,14 @@ export class ProjectController {
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
   @Roles(Role.Admin)
-  deleteProject(@Param('id') projectId: string) {
+  deleteProject(@Param() projectId: string) {
     return this.projectService.deleteProject(projectId);
   }
 
   @UseGuards(JwtAuthGuard)
   @Put(':id')
   @Roles(Role.Admin)
-  updateProject(
-    @Param('id') projectToUpdateId: string,
-    @Body() project: Project,
-  ) {
+  updateProject(@Param() projectToUpdateId: string, @Body() project: Project) {
     return this.projectService.updateProjectById(projectToUpdateId, project);
   }
 }

@@ -1,6 +1,13 @@
-import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  HttpStatus,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Activity } from 'src/entity/activity.entity';
-import { DeleteResult, getConnection, Repository } from 'typeorm';
+import { DeleteResult, getConnection, InsertResult, Repository } from 'typeorm';
 
 @Injectable()
 export class ActivityService {
@@ -40,7 +47,7 @@ export class ActivityService {
       ).identifiers[0]?.id;
 
       if (newActivityId)
-        return await this.activityRepository.findOneBy({ id: newActivityId });
+        return await this.activityRepository.findOne(newActivityId);
       throw new HttpException(
         'Activity insertion failed!',
         HttpStatus.NOT_ACCEPTABLE,
@@ -52,9 +59,7 @@ export class ActivityService {
 
   async findOne(id: string): Promise<Activity> {
     try {
-      const foundActivity = this.activityRepository.findOneBy({
-        id,
-      });
+      const foundActivity = this.activityRepository.findOne(id);
       if (foundActivity) return foundActivity;
       throw new HttpException(
         'We could not find the activity you were searching for!',
@@ -67,18 +72,13 @@ export class ActivityService {
 
   async updateById(id: string, activity: Activity): Promise<Activity> {
     try {
-      const toUpdateActivity = await this.activityRepository.findOneBy({
-        id,
-      });
+      const toUpdateActivity = await this.activityRepository.findOne(id);
       if (toUpdateActivity) {
         const updatedActivity = await this.activityRepository.update(
           id,
           activity,
         );
-        if (updatedActivity)
-          return this.activityRepository.findOneBy({
-            id,
-          });
+        if (updatedActivity) return this.activityRepository.findOne(id);
         throw new HttpException(
           'We could not update the activity!',
           HttpStatus.BAD_REQUEST,
