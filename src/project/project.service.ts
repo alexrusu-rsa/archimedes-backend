@@ -27,7 +27,7 @@ export class ProjectService {
       const newProjectId = (await this.projectRepository.insert(project))
         .identifiers[0]?.id;
       if (newProjectId)
-        return await this.projectRepository.findOne(newProjectId);
+        return await this.projectRepository.findOneBy({ id: newProjectId });
 
       throw new HttpException(
         'Project insertion failed!',
@@ -38,11 +38,11 @@ export class ProjectService {
     }
   }
 
-  async deleteProject(projectId: string): Promise<DeleteResult> {
+  async deleteProject(id: string): Promise<DeleteResult> {
     try {
-      const projectToDelete = await this.projectRepository.findOne(projectId);
+      const projectToDelete = await this.projectRepository.findOneBy({ id });
       if (projectToDelete) {
-        const deletionResult = this.projectRepository.delete(projectId);
+        const deletionResult = this.projectRepository.delete(id);
         if (deletionResult) {
           return deletionResult;
         }
@@ -62,10 +62,10 @@ export class ProjectService {
 
   async updateProjectById(id: string, project: Project): Promise<Project> {
     try {
-      const toUpdateProject = await this.projectRepository.findOne(id);
+      const toUpdateProject = await this.projectRepository.findOneBy({ id });
       if (toUpdateProject) {
         const updatedProject = await this.projectRepository.update(id, project);
-        if (updatedProject) return this.projectRepository.findOne(id);
+        if (updatedProject) return this.projectRepository.findOneBy({ id });
         throw new HttpException(
           'We could not update the project!',
           HttpStatus.BAD_REQUEST,
