@@ -35,12 +35,16 @@
     "passport": "^0.5.2",
     "passport-jwt": "^4.0.0",
     "passport-local": "^1.0.0",
+    "pdfkit": "^0.13.0",
+    "pdfkit-table": "^0.1.86",
+    "pdfmake": "^0.2.5",
     "pg": "^8.7.3",
     "pug": "^3.0.2",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.2",
     "rxjs": "^7.5.5",
-    "typeorm": "^0.3.6"
+    "typeorm": "^0.3.6",
+    "uuidv4": "^6.2.13"
   },
   "devDependencies": {
     "@nestjs/cli": "^8.2.5",

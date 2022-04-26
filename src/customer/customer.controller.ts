@@ -3,16 +3,22 @@ import {
   Controller,
   Delete,
   Get,
+  Header,
   Param,
   Post,
   Put,
+  Res,
   UseGuards,
 } from '@nestjs/common';
+import { Response } from 'express';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { Role } from 'src/auth/role.enum';
 import { Roles } from 'src/auth/roles.decorator';
 import { Customer } from 'src/entity/customer.entity';
 import { CustomerService } from './customer.service';
+import * as fs from 'fs';
+import * as PdfPrinter from 'pdfmake';
+import { uuid } from 'uuidv4';
 
 @Controller()
 export class CustomerController {
@@ -50,5 +56,19 @@ export class CustomerController {
       customerToUpdateId,
       customer,
     );
+  }
+
+  @Get('/invoice/:id')
+  async getInvoice(
+    @Res() res: Response,
+    @Param('id') id: string,
+  ): Promise<any> {
+    const buffer = await this.customerService.generatePDF(id);
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': 'attachment; filename=example.pdf',
+      'Content-Length': buffer.length,
+    });
+    res.end(buffer);
   }
 }
