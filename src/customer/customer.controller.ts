@@ -40,6 +40,13 @@ export class CustomerController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Roles(Role.Admin)
+  @Get(':id')
+  getCustomer(@Param('id') id: string) {
+    return this.customerService.getCustomer(id);
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Put(':id')
   @Roles(Role.Admin)
   updateCustomer(

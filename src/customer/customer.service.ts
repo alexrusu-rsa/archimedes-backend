@@ -22,6 +22,19 @@ export class CustomerService {
     }
   }
 
+  async getCustomer(id: string): Promise<Customer> {
+    try {
+      const customer = this.customerRepository.findOneBy({ id });
+      if (customer) return customer;
+      throw new HttpException(
+        'We could not find the customers!',
+        HttpStatus.NOT_FOUND,
+      );
+    } catch (err) {
+      throw err;
+    }
+  }
+
   async addCustomer(customer: Customer): Promise<Customer> {
     try {
       const newCustomerId = (await this.customerRepository.insert(customer))
