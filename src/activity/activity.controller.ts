@@ -69,6 +69,7 @@ export class ActivityController {
     @Body() activity: Activity,
     @Param('id') id: string,
   ): Promise<Activity> {
+    console.log(activity);
     return this.activityService.updateById(id, activity);
   }
 

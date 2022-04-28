@@ -23,6 +23,7 @@ export class ActivityService {
   }
 
   async addActivity(activity: Activity): Promise<Activity> {
+    console.log(activity);
     try {
       if (
         !activity.date ||
