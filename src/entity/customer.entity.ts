@@ -22,6 +22,9 @@ export class Customer {
   customerCity: string;
 
   @Column()
+  customerCountry: string;
+
+  @Column()
   customerDirectorName: string;
 
   @Column()
