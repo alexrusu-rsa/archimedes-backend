@@ -21,6 +21,9 @@ export class Activity {
   end: string;
 
   @Column({ nullable: true })
+  projectId?: string;
+
+  @Column({ nullable: true })
   description?: string;
 
   @Column({ nullable: true })
