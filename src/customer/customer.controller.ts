@@ -226,19 +226,24 @@ export class CustomerController {
 
     worksheet.getCell('A46').value = 'CUI 43911790';
     worksheet.getCell('A46').alignment = { horizontal: 'left' };
+    worksheet.getCell('A46').font = { size: 9 };
 
     worksheet.getCell('A47').value = 'J31/149/2021';
     worksheet.getCell('A47').alignment = { horizontal: 'left' };
+    worksheet.getCell('A47').font = { size: 9 };
 
     worksheet.getCell('A48').value = 'Sediu: Strada Gheorghe Doja, nr. 89';
     worksheet.getCell('A48').alignment = { horizontal: 'left' };
+    worksheet.getCell('A48').font = { size: 9 };
 
     worksheet.getCell('A49').value = 'Municipiul Zalău, Județ Sălaj';
     worksheet.getCell('A49').alignment = { horizontal: 'left' };
+    worksheet.getCell('A49').font = { size: 9 };
 
     worksheet.getCell('A50').value =
       'Reprezentant: ALEX-GEORGE RUSU, Administrator';
     worksheet.getCell('A50').alignment = { horizontal: 'left' };
+    worksheet.getCell('A50').font = { size: 9 };
 
     worksheet.getCell('H49').value = 'Banca Transilvania';
     worksheet.getCell('H49').alignment = { horizontal: 'right' };
@@ -247,8 +252,8 @@ export class CustomerController {
     worksheet.getCell('H50').alignment = { horizontal: 'right' };
 
     worksheet.addImage(addedImage, {
-      tl: { col: 0, row: 0 },
-      ext: { width: 345, height: 226 },
+      tl: { col: 1, row: 2 },
+      ext: { width: 244, height: 160 },
     });
 
     res.setHeader(
