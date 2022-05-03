@@ -108,15 +108,13 @@ export class CustomerService {
             size: 'A4',
             bufferPages: true,
           });
-
-          //DETALII FACTURA
           doc.lineWidth(5);
           doc
             .lineCap('butt')
             .moveTo(40, 50)
             .lineTo(555.28, 50)
             .stroke('#2D508F');
-          doc.image('src/images/RSASOFT_TESTIMAGE.jpg', 50, 100, {
+          doc.image('src/images/logo_invoice.png', 50, 100, {
             width: 200,
           });
           doc.fontSize(14);
@@ -144,7 +142,6 @@ export class CustomerService {
             align: 'justify',
           });
 
-          //DETALII CLIENT
           doc.lineWidth(20);
 
           doc
@@ -247,7 +244,6 @@ export class CustomerService {
             .fillColor('#ffffff')
             .text('Valoare', 440, 294, { width: 110, align: 'center' });
 
-          //TOTAL
           doc.lineJoin('square').rect(375, 450, 100, 25).stroke('#000000');
           doc.lineJoin('square').rect(375, 475, 100, 25).stroke('#000000');
           doc

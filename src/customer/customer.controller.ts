@@ -17,8 +17,6 @@ import { Roles } from 'src/auth/roles.decorator';
 import { Customer } from 'src/entity/customer.entity';
 import { CustomerService } from './customer.service';
 import * as fs from 'fs';
-import * as PdfPrinter from 'pdfmake';
-import { uuid } from 'uuidv4';
 
 @Controller()
 export class CustomerController {
@@ -66,7 +64,7 @@ export class CustomerController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get('/invoice/:id')
+  @Get('/invoice/pdf/:id')
   @Roles(Role.Admin)
   async getInvoice(
     @Res() res: Response,
