@@ -1,6 +1,11 @@
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { Activity } from 'src/entity/activity.entity';
-import { DeleteResult, getConnection, Repository } from 'typeorm';
+import {
+  DeleteResult,
+  getConnection,
+  getRepository,
+  Repository,
+} from 'typeorm';
 
 @Injectable()
 export class ActivityService {
@@ -156,6 +161,18 @@ export class ActivityService {
         'No activities were found for this employee.',
         HttpStatus.NOT_FOUND,
       );
+    } catch (err) {
+      throw err;
+    }
+  }
+  async getActivitiesMonthYear(year: string, month: string) {
+    try {
+      const monthYear = month + '/' + year;
+      const activitiesOfMonthYear = await getRepository(Activity)
+        .createQueryBuilder('activity')
+        .where('activity.date like :date', { date: `%${monthYear}` })
+        .getMany();
+      if (activitiesOfMonthYear) return activitiesOfMonthYear;
     } catch (err) {
       throw err;
     }
