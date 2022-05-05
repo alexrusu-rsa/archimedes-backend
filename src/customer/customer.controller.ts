@@ -14,11 +14,15 @@ import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { Role } from 'src/auth/role.enum';
 import { Roles } from 'src/auth/roles.decorator';
 import { Customer } from 'src/entity/customer.entity';
+import { XlsxService } from 'src/xlsx/xlsx.service';
 import { CustomerService } from './customer.service';
 
 @Controller()
 export class CustomerController {
-  constructor(private customerService: CustomerService) {}
+  constructor(
+    private customerService: CustomerService,
+    private xlsxService: XlsxService,
+  ) {}
 
   @UseGuards(JwtAuthGuard)
   @Get()
@@ -29,7 +33,7 @@ export class CustomerController {
 
   @Get('/invoice/xlsx/:id')
   getCustomerXlsx(@Res() res: Response, @Param('id') id: string) {
-    return this.customerService.getCustomerExcel(res, id);
+    return this.xlsxService.getCustomerExcel(res, id);
   }
 
   @UseGuards(JwtAuthGuard)
