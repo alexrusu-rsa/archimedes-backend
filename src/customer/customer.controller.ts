@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  Header,
   Param,
   Post,
   Put,
@@ -16,6 +17,7 @@ import { Roles } from 'src/auth/roles.decorator';
 import { Customer } from 'src/entity/customer.entity';
 import { XlsxService } from 'src/xlsx/xlsx.service';
 import { CustomerService } from './customer.service';
+import * as fs from 'fs';
 
 @Controller()
 export class CustomerController {
@@ -68,5 +70,21 @@ export class CustomerController {
       customerToUpdateId,
       customer,
     );
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('/invoice/pdf/:id')
+  @Roles(Role.Admin)
+  async getInvoice(
+    @Res() res: Response,
+    @Param('id') id: string,
+  ): Promise<any> {
+    const buffer = await this.customerService.generatePDF(id);
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': 'attachment; filename=example.pdf',
+      'Content-Length': buffer.length,
+    });
+    res.end(buffer);
   }
 }
