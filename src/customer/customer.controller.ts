@@ -18,12 +18,14 @@ import { Customer } from 'src/entity/customer.entity';
 import { XlsxService } from 'src/xlsx/xlsx.service';
 import { CustomerService } from './customer.service';
 import * as fs from 'fs';
+import { PdfService } from 'src/pdf/pdf.service';
 
 @Controller()
 export class CustomerController {
   constructor(
     private customerService: CustomerService,
     private xlsxService: XlsxService,
+    private pdfService: PdfService,
   ) {}
 
   @UseGuards(JwtAuthGuard)
@@ -79,7 +81,7 @@ export class CustomerController {
     @Res() res: Response,
     @Param('id') id: string,
   ): Promise<any> {
-    const buffer = await this.customerService.generatePDF(id);
+    const buffer = await this.pdfService.generatePDF(id);
     res.set({
       'Content-Type': 'application/pdf',
       'Content-Disposition': 'attachment; filename=example.pdf',
