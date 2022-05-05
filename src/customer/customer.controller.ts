@@ -15,6 +15,7 @@ import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { Role } from 'src/auth/role.enum';
 import { Roles } from 'src/auth/roles.decorator';
 import { Customer } from 'src/entity/customer.entity';
+import { XlsxService } from 'src/xlsx/xlsx.service';
 import { CustomerService } from './customer.service';
 import * as fs from 'fs';
 import { PdfService } from 'src/pdf/pdf.service';
@@ -23,6 +24,7 @@ import { PdfService } from 'src/pdf/pdf.service';
 export class CustomerController {
   constructor(
     private customerService: CustomerService,
+    private xlsxService: XlsxService,
     private pdfService: PdfService,
   ) {}
 
@@ -31,6 +33,11 @@ export class CustomerController {
   @Roles(Role.Admin)
   getAllCustomers() {
     return this.customerService.getCustomers();
+  }
+
+  @Get('/invoice/xlsx/:id')
+  getCustomerXlsx(@Res() res: Response, @Param('id') id: string) {
+    return this.xlsxService.getCustomerExcel(res, id);
   }
 
   @UseGuards(JwtAuthGuard)

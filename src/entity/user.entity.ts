@@ -27,6 +27,6 @@ export class User {
   @Column({ nullable: true })
   roles?: string;
 
-  @Column()
+  @Column({ nullable: true })
   timePerDay: string;
 }
