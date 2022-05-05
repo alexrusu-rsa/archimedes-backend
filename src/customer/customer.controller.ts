@@ -37,9 +37,13 @@ export class CustomerController {
 
   // @UseGuards(JwtAuthGuard)
   // @Roles(Role.Admin)
-  @Get('/invoice/xlsx/:id')
-  getCustomerXlsx(@Res() res: Response, @Param('id') id: string) {
-    return this.xlsxService.getCustomerExcel(res, id);
+  @Get('/invoice/xlsx/:id/:invoiceNumber')
+  getCustomerXlsx(
+    @Res() res: Response,
+    @Param('id') id: string,
+    @Param('invoiceNumber') invoiceNumber: string,
+  ) {
+    return this.xlsxService.getCustomerExcel(res, id, invoiceNumber);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -78,12 +82,13 @@ export class CustomerController {
 
   // @UseGuards(JwtAuthGuard)
   // @Roles(Role.Admin)
-  @Get('/invoice/pdf/:id')
+  @Get('/invoice/pdf/:id/:invoiceNumber')
   async getInvoice(
     @Res() res: Response,
     @Param('id') id: string,
+    @Param('invoiceNumber') invoiceNumber: string,
   ): Promise<any> {
-    const buffer = await this.pdfService.generatePDF(id);
+    const buffer = await this.pdfService.generatePDF(id, invoiceNumber);
     res.set({
       'Content-Type': 'application/pdf',
       'Content-Disposition': 'attachment; filename=example.pdf',
