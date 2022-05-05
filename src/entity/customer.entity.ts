@@ -21,7 +21,7 @@ export class Customer {
   @Column()
   customerCity: string;
 
-  @Column()
+  @Column({ nullable: true })
   customerCountry: string;
 
   @Column()
