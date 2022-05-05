@@ -67,9 +67,9 @@ export class CustomerController {
     );
   }
 
-  // @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Get('/invoice/pdf/:id')
-  // @Roles(Role.Admin)
+  @Roles(Role.Admin)
   async getInvoice(
     @Res() res: Response,
     @Param('id') id: string,
