@@ -16,9 +16,15 @@ export class PdfService {
   projectsOfCustomer: Project[];
   activitiesOfCustomerProjects: Activity[];
 
-  async generatePDF(id: string, invoiceNumber: string): Promise<Buffer> {
+  async generatePDF(
+    id: string,
+    invoiceNumber: string,
+    monthYear: string,
+  ): Promise<Buffer> {
     try {
       const customer = await this.customerRepository.findOneBy({ id });
+      const formattedDate =
+        monthYear.substring(0, 2) + '/' + monthYear.substring(2);
       if (customer) {
         this.projectsOfCustomer = await getRepository(Project)
           .createQueryBuilder('project')
@@ -35,6 +41,9 @@ export class PdfService {
               .createQueryBuilder('activity')
               .where('activity.projectId like :currentprojectid', {
                 currentprojectid: project.id,
+              })
+              .andWhere('activity.date like :date', {
+                date: `%${formattedDate}`,
               })
               .getMany();
             if (activitiesOfProject !== undefined)
@@ -110,7 +119,7 @@ export class PdfService {
                 .fillColor('#000000')
                 .text('Nume:', 45, 225, { width: 50, align: 'justify' });
               doc.fillColor('#000000').text(customer.customerName, 145, 225, {
-                width: 100,
+                width: 175,
                 align: 'left',
               });
 
@@ -118,7 +127,7 @@ export class PdfService {
                 .fillColor('#000000')
                 .text('CIF:', 45, 240, { width: 50, align: 'justify' });
               doc.fillColor('#000000').text(customer.customerCUI, 145, 240, {
-                width: 100,
+                width: 175,
                 align: 'left',
               });
 
@@ -126,7 +135,7 @@ export class PdfService {
                 .fillColor('#000000')
                 .text('Reg. Com:', 45, 255, { width: 50, align: 'justify' });
               doc.fillColor('#000000').text(customer.customerReg, 145, 255, {
-                width: 100,
+                width: 175,
                 align: 'justify',
               });
 
@@ -136,7 +145,7 @@ export class PdfService {
               doc
                 .fillColor('#000000')
                 .text(customer.customerAddress, 145, 270, {
-                  width: 50,
+                  width: 175,
                   align: 'justify',
                 });
               doc.fontSize(14);

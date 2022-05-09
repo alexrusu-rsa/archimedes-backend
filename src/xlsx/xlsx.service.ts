@@ -17,9 +17,16 @@ export class XlsxService {
   projectsOfCustomer: Project[];
   activitiesOfCustomerProjects: Activity[];
 
-  async getCustomerExcel(res: Response, id: string, invoiceNumber: string) {
+  async getCustomerExcel(
+    res: Response,
+    id: string,
+    invoiceNumber: string,
+    monthYear: string,
+  ) {
     try {
       const customer = await this.customerRepository.findOneBy({ id });
+      const formattedDate =
+        monthYear.substring(0, 2) + '/' + monthYear.substring(2);
       if (customer) {
         this.projectsOfCustomer = await getRepository(Project)
           .createQueryBuilder('project')
@@ -36,6 +43,9 @@ export class XlsxService {
               .createQueryBuilder('activity')
               .where('activity.projectId like :currentprojectid', {
                 currentprojectid: project.id,
+              })
+              .andWhere('activity.date like :date', {
+                date: `%${formattedDate}`,
               })
               .getMany();
             if (activitiesOfProject !== undefined)
