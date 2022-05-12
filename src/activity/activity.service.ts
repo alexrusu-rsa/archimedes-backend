@@ -1,9 +1,11 @@
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
+import { ALL } from 'dns';
 import { Activity } from 'src/entity/activity.entity';
 import {
   DeleteResult,
   getConnection,
   getRepository,
+  Like,
   Repository,
 } from 'typeorm';
 
@@ -168,11 +170,12 @@ export class ActivityService {
   async getActivitiesMonthYear(year: string, month: string) {
     try {
       const monthYear = month + '/' + year;
-      const activitiesOfMonthYear = await getRepository(Activity)
-        .createQueryBuilder('activity')
-        .where('activity.date like :date', { date: `%${monthYear}` })
-        .getMany();
-      if (activitiesOfMonthYear) return activitiesOfMonthYear;
+      const activitiesOfTheMonthYear = await getRepository(Activity).find({
+        where: {
+          date: Like(`%${monthYear}`),
+        },
+      });
+      if (activitiesOfTheMonthYear) return activitiesOfTheMonthYear;
     } catch (err) {
       throw err;
     }

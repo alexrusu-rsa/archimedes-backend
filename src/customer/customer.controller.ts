@@ -35,8 +35,29 @@ export class CustomerController {
     return this.customerService.getCustomers();
   }
 
-  // @UseGuards(JwtAuthGuard)
-  // @Roles(Role.Admin)
+  @UseGuards(JwtAuthGuard)
+  @Roles(Role.Admin)
+  @Get('/invoice/pdf/:id/:invoiceNumber/:monthYear')
+  async getInvoice(
+    @Res() res: Response,
+    @Param('id') id: string,
+    @Param('invoiceNumber') invoiceNumber: string,
+    @Param('monthYear') monthYear: string,
+  ): Promise<any> {
+    const buffer = await this.pdfService.generatePDF(
+      id,
+      invoiceNumber,
+      monthYear,
+    );
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': 'attachment; filename=invoice.pdf',
+      'Content-Length': buffer.length,
+    });
+    res.end(buffer);
+  }
+  @UseGuards(JwtAuthGuard)
+  @Roles(Role.Admin)
   @Get('/invoice/xlsx/:id/:invoiceNumber/:monthYear')
   getCustomerXlsx(
     @Res() res: Response,
@@ -79,27 +100,5 @@ export class CustomerController {
       customerToUpdateId,
       customer,
     );
-  }
-
-  // @UseGuards(JwtAuthGuard)
-  // @Roles(Role.Admin)
-  @Get('/invoice/pdf/:id/:invoiceNumber/:monthYear')
-  async getInvoice(
-    @Res() res: Response,
-    @Param('id') id: string,
-    @Param('invoiceNumber') invoiceNumber: string,
-    @Param('monthYear') monthYear: string,
-  ): Promise<any> {
-    const buffer = await this.pdfService.generatePDF(
-      id,
-      invoiceNumber,
-      monthYear,
-    );
-    res.set({
-      'Content-Type': 'application/pdf',
-      'Content-Disposition': 'attachment; filename=example.pdf',
-      'Content-Length': buffer.length,
-    });
-    res.end(buffer);
   }
 }

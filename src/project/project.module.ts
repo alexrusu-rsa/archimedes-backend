@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { DatabaseModule } from 'src/database.module';
-import { InvoiceService } from 'src/invoice/invoice.service';
 import { ProjectProvider } from 'src/providers/project.provider';
 import { XlsxService } from 'src/xlsx/xlsx.service';
 import { ProjectController } from './project.controller';
