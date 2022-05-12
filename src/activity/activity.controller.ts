@@ -37,6 +37,11 @@ export class ActivityController {
     );
   }
 
+  @Get('/types')
+  getAvailableActivityTypes() {
+    return this.activityService.getActivityTypes();
+  }
+
   @Post('/employee')
   @Roles(Role.Admin)
   getActivitiesOfEmployee(
