@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { ALL } from 'dns';
 import { of } from 'rxjs';
-
+import { ActivityType } from 'src/entity/activity-type.enum';
 import { Activity } from 'src/entity/activity.entity';
 import { DeleteResult, getConnection, Repository } from 'typeorm';
 
@@ -26,8 +26,7 @@ export class ActivityService {
   }
 
   async getActivityTypes() {
-    const activityTypes = ActivityType.Draft;
-    return activityTypes.values;
+    return ActivityType;
   }
 
   async addActivity(activity: Activity): Promise<Activity> {
