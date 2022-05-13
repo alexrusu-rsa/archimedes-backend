@@ -24,7 +24,7 @@ export class PdfService {
     try {
       const customer = await this.customerRepository.findOneBy({ id });
       const formattedDate =
-        monthYear.substring(0, 2) + '/' + monthYear.substring(2);
+        monthYear.substring(0, 1) + '/' + monthYear.substring(1);
       if (customer) {
         this.projectsOfCustomer = await getRepository(Project)
           .createQueryBuilder('project')
