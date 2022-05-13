@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { ALL } from 'dns';
 import { of } from 'rxjs';
-import { ActivityType } from 'src/entity/activity-type.enum';
+
 import { Activity } from 'src/entity/activity.entity';
 import { DeleteResult, getConnection, Repository } from 'typeorm';
 
@@ -26,16 +26,8 @@ export class ActivityService {
   }
 
   async getActivityTypes() {
-    enum ActivityType {
-      MEETING = 'meeting',
-      TRAINING = 'training',
-      WORK_ON_PROJECT = 'work on project',
-      INTERNAL = 'internal',
-      VACATION = 'vacation',
-      UNPAID_LEAVE = 'unpaid leave',
-      MEDICAL_LEAVE = 'medical leave',
-    }
-    return Object.values(ActivityType);
+    const activityTypes = ActivityType.Draft;
+    return activityTypes.values;
   }
 
   async addActivity(activity: Activity): Promise<Activity> {

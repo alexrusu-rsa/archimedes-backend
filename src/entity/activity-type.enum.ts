@@ -1,4 +1,4 @@
-export enum ActivityType {
+enum ActivityType {
   MEETING = 'meeting',
   TRAINING = 'training',
   WORK_ON_PROJECT = 'work on project',
@@ -7,3 +7,5 @@ export enum ActivityType {
   UNPAID_LEAVE = 'unpaid leave',
   MEDICAL_LEAVE = 'medical leave',
 }
+
+export default ActivityType;
