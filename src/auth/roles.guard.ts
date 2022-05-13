@@ -17,11 +17,11 @@ export class RolesGuard implements CanActivate {
     if (!requiredRoles) {
       return true;
     }
+
     const currentUserRole = await this.userService.checkRoleOfUser(
       context.switchToHttp().getRequest().query.userId,
     );
 
-    if (currentUserRole === requiredRoles[0]) return true;
-    return false;
+    return currentUserRole === requiredRoles[0];
   }
 }
