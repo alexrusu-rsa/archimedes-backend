@@ -6,6 +6,7 @@ import * as exceljs from 'exceljs';
 import * as PDFDocument from 'pdfkit';
 import { doc } from 'prettier';
 import { table } from 'console';
+import { Activity } from 'src/entity/activity.entity';
 
 @Injectable()
 export class CustomerService {

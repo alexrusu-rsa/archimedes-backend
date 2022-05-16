@@ -42,6 +42,16 @@ export class ActivityController {
     return this.activityService.getActivityTypes();
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Get(':year/:month')
+  @Roles(Role.Admin)
+  getActivitiesOfMonthYear(
+    @Param('year') year: string,
+    @Param('month') month: string,
+  ) {
+    return this.activityService.getActivitiesMonthYear(year, month);
+  }
+
   @Post('/employee')
   @Roles(Role.Admin)
   getActivitiesOfEmployee(

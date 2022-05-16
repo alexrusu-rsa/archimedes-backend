@@ -35,9 +35,37 @@ export class CustomerController {
     return this.customerService.getCustomers();
   }
 
-  @Get('/invoice/xlsx/:id')
-  getCustomerXlsx(@Res() res: Response, @Param('id') id: string) {
-    return this.xlsxService.getCustomerExcel(res, id);
+  @UseGuards(JwtAuthGuard)
+  @Roles(Role.Admin)
+  @Get('/invoice/pdf/:id/:invoiceNumber/:monthYear')
+  async getInvoice(
+    @Res() res: Response,
+    @Param('id') id: string,
+    @Param('invoiceNumber') invoiceNumber: string,
+    @Param('monthYear') monthYear: string,
+  ): Promise<any> {
+    const buffer = await this.pdfService.generatePDF(
+      id,
+      invoiceNumber,
+      monthYear,
+    );
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': 'attachment; filename=invoice.pdf',
+      'Content-Length': buffer.length,
+    });
+    res.end(buffer);
+  }
+  @UseGuards(JwtAuthGuard)
+  @Roles(Role.Admin)
+  @Get('/invoice/xlsx/:id/:invoiceNumber/:monthYear')
+  getCustomerXlsx(
+    @Res() res: Response,
+    @Param('id') id: string,
+    @Param('invoiceNumber') invoiceNumber: string,
+    @Param('monthYear') monthYear: string,
+  ) {
+    return this.xlsxService.getCustomerExcel(res, id, invoiceNumber, monthYear);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -72,21 +100,5 @@ export class CustomerController {
       customerToUpdateId,
       customer,
     );
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @Get('/invoice/pdf/:id')
-  @Roles(Role.Admin)
-  async getInvoice(
-    @Res() res: Response,
-    @Param('id') id: string,
-  ): Promise<any> {
-    const buffer = await this.pdfService.generatePDF(id);
-    res.set({
-      'Content-Type': 'application/pdf',
-      'Content-Disposition': 'attachment; filename=example.pdf',
-      'Content-Length': buffer.length,
-    });
-    res.end(buffer);
   }
 }
