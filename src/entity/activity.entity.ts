@@ -1,4 +1,5 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { ActivityType } from './activity-type.enum';
 
 @Entity()
 export class Activity {
@@ -16,6 +17,11 @@ export class Activity {
 
   @Column()
   start: string;
+
+  @Column({
+    nullable: true,
+  })
+  activityType: ActivityType;
 
   @Column()
   end: string;

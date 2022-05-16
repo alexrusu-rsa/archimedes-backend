@@ -1,5 +1,5 @@
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
-import { ALL } from 'dns';
+import { ActivityType } from 'src/entity/activity-type.enum';
 import { Activity } from 'src/entity/activity.entity';
 import {
   DeleteResult,
@@ -27,6 +27,10 @@ export class ActivityService {
     } catch (err) {
       throw err;
     }
+  }
+
+  async getActivityTypes() {
+    return ActivityType;
   }
 
   async addActivity(activity: Activity): Promise<Activity> {

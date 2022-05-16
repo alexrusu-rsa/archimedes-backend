@@ -37,6 +37,11 @@ export class ActivityController {
     );
   }
 
+  @Get('/types')
+  getAvailableActivityTypes() {
+    return this.activityService.getActivityTypes();
+  }
+
   @UseGuards(JwtAuthGuard)
   @Get(':year/:month')
   @Roles(Role.Admin)
