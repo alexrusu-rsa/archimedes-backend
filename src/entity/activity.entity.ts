@@ -12,7 +12,7 @@ export class Activity {
   @Column()
   employeeId: string;
 
-  @Column({ nullable: true })
+  @Column()
   date: string;
 
   @Column()
