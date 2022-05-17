@@ -18,9 +18,7 @@ export class Activity {
   @Column()
   start: string;
 
-  @Column({
-    nullable: true,
-  })
+  @Column()
   activityType: ActivityType;
 
   @Column()
