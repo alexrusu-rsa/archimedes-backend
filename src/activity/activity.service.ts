@@ -184,4 +184,57 @@ export class ActivityService {
       throw err;
     }
   }
+
+  filterActivitiesInRange(
+    activities: Activity[],
+    startDate: string,
+    endDate: string,
+  ): Activity[] {
+    const filteredActivities: Activity[] = [];
+    const startDateDay = startDate[0] + startDate[1];
+    const startDateMonth = startDate[2] + startDate[3];
+    const startDateYear =
+      startDate[4] + startDate[5] + startDate[6] + startDate[7];
+
+    const endDateDay = endDate[0] + endDate[1];
+    const endDateMonth = endDate[2] + endDate[3];
+    const endDateYear = endDate[4] + endDate[5] + endDate[6] + endDate[7];
+
+    const startDateISO =
+      startDateYear + '-' + startDateMonth + '-' + startDateDay;
+    const endDateISO = endDateYear + '-' + endDateMonth + '-' + endDateDay;
+    const start = new Date(startDateISO);
+    const end = new Date(endDateISO);
+
+    activities.forEach(function (activity) {
+      const activityDate = activity.date.split('/');
+      const activityDateISO =
+        activityDate[2] + '-' + activityDate[1] + '-' + activityDate[0];
+      const dateToCheck = new Date(activityDateISO);
+      if (dateToCheck <= end && dateToCheck >= start) {
+        filteredActivities.push(activity);
+      }
+    });
+    return filteredActivities;
+  }
+
+  async getActivitiesInRange(startDate: string, endDate: string) {
+    try {
+      const activities = await this.activityRepository.find();
+      if (activities) {
+        const activitiesInRange = this.filterActivitiesInRange(
+          activities,
+          startDate,
+          endDate,
+        );
+        return activitiesInRange;
+      }
+      throw new HttpException(
+        'We could not find the activites!',
+        HttpStatus.NOT_FOUND,
+      );
+    } catch (err) {
+      throw err;
+    }
+  }
 }

@@ -42,6 +42,13 @@ export class ActivityController {
     return this.activityService.getActivityTypes();
   }
 
+  @Get('/range')
+  getActivitiesInRange(
+    @Query('startDate') startDate,
+    @Query('endDate') endDate,
+  ) {
+    return this.activityService.getActivitiesInRange(startDate, endDate);
+  }
   @UseGuards(JwtAuthGuard)
   @Get(':year/:month')
   @Roles(Role.Admin)
