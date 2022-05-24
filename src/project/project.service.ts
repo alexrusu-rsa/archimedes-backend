@@ -28,7 +28,6 @@ export class ProjectService {
         .identifiers[0]?.id;
       if (newProjectId)
         return await this.projectRepository.findOneBy({ id: newProjectId });
-
       throw new HttpException(
         'Project insertion failed!',
         HttpStatus.NOT_ACCEPTABLE,

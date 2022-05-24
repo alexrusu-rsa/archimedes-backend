@@ -10,4 +10,10 @@ export class Project {
 
   @Column()
   customerId: string;
+
+  @Column({ nullable: true })
+  contract: string;
+
+  @Column({ nullable: true })
+  dueDate: string;
 }
