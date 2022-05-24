@@ -299,7 +299,7 @@ export class PdfInvoiceService {
               width: 150,
               align: 'justify',
             });
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
             doc
               .font('Helvetica-Bold')
               .fillColor('#000000')

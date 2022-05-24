@@ -43,9 +43,7 @@ export class XlsxInvoiceService {
           })
           .getMany();
         if (this.activitiesOfProjectPerMonthYear) {
-          // eslint-disable-next-line @typescript-eslint/no-var-requires
-          const excel = require('exceljs');
-          const workbook = new excel.Workbook();
+          const workbook = new exceljs.Workbook();
           const worksheet = workbook.addWorksheet('Invoice');
           const addedImage = workbook.addImage({
             filename: `src/images/test.png`,
@@ -99,11 +97,9 @@ export class XlsxInvoiceService {
           worksheet.getCell('I8').font = { size: 11 };
           worksheet.getCell('I8').alignment = { horizontal: 'center' };
 
-          // worksheet.getCell('I9').value = 'Sediu:';
           worksheet.getCell('I9').font = { size: 11 };
           worksheet.getCell('I9').alignment = { horizontal: 'center' };
 
-          // worksheet.getCell('I10').value = 'Sediu:';
           worksheet.getCell('I10').font = { size: 11 };
           worksheet.getCell('I10').alignment = { horizontal: 'center' };
 
