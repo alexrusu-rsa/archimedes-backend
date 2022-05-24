@@ -12,8 +12,8 @@ export class Project {
   customerId: string;
 
   @Column({ nullable: true })
-  dueDate: Date;
+  contract: string;
 
   @Column({ nullable: true })
-  contract: string;
+  dueDate: string;
 }

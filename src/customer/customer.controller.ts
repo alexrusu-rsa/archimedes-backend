@@ -15,17 +15,17 @@ import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { Role } from 'src/auth/role.enum';
 import { Roles } from 'src/auth/roles.decorator';
 import { Customer } from 'src/entity/customer.entity';
-import { XlsxService } from 'src/xlsx/xlsx.service';
 import { CustomerService } from './customer.service';
 import * as fs from 'fs';
-import { PdfService } from 'src/pdf/pdf.service';
+import { PdfInvoiceService } from 'src/pdf-invoice/pdf-invoice.service';
+import { XlsxInvoiceService } from 'src/xlsx-invoice/xlsx-invoice.service';
 
 @Controller()
 export class CustomerController {
   constructor(
     private customerService: CustomerService,
-    private xlsxService: XlsxService,
-    private pdfService: PdfService,
+    private pdfInvoiceService: PdfInvoiceService,
+    private xlsxInvoiceService: XlsxInvoiceService,
   ) {}
 
   @UseGuards(JwtAuthGuard)
@@ -44,7 +44,7 @@ export class CustomerController {
     @Param('invoiceNumber') invoiceNumber: string,
     @Param('monthYear') monthYear: string,
   ): Promise<any> {
-    const buffer = await this.pdfService.generatePDF(
+    const buffer = await this.pdfInvoiceService.generatePDF(
       id,
       invoiceNumber,
       monthYear,
@@ -65,7 +65,12 @@ export class CustomerController {
     @Param('invoiceNumber') invoiceNumber: string,
     @Param('monthYear') monthYear: string,
   ) {
-    return this.xlsxService.getCustomerExcel(res, id, invoiceNumber, monthYear);
+    return this.xlsxInvoiceService.getCustomerExcel(
+      res,
+      id,
+      invoiceNumber,
+      monthYear,
+    );
   }
 
   @UseGuards(JwtAuthGuard)
