@@ -1,4 +1,5 @@
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
+import { DateFormatService } from 'src/date-format/date-format.service';
 import { ActivityType } from 'src/entity/activity-type.enum';
 import { Activity } from 'src/entity/activity.entity';
 import {
@@ -14,6 +15,7 @@ export class ActivityService {
   constructor(
     @Inject('ACTIVITY_REPOSITORY')
     private activityRepository: Repository<Activity>,
+    private dateFormatService: DateFormatService,
   ) {}
 
   async getActivities(): Promise<Activity[]> {
@@ -191,26 +193,14 @@ export class ActivityService {
     endDate: string,
   ): Activity[] {
     const filteredActivities: Activity[] = [];
-    const startDateDay = startDate[0] + startDate[1];
-    const startDateMonth = startDate[2] + startDate[3];
-    const startDateYear =
-      startDate[4] + startDate[5] + startDate[6] + startDate[7];
-
-    const endDateDay = endDate[0] + endDate[1];
-    const endDateMonth = endDate[2] + endDate[3];
-    const endDateYear = endDate[4] + endDate[5] + endDate[6] + endDate[7];
-
-    const startDateISO =
-      startDateYear + '-' + startDateMonth + '-' + startDateDay;
-    const endDateISO = endDateYear + '-' + endDateMonth + '-' + endDateDay;
-    const start = new Date(startDateISO);
-    const end = new Date(endDateISO);
-
-    activities.forEach(function (activity) {
-      const activityDate = activity.date.split('/');
-      const activityDateISO =
-        activityDate[2] + '-' + activityDate[1] + '-' + activityDate[0];
-      const dateToCheck = new Date(activityDateISO);
+    const start = new Date(
+      this.dateFormatService.formatDateStringToISO(startDate),
+    );
+    const end = new Date(this.dateFormatService.formatDateStringToISO(endDate));
+    activities.forEach((activity) => {
+      const dateToCheck = new Date(
+        this.dateFormatService.formatDBDateStringToISO(activity.date),
+      );
       if (dateToCheck <= end && dateToCheck >= start) {
         filteredActivities.push(activity);
       }

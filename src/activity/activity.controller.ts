@@ -37,11 +37,14 @@ export class ActivityController {
     );
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get('/types')
   getAvailableActivityTypes() {
     return this.activityService.getActivityTypes();
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Roles(Role.Admin)
   @Get('/range')
   getActivitiesInRange(
     @Query('startDate') startDate,
