@@ -186,45 +186,4 @@ export class ActivityService {
       throw err;
     }
   }
-
-  filterActivitiesInRange(
-    activities: Activity[],
-    startDate: string,
-    endDate: string,
-  ): Activity[] {
-    const filteredActivities: Activity[] = [];
-    const start = new Date(
-      this.dateFormatService.formatDateStringToISO(startDate),
-    );
-    const end = new Date(this.dateFormatService.formatDateStringToISO(endDate));
-    activities.forEach((activity) => {
-      const dateToCheck = new Date(
-        this.dateFormatService.formatDBDateStringToISO(activity.date),
-      );
-      if (dateToCheck <= end && dateToCheck >= start) {
-        filteredActivities.push(activity);
-      }
-    });
-    return filteredActivities;
-  }
-
-  async getActivitiesInRange(startDate: string, endDate: string) {
-    try {
-      const activities = await this.activityRepository.find();
-      if (activities) {
-        const activitiesInRange = this.filterActivitiesInRange(
-          activities,
-          startDate,
-          endDate,
-        );
-        return activitiesInRange;
-      }
-      throw new HttpException(
-        'We could not find the activites!',
-        HttpStatus.NOT_FOUND,
-      );
-    } catch (err) {
-      throw err;
-    }
-  }
 }
