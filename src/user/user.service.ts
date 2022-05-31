@@ -45,7 +45,13 @@ export class UserService {
   }
   async addUser(user: User): Promise<User> {
     try {
-      user.password = await this.hashPassword(user.password);
+      if (user.password) {
+        user.password = await this.hashPassword(user.password);
+      } else {
+        const generatedPassword = this.generateNewPassword();
+        user.password = await this.hashPassword(generatedPassword);
+        this.mailService.sendUserConfirmation(user, generatedPassword);
+      }
       const newUserId = (await this.userRepository.insert(user)).identifiers[0]
         ?.id;
       if (newUserId)
@@ -171,7 +177,7 @@ export class UserService {
     try {
       const toUpdateUser = await this.userRepository.findOneBy({ id });
       if (toUpdateUser) {
-        user.password = await this.hashPassword(user.password);
+        user.password = toUpdateUser.password;
         const updatedUser = await this.userRepository.update(id, user);
         if (updatedUser) return this.userRepository.findOneBy({ id });
         throw new HttpException(
