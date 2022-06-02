@@ -37,6 +37,7 @@ export class ActivityController {
     );
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get('/types')
   getAvailableActivityTypes() {
     return this.activityService.getActivityTypes();
