@@ -9,6 +9,7 @@ import { AuthModule } from './auth/auth.module';
 import { RolesGuard } from './auth/roles.guard';
 import { CustomerModule } from './customer/customer.module';
 import { ProjectModule } from './project/project.module';
+import { DateFormatService } from './date-format/date-format.service';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { ProjectModule } from './project/project.module';
       provide: APP_GUARD,
       useClass: RolesGuard,
     },
+    DateFormatService,
   ],
 })
 export class AppModule {}

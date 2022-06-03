@@ -1,4 +1,5 @@
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
+import { DateFormatService } from 'src/date-format/date-format.service';
 import { ActivityType } from 'src/entity/activity-type.enum';
 import { Activity } from 'src/entity/activity.entity';
 import {
@@ -14,6 +15,7 @@ export class ActivityService {
   constructor(
     @Inject('ACTIVITY_REPOSITORY')
     private activityRepository: Repository<Activity>,
+    private dateFormatService: DateFormatService,
   ) {}
 
   async getActivities(): Promise<Activity[]> {
