@@ -306,7 +306,7 @@ export class XlsxInvoiceService {
             tl: { col: 1, row: 2 },
             ext: { width: 244, height: 160 },
           });
-          annexWorksheet.mergeCells('A1:O1');
+          annexWorksheet.mergeCells('A1:Q1');
           annexWorksheet.getRow(1).getCell(1).fill = {
             type: 'pattern',
             pattern: 'solid',
@@ -328,7 +328,11 @@ export class XlsxInvoiceService {
 
           const annexLineEndColumn = 12;
           annexWorksheet.mergeCells('A2:L2');
+          annexWorksheet.mergeCells('M2:N2');
+          annexWorksheet.mergeCells('O2:Q2');
           annexWorksheet.getCell('A2').value = 'Activity Name';
+          annexWorksheet.getCell('M2').value = 'Activity Type';
+          annexWorksheet.getCell('O2').value = 'Activity Time';
           if (this.activitiesOfProjectPerMonthYear.length >= 1) {
             this.activitiesOfProjectPerMonthYear.forEach((activity) => {
               annexStartLine = annexStartLine + 1;
@@ -357,7 +361,7 @@ export class XlsxInvoiceService {
               const minutesToHours = invoiceMinutesTime / 60;
               invoiceHoursTime = invoiceHoursTime + minutesToHours;
 
-              annexWorksheet.getCell(annexStartLine, 14).value =
+              annexWorksheet.getCell(annexStartLine, 15).value =
                 'HOURS: ' +
                 timeForCurrentActivity.hours +
                 ' MINUTES: ' +
