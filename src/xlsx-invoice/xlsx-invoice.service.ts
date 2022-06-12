@@ -7,6 +7,7 @@ import { Response } from 'express';
 import { getRepository, Repository } from 'typeorm';
 import * as exceljs from 'exceljs';
 import { DateFormatService } from 'src/date-format/date-format.service';
+import { time } from 'console';
 
 @Injectable()
 export class XlsxInvoiceService {
@@ -45,19 +46,9 @@ export class XlsxInvoiceService {
           })
           .getMany();
         if (this.activitiesOfProjectPerMonthYear) {
-          const startDateWithTime = this.dateFormatService.getNewDateWithTime(
-            this.activitiesOfProjectPerMonthYear[5]?.start,
-          );
-          const endDateWithTime = this.dateFormatService.getNewDateWithTime(
-            this.activitiesOfProjectPerMonthYear[5]?.end,
-          );
-          console.log(
-            this.dateFormatService.millisecondsToHoursAndMinutes(
-              endDateWithTime.getTime() - startDateWithTime.getTime(),
-            ),
-          );
           const workbook = new exceljs.Workbook();
           const worksheet = workbook.addWorksheet('Invoice');
+          const annexWorksheet = workbook.addWorksheet('Anexa 001');
           const addedImage = workbook.addImage({
             filename: `src/images/test.png`,
             extension: 'png',
@@ -315,6 +306,65 @@ export class XlsxInvoiceService {
             tl: { col: 1, row: 2 },
             ext: { width: 244, height: 160 },
           });
+          annexWorksheet.mergeCells('A1:O1');
+          annexWorksheet.getRow(1).getCell(1).fill = {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: 'FF2D508F' },
+            bgColor: { argb: 'FF2D508F' },
+          };
+          annexWorksheet.getCell('A1').value =
+            'ANEXA nr. 001 din' +
+            todayString +
+            ' la contractul ' + 
+            project.contract +
+            ' si factura ' +
+            invoiceNumber +
+            ' din data ' +
+            todayString;
+          let annexStartLine = 2;
+          let invoiceHoursTime = 0;
+          let invoiceMinutesTime = 0;
+
+          const annexLineEndColumn = 12;
+          annexWorksheet.mergeCells('A2:L2');
+          annexWorksheet.getCell('A2').value = 'Activity Name';
+          if (this.activitiesOfProjectPerMonthYear.length >= 1) {
+            this.activitiesOfProjectPerMonthYear.forEach((activity) => {
+              annexStartLine = annexStartLine + 1;
+              annexWorksheet.mergeCells(
+                annexStartLine,
+                1,
+                annexStartLine,
+                annexLineEndColumn,
+              );
+              annexWorksheet.getCell(annexStartLine, 1).value = activity.name;
+              annexWorksheet.getCell(annexStartLine, 13).value =
+                activity.activityType;
+              const startDateTime = this.dateFormatService.getNewDateWithTime(
+                activity.start,
+              );
+              const endDateTime = this.dateFormatService.getNewDateWithTime(
+                activity.end,
+              );
+              const timeForCurrentActivity =
+                this.dateFormatService.millisecondsToHoursAndMinutes(
+                  endDateTime.getTime() - startDateTime.getTime(),
+                );
+
+              invoiceHoursTime = invoiceHoursTime + timeForCurrentActivity.hours;
+              invoiceMinutesTime = invoiceMinutesTime + timeForCurrentActivity.minutes;
+              const minutesToHours = invoiceMinutesTime / 60;
+              invoiceHoursTime = invoiceHoursTime + minutesToHours;
+
+              annexWorksheet.getCell(annexStartLine, 14).value =
+                'HOURS: ' +
+                timeForCurrentActivity.hours +
+                ' MINUTES: ' +
+                timeForCurrentActivity.minutes;
+            });
+            worksheet.getCell('D21').value = invoiceHoursTime;
+          }
           res.setHeader(
             'Content-Type',
             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',

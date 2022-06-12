@@ -26,8 +26,7 @@ export class DateFormatService {
   }
 
   toMilliseconds(time: string): number {
-    const hoursAndMinutes = time?.split(':');
-    console.log(hoursAndMinutes);
+    const hoursAndMinutes = time.split(':');
     const hours = Number(hoursAndMinutes[0]);
     const minutes = Number(hoursAndMinutes[1]);
     return (
