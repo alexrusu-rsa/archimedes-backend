@@ -6,10 +6,12 @@ import { Project } from 'src/entity/project.entity';
 import { Response } from 'express';
 import { getRepository, Repository } from 'typeorm';
 import * as exceljs from 'exceljs';
+import { DateFormatService } from 'src/date-format/date-format.service';
 
 @Injectable()
 export class XlsxInvoiceService {
   constructor(
+    private dateFormatService: DateFormatService,
     @Inject('PROJECT_REPOSITORY')
     private projectRepository: Repository<Project>,
     @Inject('CUSTOMER_REPOSITORY')
@@ -43,6 +45,17 @@ export class XlsxInvoiceService {
           })
           .getMany();
         if (this.activitiesOfProjectPerMonthYear) {
+          const startDateWithTime = this.dateFormatService.getNewDateWithTime(
+            this.activitiesOfProjectPerMonthYear[5]?.start,
+          );
+          const endDateWithTime = this.dateFormatService.getNewDateWithTime(
+            this.activitiesOfProjectPerMonthYear[5]?.end,
+          );
+          console.log(
+            this.dateFormatService.millisecondsToHoursAndMinutes(
+              endDateWithTime.getTime() - startDateWithTime.getTime(),
+            ),
+          );
           const workbook = new exceljs.Workbook();
           const worksheet = workbook.addWorksheet('Invoice');
           const addedImage = workbook.addImage({
