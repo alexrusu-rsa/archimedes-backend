@@ -4,11 +4,13 @@ import { Customer } from 'src/entity/customer.entity';
 import { Project } from 'src/entity/project.entity';
 import { getRepository, Repository } from 'typeorm';
 import * as PDFDocument from 'pdfkit';
+import { DateFormatService } from 'src/date-format/date-format.service';
 
 @Injectable()
 export class PdfInvoiceService {
   activitiesOfProjectPerMonthYear: Activity[];
   constructor(
+    private dateFormatService: DateFormatService,
     @Inject('PROJECT_REPOSITORY')
     private projectRepository: Repository<Project>,
     @Inject('CUSTOMER_REPOSITORY')
@@ -303,19 +305,6 @@ export class PdfInvoiceService {
             doc
               .font('Helvetica-Bold')
               .fillColor('#000000')
-              .text(
-                this.activitiesOfProjectPerMonthYear.length.toString(),
-                210,
-                320,
-                {
-                  width: 160,
-                  align: 'center',
-                },
-              );
-
-            doc
-              .font('Helvetica-Bold')
-              .fillColor('#000000')
               .text(project.projectName, 90, 335, {
                 width: 160,
                 align: 'center',
@@ -327,6 +316,78 @@ export class PdfInvoiceService {
                 width: 165,
                 align: 'justify',
               });
+            doc.addPage();
+            doc.fontSize(14);
+            doc
+              .fillColor('#000000')
+              .text(
+                'ANEXA nr. 001 din ' +
+                  todayString +
+                  ' la contractul ' +
+                  project.contract +
+                  ' si factura ' +
+                  invoiceNumber +
+                  ' din ' +
+                  todayString,
+              );
+            doc.fontSize(10);
+            doc
+              .fillColor('#2D508F')
+              .text(
+                'NUMELE ACTIVITATII - TIPUL ACTIVITATII - TIMP ALOCAT PE ACTIVITATE',
+              );
+
+            let index = 1;
+            let invoiceHoursTime = 0;
+            let invoiceMinutesTime = 0;
+            this.activitiesOfProjectPerMonthYear.forEach((activity) => {
+              const startDateTime = this.dateFormatService.getNewDateWithTime(
+                activity.start,
+              );
+              const endDateTime = this.dateFormatService.getNewDateWithTime(
+                activity.end,
+              );
+              const timeForCurrentActivity =
+                this.dateFormatService.millisecondsToHoursAndMinutes(
+                  endDateTime.getTime() - startDateTime.getTime(),
+                );
+              invoiceHoursTime =
+                invoiceHoursTime + timeForCurrentActivity.hours;
+              invoiceMinutesTime =
+                invoiceMinutesTime + timeForCurrentActivity.minutes;
+              const minutesToHours = invoiceMinutesTime / 60;
+              invoiceHoursTime = invoiceHoursTime + minutesToHours;
+              doc
+                .fillColor('#000000')
+                .text(
+                  index +
+                    '. ' +
+                    activity.name +
+                    ' - ' +
+                    activity.activityType +
+                    ' - ' +
+                    ' HOURS: ' +
+                    timeForCurrentActivity.hours +
+                    ' MINUTES: ' +
+                    timeForCurrentActivity.minutes,
+                );
+              index = index + 1;
+            });
+            doc.switchToPage(0);
+            doc
+              .font('Helvetica-Bold')
+              .fillColor('#000000')
+              .text(invoiceHoursTime.toString(), 210, 320, {
+                width: 160,
+                align: 'center',
+              });
+
+            doc
+              .lineCap('butt')
+              .moveTo(40, 800)
+              .lineTo(555.28, 800)
+              .stroke('#2D508F');
+
             doc.end();
 
             const buffer = [];
