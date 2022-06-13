@@ -355,8 +355,6 @@ export class PdfInvoiceService {
                 invoiceHoursTime + timeForCurrentActivity.hours;
               invoiceMinutesTime =
                 invoiceMinutesTime + timeForCurrentActivity.minutes;
-              const minutesToHours = invoiceMinutesTime / 60;
-              invoiceHoursTime = invoiceHoursTime + minutesToHours;
               doc
                 .fillColor('#000000')
                 .text(
@@ -373,6 +371,8 @@ export class PdfInvoiceService {
                 );
               index = index + 1;
             });
+            const minutesToHours = invoiceMinutesTime / 60;
+            invoiceHoursTime = invoiceHoursTime + minutesToHours;
             doc.switchToPage(0);
             doc
               .font('Helvetica-Bold')

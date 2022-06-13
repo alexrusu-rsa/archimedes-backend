@@ -360,8 +360,6 @@ export class XlsxInvoiceService {
                 invoiceHoursTime + timeForCurrentActivity.hours;
               invoiceMinutesTime =
                 invoiceMinutesTime + timeForCurrentActivity.minutes;
-              const minutesToHours = invoiceMinutesTime / 60;
-              invoiceHoursTime = invoiceHoursTime + minutesToHours;
 
               annexWorksheet.getCell(annexStartLine, 15).value =
                 'HOURS: ' +
@@ -369,6 +367,8 @@ export class XlsxInvoiceService {
                 ' MINUTES: ' +
                 timeForCurrentActivity.minutes;
             });
+            const minutesToHours = invoiceMinutesTime / 60;
+            invoiceHoursTime = invoiceHoursTime + minutesToHours;
             worksheet.getCell('D21').value = invoiceHoursTime;
           }
           res.setHeader(
