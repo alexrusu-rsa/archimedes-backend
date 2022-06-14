@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { DateFormatService } from 'src/date-format/date-format.service';
-import { ActivityType } from 'src/entity/activity-type.enum';
+import { ActivityType } from 'src/custom/activity-type.enum';
 import { Activity } from 'src/entity/activity.entity';
 import {
   DeleteResult,
