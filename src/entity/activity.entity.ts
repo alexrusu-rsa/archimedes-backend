@@ -34,5 +34,5 @@ export class Activity {
   extras?: string;
 
   @Column({ nullable: true })
-  workedTime: number;
+  workedTime: string;
 }
