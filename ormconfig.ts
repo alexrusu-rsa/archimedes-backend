@@ -1,5 +1,4 @@
 import { DataSource } from 'typeorm';
-
 export const connectionToDB = new DataSource({
   synchronize: true,
   name: 'default',
@@ -9,8 +8,8 @@ export const connectionToDB = new DataSource({
   username: 'qbvauuepktekxu',
   password: 'f5d2d2108578782838d46cc0bef0b61adba2607b5ab4e7bff8ca0ea378be4d80',
   database: 'd56tk5ode151l3',
-  entities: ['dist/**/*.entity{ .ts,.js}'],
-  migrations: ['src/migrations/*{.ts,.js}'],
+  entities: [__dirname + '/../**/*.entity.{js,ts}'],
+  migrations: ['src/migrations/*.ts'],
   migrationsTableName: 'migrations_history',
   migrationsRun: true,
   extra: {
