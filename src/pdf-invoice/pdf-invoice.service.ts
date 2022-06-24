@@ -321,14 +321,7 @@ export class PdfInvoiceService {
             doc
               .fillColor('#000000')
               .text(
-                'ANEXA nr. 001 din ' +
-                  todayString +
-                  ' la contractul ' +
-                  project.contract +
-                  ' si factura ' +
-                  invoiceNumber +
-                  ' din ' +
-                  todayString,
+                `ANEXA nr. 001 ${todayString} la contractul ${project.contract} si factura ${invoiceNumber} din ${todayString}`,
               );
             doc.fontSize(10);
             doc
@@ -358,17 +351,9 @@ export class PdfInvoiceService {
               doc
                 .fillColor('#000000')
                 .text(
-                  index +
-                    '. ' +
-                    activity.name +
-                    ' - ' +
-                    activity.activityType +
-                    ' - ' +
-                    ' HOURS: ' +
-                    timeForCurrentActivity.hours +
-                    ' MINUTES: ' +
-                    timeForCurrentActivity.minutes,
+                  `${index}. ${activity.name} - ${activity.activityType} - HOURS: ${timeForCurrentActivity.hours} MINUTES: ${timeForCurrentActivity.minutes}`,
                 );
+
               index = index + 1;
             });
             const minutesToHours = invoiceMinutesTime / 60;
