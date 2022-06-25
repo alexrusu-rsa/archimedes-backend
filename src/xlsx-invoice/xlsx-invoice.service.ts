@@ -316,7 +316,7 @@ export class XlsxInvoiceService {
           annexWorksheet.getCell('A1').value =
             'ANEXA nr. 001 din' +
             todayString +
-            ' la contractul ' + 
+            ' la contractul ' +
             project.contract +
             ' si factura ' +
             invoiceNumber +
@@ -356,10 +356,10 @@ export class XlsxInvoiceService {
                   endDateTime.getTime() - startDateTime.getTime(),
                 );
 
-              invoiceHoursTime = invoiceHoursTime + timeForCurrentActivity.hours;
-              invoiceMinutesTime = invoiceMinutesTime + timeForCurrentActivity.minutes;
-              const minutesToHours = invoiceMinutesTime / 60;
-              invoiceHoursTime = invoiceHoursTime + minutesToHours;
+              invoiceHoursTime =
+                invoiceHoursTime + timeForCurrentActivity.hours;
+              invoiceMinutesTime =
+                invoiceMinutesTime + timeForCurrentActivity.minutes;
 
               annexWorksheet.getCell(annexStartLine, 15).value =
                 'HOURS: ' +
@@ -367,6 +367,8 @@ export class XlsxInvoiceService {
                 ' MINUTES: ' +
                 timeForCurrentActivity.minutes;
             });
+            const minutesToHours = invoiceMinutesTime / 60;
+            invoiceHoursTime = invoiceHoursTime + minutesToHours;
             worksheet.getCell('D21').value = invoiceHoursTime;
           }
           res.setHeader(
