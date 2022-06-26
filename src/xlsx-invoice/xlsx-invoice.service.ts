@@ -369,6 +369,8 @@ export class XlsxInvoiceService {
                 ' MINUTES: ' +
                 timeForCurrentActivity.minutes;
             });
+            const minutesToHours = invoiceMinutesTime / 60;
+            invoiceHoursTime = invoiceHoursTime + minutesToHours;
             worksheet.getCell('D21').value = invoiceHoursTime;
           }
           res.setHeader(
