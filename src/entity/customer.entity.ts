@@ -34,5 +34,5 @@ export class Customer {
   customerDirectorEmail: string;
 
   @Column({ nullable: true })
-  internal: string;
+  internal: boolean;
 }
