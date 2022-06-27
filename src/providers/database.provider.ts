@@ -21,7 +21,7 @@ export const databaseProvider = [
         database: process.env.DATABASE_NAME || 'd56tk5ode151l3',
         entities: [Activity, User, Customer, Project],
         ssl: { rejectUnauthorized: false },
-        synchronize: true,
+        synchronize: false,
       }),
   },
 ];
