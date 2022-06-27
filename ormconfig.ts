@@ -10,7 +10,7 @@ export const connectionToDB = new DataSource({
   database: 'd56tk5ode151l3',
   entities: [__dirname + '/../**/*.entity.{js,ts}'],
   migrations: ['src/migrations/*.ts'],
-  migrationsTableName: 'migrations_history',
+  migrationsTableName: 'custom_migrations_history',
   migrationsRun: true,
   extra: {
     ssl: {
