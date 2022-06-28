@@ -3,7 +3,7 @@ import {
   HttpModuleOptionsFactory,
   Injectable,
 } from '@nestjs/common';
-import { HoursAndMinutes } from 'src/custom/hours_minutes';
+import { HoursAndMinutes } from '../custom/hours_minutes';
 
 @Injectable()
 export class DateFormatService {
