@@ -8,6 +8,7 @@ import { getRepository, Repository } from 'typeorm';
 import * as exceljs from 'exceljs';
 import { DateFormatService } from 'src/date-format/date-format.service';
 import { time } from 'console';
+import internal from 'stream';
 
 @Injectable()
 export class XlsxInvoiceService {
@@ -35,6 +36,10 @@ export class XlsxInvoiceService {
       if (project) {
         const customerOfProject = await this.customerRepository.findOneBy({
           id: project.customerId,
+        });
+
+        const internalCompany = await this.customerRepository.findOneBy({
+          internal: true,
         });
         this.activitiesOfProjectPerMonthYear = await getRepository(Activity)
           .createQueryBuilder('activity')
@@ -231,7 +236,7 @@ export class XlsxInvoiceService {
           };
 
           worksheet.mergeCells('A43:D43');
-          worksheet.getCell('A43').value = 'RSA SOFT SRL';
+          worksheet.getCell('A43').value = `${internalCompany.customerName}`;
 
           const today = new Date();
           const dd = String(today.getDate()).padStart(2, '0');
@@ -252,25 +257,29 @@ export class XlsxInvoiceService {
           worksheet.mergeCells('H49:J49');
           worksheet.mergeCells('H50:J50');
 
-          worksheet.getCell('A46').value = 'CUI 43911790';
+          worksheet.getCell('A46').value = `CUI ${internalCompany.customerCUI}`;
           worksheet.getCell('A46').alignment = { horizontal: 'left' };
           worksheet.getCell('A46').font = { size: 9 };
 
-          worksheet.getCell('A47').value = 'J31/149/2021';
+          worksheet.getCell('A47').value = `${internalCompany.customerReg}`;
           worksheet.getCell('A47').alignment = { horizontal: 'left' };
           worksheet.getCell('A47').font = { size: 9 };
 
-          worksheet.getCell('A48').value =
-            'Sediu: Strada Gheorghe Doja, nr. 89';
+          worksheet.getCell(
+            'A48',
+          ).value = `Sediu: ${internalCompany.customerAddress}`;
           worksheet.getCell('A48').alignment = { horizontal: 'left' };
           worksheet.getCell('A48').font = { size: 9 };
 
-          worksheet.getCell('A49').value = 'Municipiul Zalău, Județ Sălaj';
+          worksheet.getCell(
+            'A49',
+          ).value = `${internalCompany.customerCity} ${internalCompany.customerCountry}`;
           worksheet.getCell('A49').alignment = { horizontal: 'left' };
           worksheet.getCell('A49').font = { size: 9 };
 
-          worksheet.getCell('A50').value =
-            'Reprezentant: ALEX-GEORGE RUSU, Administrator';
+          worksheet.getCell(
+            'A50',
+          ).value = `Reprezentant: ${internalCompany.customerDirectorName} , Administrator`;
           worksheet.getCell('A50').alignment = { horizontal: 'left' };
           worksheet.getCell('A50').font = { size: 9 };
 
