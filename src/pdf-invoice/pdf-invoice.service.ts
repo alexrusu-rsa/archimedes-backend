@@ -23,9 +23,6 @@ export class PdfInvoiceService {
   ): Promise<Buffer> {
     try {
       const project = await this.projectRepository.findOneBy({ id });
-      const internalCompany = await this.customerRepository.findOneBy({
-        internal: true,
-      });
       const formattedDate =
         monthYear.substring(0, 1) + '/' + monthYear.substring(1);
       if (project) {
@@ -269,6 +266,42 @@ export class PdfInvoiceService {
               .lineTo(555.28, 645)
               .stroke('#2D508F');
 
+            doc.fillColor('#000000').text('CUI 43911790', 45, 660, {
+              width: 225,
+              align: 'justify',
+            });
+
+            doc.fillColor('#000000').text('J31/149/2021', 45, 675, {
+              width: 225,
+              align: 'justify',
+            });
+
+            doc
+              .fillColor('#000000')
+              .text('Sediu: Strada Gheorghe Doja, nr. 89', 45, 690, {
+                width: 225,
+                align: 'justify',
+              });
+
+            doc
+              .fillColor('#000000')
+              .text('Municipiul Zalau, Judet Salaj ', 45, 705, {
+                width: 225,
+                align: 'justify',
+              });
+
+            doc
+              .fillColor('#000000')
+              .text('Reprezentant: ALEX-GEORGE RUSU, Administrator', 45, 720, {
+                width: 350,
+                align: 'justify',
+              });
+
+            doc.fillColor('#000000').text('Banca Transilvania', 400, 705, {
+              width: 150,
+              align: 'justify',
+            });
+
             doc
               .font('Helvetica-Bold')
               .fillColor('#000000')
@@ -277,108 +310,12 @@ export class PdfInvoiceService {
                 align: 'center',
               });
 
-            if (internalCompany) {
-              doc
-                .fillColor('#000000')
-                .text(`CUI ${internalCompany.customerCUI}`, 45, 660, {
-                  width: 225,
-                  align: 'justify',
-                });
-
-              doc
-                .fillColor('#000000')
-                .text(`${internalCompany.customerReg}`, 45, 675, {
-                  width: 225,
-                  align: 'justify',
-                });
-
-              doc
-                .fillColor('#000000')
-                .text(`Sediu: ${internalCompany.customerAddress}`, 45, 690, {
-                  width: 225,
-                  align: 'justify',
-                });
-
-              doc
-                .fillColor('#000000')
-                .text(
-                  `${internalCompany.customerCity} ${internalCompany.customerCountry}`,
-                  45,
-                  705,
-                  {
-                    width: 225,
-                    align: 'justify',
-                  },
-                );
-
-              doc
-                .fillColor('#000000')
-                .text(
-                  `Reprezentant: ${internalCompany.customerDirectorName} , Administrator`,
-                  45,
-                  720,
-                  {
-                    width: 350,
-                    align: 'justify',
-                  },
-                );
-
-              doc.fillColor('#000000').text('Banca Transilvania', 400, 705, {
-                width: 150,
-                align: 'justify',
-              });
-
-              doc
-                .fillColor('#000000')
-                .text('RO43BTRLRONCRT0593347301', 400, 720, {
-                  width: 165,
-                  align: 'justify',
-                });
-            } else {
-              doc.fillColor('#000000').text(`CUI COMPANY_CUI`, 45, 660, {
-                width: 225,
-                align: 'justify',
-              });
-
-              doc.fillColor('#000000').text(`COMPANY_REG`, 45, 675, {
-                width: 225,
-                align: 'justify',
-              });
-
-              doc.fillColor('#000000').text(`Sediu: COMPANY_ADDRESS`, 45, 690, {
-                width: 225,
-                align: 'justify',
-              });
-
-              doc
-                .fillColor('#000000')
-                .text(`COMPANY_CITY, COMPANY COUNTRY`, 45, 705, {
-                  width: 225,
-                  align: 'justify',
-                });
-
-              doc
-                .fillColor('#000000')
-                .text(
-                  `Reprezentant: COMPANY_DIRECTOR_NAME , Administrator`,
-                  45,
-                  720,
-                  {
-                    width: 350,
-                    align: 'justify',
-                  },
-                );
-
-              doc.fillColor('#000000').text('COMPANY_BANK', 400, 705, {
-                width: 150,
-                align: 'justify',
-              });
-
-              doc.fillColor('#000000').text('COMPANY_IBAN', 400, 720, {
+            doc
+              .fillColor('#000000')
+              .text('RO43BTRLRONCRT0593347301', 400, 720, {
                 width: 165,
                 align: 'justify',
               });
-            }
             doc.addPage();
             doc.fontSize(14);
             doc
