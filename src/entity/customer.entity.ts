@@ -32,4 +32,7 @@ export class Customer {
 
   @Column()
   customerDirectorEmail: string;
+
+  @Column({ nullable: true })
+  internal: boolean;
 }
