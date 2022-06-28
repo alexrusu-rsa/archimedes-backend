@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { DateFormatService } from 'src/date-format/date-format.service';
-import { ActivityType } from 'src/entity/activity-type.enum';
+import { ActivityType } from 'src/custom/activity-type.enum';
 import { Activity } from 'src/entity/activity.entity';
 import {
   DeleteResult,
@@ -48,6 +48,16 @@ export class ActivityService {
           'Make sure you add required information about the activity!',
           HttpStatus.NOT_ACCEPTABLE,
         );
+      const startTime = this.dateFormatService.getNewDateWithTime(
+        activity.start,
+      );
+      const endTime = this.dateFormatService.getNewDateWithTime(activity.end);
+      const hoursAndMinutesObj =
+        this.dateFormatService.millisecondsToHoursAndMinutes(
+          endTime.getTime() - startTime.getTime(),
+        );
+      activity.workedTime =
+        hoursAndMinutesObj.hours + ':' + hoursAndMinutesObj.minutes;
       const newActivityId: string = (
         await this.activityRepository.insert(activity)
       ).identifiers[0]?.id;
@@ -79,6 +89,17 @@ export class ActivityService {
   async updateById(id: string, activity: Activity): Promise<Activity> {
     try {
       const toUpdateActivity = await this.activityRepository.findOneBy({ id });
+      const startTime = this.dateFormatService.getNewDateWithTime(
+        activity.start,
+      );
+      const endTime = this.dateFormatService.getNewDateWithTime(activity.end);
+      const hoursAndMinutesObj =
+        this.dateFormatService.millisecondsToHoursAndMinutes(
+          endTime.getTime() - startTime.getTime(),
+        );
+      activity.workedTime =
+        hoursAndMinutesObj.hours + ':' + hoursAndMinutesObj.minutes;
+
       if (toUpdateActivity) {
         const updatedActivity = await this.activityRepository.update(
           id,
