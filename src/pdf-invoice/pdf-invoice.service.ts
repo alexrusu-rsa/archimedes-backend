@@ -269,7 +269,6 @@ export class PdfInvoiceService {
               .moveTo(40, 645)
               .lineTo(555.28, 645)
               .stroke('#2D508F');
-
             doc
               .font('Helvetica-Bold')
               .fillColor('#000000')
@@ -328,7 +327,6 @@ export class PdfInvoiceService {
                 width: 150,
                 align: 'justify',
               });
-
               doc
                 .fillColor('#000000')
                 .text('RO43BTRLRONCRT0593347301', 400, 720, {
@@ -374,7 +372,6 @@ export class PdfInvoiceService {
                 width: 150,
                 align: 'justify',
               });
-
               doc.fillColor('#000000').text('COMPANY_IBAN', 400, 720, {
                 width: 165,
                 align: 'justify',

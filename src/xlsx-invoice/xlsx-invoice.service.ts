@@ -8,7 +8,6 @@ import { getRepository, Repository } from 'typeorm';
 import * as exceljs from 'exceljs';
 import { DateFormatService } from 'src/date-format/date-format.service';
 import { time } from 'console';
-import internal from 'stream';
 
 @Injectable()
 export class XlsxInvoiceService {
@@ -32,14 +31,13 @@ export class XlsxInvoiceService {
       const project = await this.projectRepository.findOneBy({ id });
       const formattedDate =
         monthYear.substring(0, 1) + '/' + monthYear.substring(1);
+      const internalCompany = await this.customerRepository.findOneBy({
+        internal: true,
+      });
 
       if (project) {
         const customerOfProject = await this.customerRepository.findOneBy({
           id: project.customerId,
-        });
-
-        const internalCompany = await this.customerRepository.findOneBy({
-          internal: true,
         });
         this.activitiesOfProjectPerMonthYear = await getRepository(Activity)
           .createQueryBuilder('activity')
@@ -235,6 +233,9 @@ export class XlsxInvoiceService {
             bgColor: { argb: 'FF2D508F' },
           };
 
+          worksheet.mergeCells('A43:D43');
+          worksheet.getCell('A43').value = 'RSA SOFT SRL';
+
           const today = new Date();
           const dd = String(today.getDate()).padStart(2, '0');
           const mm = String(today.getMonth() + 1).padStart(2, '0');
@@ -344,7 +345,6 @@ export class XlsxInvoiceService {
             worksheet.mergeCells('C15:E15');
             worksheet.mergeCells('C16:E16');
             worksheet.mergeCells('C17:E17');
-            
 
             worksheet.getCell('C14').value = customerOfProject.customerName;
             worksheet.getCell('C15').value = customerOfProject.customerCUI;
@@ -421,6 +421,8 @@ export class XlsxInvoiceService {
                 invoiceHoursTime + timeForCurrentActivity.hours;
               invoiceMinutesTime =
                 invoiceMinutesTime + timeForCurrentActivity.minutes;
+              const minutesToHours = invoiceMinutesTime / 60;
+              invoiceHoursTime = invoiceHoursTime + minutesToHours;
 
               annexWorksheet.getCell(annexStartLine, 15).value =
                 'HOURS: ' +
