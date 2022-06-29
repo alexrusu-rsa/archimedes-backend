@@ -31,6 +31,9 @@ export class XlsxInvoiceService {
       const project = await this.projectRepository.findOneBy({ id });
       const formattedDate =
         monthYear.substring(0, 1) + '/' + monthYear.substring(1);
+      const internalCompany = await this.customerRepository.findOneBy({
+        internal: true,
+      });
 
       if (project) {
         const customerOfProject = await this.customerRepository.findOneBy({
@@ -251,57 +254,115 @@ export class XlsxInvoiceService {
 
           worksheet.mergeCells('H49:J49');
           worksheet.mergeCells('H50:J50');
+          if (internalCompany) {
+            worksheet.mergeCells('A43:D43');
+            worksheet.getCell('A43').value = `${internalCompany.customerName}`;
+            worksheet.getCell(
+              'A46',
+            ).value = `CUI ${internalCompany.customerCUI}`;
+            worksheet.getCell('A46').alignment = { horizontal: 'left' };
+            worksheet.getCell('A46').font = { size: 9 };
 
-          worksheet.getCell('A46').value = 'CUI 43911790';
-          worksheet.getCell('A46').alignment = { horizontal: 'left' };
-          worksheet.getCell('A46').font = { size: 9 };
+            worksheet.getCell('A47').value = `${internalCompany.customerReg}`;
+            worksheet.getCell('A47').alignment = { horizontal: 'left' };
+            worksheet.getCell('A47').font = { size: 9 };
 
-          worksheet.getCell('A47').value = 'J31/149/2021';
-          worksheet.getCell('A47').alignment = { horizontal: 'left' };
-          worksheet.getCell('A47').font = { size: 9 };
+            worksheet.getCell(
+              'A48',
+            ).value = `Sediu: ${internalCompany.customerAddress}`;
+            worksheet.getCell('A48').alignment = { horizontal: 'left' };
+            worksheet.getCell('A48').font = { size: 9 };
 
-          worksheet.getCell('A48').value =
-            'Sediu: Strada Gheorghe Doja, nr. 89';
-          worksheet.getCell('A48').alignment = { horizontal: 'left' };
-          worksheet.getCell('A48').font = { size: 9 };
+            worksheet.getCell(
+              'A49',
+            ).value = `${internalCompany.customerCity} ${internalCompany.customerCountry}`;
+            worksheet.getCell('A49').alignment = { horizontal: 'left' };
+            worksheet.getCell('A49').font = { size: 9 };
 
-          worksheet.getCell('A49').value = 'Municipiul Zalău, Județ Sălaj';
-          worksheet.getCell('A49').alignment = { horizontal: 'left' };
-          worksheet.getCell('A49').font = { size: 9 };
+            worksheet.getCell(
+              'A50',
+            ).value = `Reprezentant: ${internalCompany.customerDirectorName} , Administrator`;
+            worksheet.getCell('A50').alignment = { horizontal: 'left' };
+            worksheet.getCell('A50').font = { size: 9 };
 
-          worksheet.getCell('A50').value =
-            'Reprezentant: ALEX-GEORGE RUSU, Administrator';
-          worksheet.getCell('A50').alignment = { horizontal: 'left' };
-          worksheet.getCell('A50').font = { size: 9 };
+            worksheet.getCell('H49').value = 'Banca Transilvania';
+            worksheet.getCell('H49').alignment = { horizontal: 'right' };
 
-          worksheet.getCell('H49').value = 'Banca Transilvania';
-          worksheet.getCell('H49').alignment = { horizontal: 'right' };
+            worksheet.getCell('H50').value = 'RO43BTRLRONCRT0593347301 ';
+            worksheet.getCell('H50').alignment = { horizontal: 'right' };
 
-          worksheet.getCell('H50').value = 'RO43BTRLRONCRT0593347301 ';
-          worksheet.getCell('H50').alignment = { horizontal: 'right' };
+            worksheet.mergeCells('C14:E14');
+            worksheet.mergeCells('C15:E15');
+            worksheet.mergeCells('C16:E16');
+            worksheet.mergeCells('C17:E17');
 
-          worksheet.mergeCells('C14:E14');
-          worksheet.mergeCells('C15:E15');
-          worksheet.mergeCells('C16:E16');
-          worksheet.mergeCells('C17:E17');
+            worksheet.getCell('C14').value = customerOfProject.customerName;
+            worksheet.getCell('C15').value = customerOfProject.customerCUI;
+            worksheet.getCell('C16').value = customerOfProject.customerReg;
+            worksheet.getCell('C17').value = customerOfProject.customerAddress;
 
-          worksheet.getCell('C14').value = customerOfProject.customerName;
-          worksheet.getCell('C15').value = customerOfProject.customerCUI;
-          worksheet.getCell('C16').value = customerOfProject.customerReg;
-          worksheet.getCell('C17').value = customerOfProject.customerAddress;
+            worksheet.getCell('D21').value =
+              this.activitiesOfProjectPerMonthYear.length;
+            worksheet.getCell('D21').font = { size: 11 };
+            worksheet.getCell('D21').alignment = { horizontal: 'center' };
 
-          worksheet.getCell('D21').value =
-            this.activitiesOfProjectPerMonthYear.length;
-          worksheet.getCell('D21').font = { size: 11 };
-          worksheet.getCell('D21').alignment = { horizontal: 'center' };
+            worksheet.getCell('B21').value = '';
+            worksheet.getCell('B21').font = { size: 11 };
+            worksheet.getCell('B21').alignment = { horizontal: 'center' };
 
-          worksheet.getCell('B21').value = '';
-          worksheet.getCell('B21').font = { size: 11 };
-          worksheet.getCell('B21').alignment = { horizontal: 'center' };
+            worksheet.getCell('B21').value =
+              worksheet.getCell('B21').value + project.projectName;
+          } else {
+            worksheet.getCell('A46').value = `CUI COMPANY_CUI`;
+            worksheet.getCell('A46').alignment = { horizontal: 'left' };
+            worksheet.getCell('A46').font = { size: 9 };
 
-          worksheet.getCell('B21').value =
-            worksheet.getCell('B21').value + project.projectName;
+            worksheet.getCell('A47').value = `COMPANY_REG`;
+            worksheet.getCell('A47').alignment = { horizontal: 'left' };
+            worksheet.getCell('A47').font = { size: 9 };
 
+            worksheet.getCell('A48').value = `Sediu: COMPANY_ADDRESS`;
+            worksheet.getCell('A48').alignment = { horizontal: 'left' };
+            worksheet.getCell('A48').font = { size: 9 };
+
+            worksheet.getCell('A49').value = `COMPANY_CITY, COMPANY COUNTRY`;
+            worksheet.getCell('A49').alignment = { horizontal: 'left' };
+            worksheet.getCell('A49').font = { size: 9 };
+
+            worksheet.getCell(
+              'A50',
+            ).value = `Reprezentant: COMPANY_DIRECTOR_NAME , Administrator`;
+            worksheet.getCell('A50').alignment = { horizontal: 'left' };
+            worksheet.getCell('A50').font = { size: 9 };
+
+            worksheet.getCell('H49').value = 'COMPANY_BANK';
+            worksheet.getCell('H49').alignment = { horizontal: 'right' };
+
+            worksheet.getCell('H50').value = 'COMPANY_IBAN';
+            worksheet.getCell('H50').alignment = { horizontal: 'right' };
+
+            worksheet.mergeCells('C14:E14');
+            worksheet.mergeCells('C15:E15');
+            worksheet.mergeCells('C16:E16');
+            worksheet.mergeCells('C17:E17');
+
+            worksheet.getCell('C14').value = customerOfProject.customerName;
+            worksheet.getCell('C15').value = customerOfProject.customerCUI;
+            worksheet.getCell('C16').value = customerOfProject.customerReg;
+            worksheet.getCell('C17').value = customerOfProject.customerAddress;
+
+            worksheet.getCell('D21').value =
+              this.activitiesOfProjectPerMonthYear.length;
+            worksheet.getCell('D21').font = { size: 11 };
+            worksheet.getCell('D21').alignment = { horizontal: 'center' };
+
+            worksheet.getCell('B21').value = '';
+            worksheet.getCell('B21').font = { size: 11 };
+            worksheet.getCell('B21').alignment = { horizontal: 'center' };
+
+            worksheet.getCell('B21').value =
+              worksheet.getCell('B21').value + project.projectName;
+          }
           worksheet.addImage(addedImage, {
             tl: { col: 1, row: 2 },
             ext: { width: 244, height: 160 },
