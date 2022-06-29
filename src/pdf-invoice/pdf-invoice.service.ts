@@ -26,6 +26,7 @@ export class PdfInvoiceService {
       const internalCompany = await this.customerRepository.findOneBy({
         internal: true,
       });
+
       const formattedDate =
         monthYear.substring(0, 1) + '/' + monthYear.substring(1);
       if (project) {

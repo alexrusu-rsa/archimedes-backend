@@ -344,6 +344,7 @@ export class XlsxInvoiceService {
             worksheet.mergeCells('C15:E15');
             worksheet.mergeCells('C16:E16');
             worksheet.mergeCells('C17:E17');
+            
 
             worksheet.getCell('C14').value = customerOfProject.customerName;
             worksheet.getCell('C15').value = customerOfProject.customerCUI;
