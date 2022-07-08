@@ -19,16 +19,33 @@ export class PdfInvoiceService {
   async generatePDF(
     id: string,
     invoiceNumber: string,
-    monthYear: string,
+    month: string,
+    year: string,
   ): Promise<Buffer> {
     try {
       const project = await this.projectRepository.findOneBy({ id });
+
+      const invoiceCreationMonth = month;
+      const invoiceCreationYear = year;
+
+      let invoiceDueDate = new Date();
+      if (parseInt(invoiceCreationMonth) < 12) {
+        invoiceDueDate = new Date(
+          `${invoiceCreationYear}-${parseInt(invoiceCreationMonth) + 1}-${
+            project.invoiceTerm
+          }`,
+        );
+      } else {
+        invoiceDueDate = new Date(
+          `${parseInt(invoiceCreationYear)}-1-${project.invoiceTerm}`,
+        );
+      }
+
       const internalCompany = await this.customerRepository.findOneBy({
         internal: true,
       });
 
-      const formattedDate =
-        monthYear.substring(0, 1) + '/' + monthYear.substring(1);
+      const formattedDate = month + '/' + year;
       if (project) {
         const customerOfProject = await this.customerRepository.findOneBy({
           id: project.customerId,
@@ -102,7 +119,7 @@ export class PdfInvoiceService {
               width: 175,
               align: 'justify',
             });
-
+            //HERE
             doc.fillColor('#000000').text(project.dueDate, 450, 160, {
               width: 175,
               align: 'justify',

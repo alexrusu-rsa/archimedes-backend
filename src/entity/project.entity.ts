@@ -16,4 +16,7 @@ export class Project {
 
   @Column({ nullable: true })
   dueDate: string;
+
+  @Column({ nullable: true })
+  invoiceTerm: number;
 }
