@@ -60,18 +60,20 @@ export class CustomerController {
   }
   @UseGuards(JwtAuthGuard)
   @Roles(Role.Admin)
-  @Get('/invoice/xlsx/:id/:invoiceNumber/:monthYear')
+  @Get('/invoice/xlsx/:id/:invoiceNumber/:month/:year')
   getCustomerXlsx(
     @Res() res: Response,
     @Param('id') id: string,
     @Param('invoiceNumber') invoiceNumber: string,
-    @Param('monthYear') monthYear: string,
+    @Param('month') month: string,
+    @Param('year') year: string,
   ) {
     return this.xlsxInvoiceService.getCustomerExcel(
       res,
       id,
       invoiceNumber,
-      monthYear,
+      month,
+      year,
     );
   }
 

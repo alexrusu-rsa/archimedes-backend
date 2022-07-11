@@ -40,7 +40,9 @@ export class PdfInvoiceService {
           `${parseInt(invoiceCreationYear)}-1-${project.invoiceTerm}`,
         );
       }
-
+      const invoiceDueDateToDisplay = `${invoiceDueDate.getDate()}/${
+        Number(invoiceDueDate.getMonth()) + 1
+      }/${invoiceDueDate.getFullYear()}`;
       const internalCompany = await this.customerRepository.findOneBy({
         internal: true,
       });
@@ -106,8 +108,8 @@ export class PdfInvoiceService {
               align: 'justify',
             });
             const today = new Date();
-            const dd = String(today.getDate()).padStart(2, '0');
-            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const dd = parseInt(String(today.getDate()).padStart(2, '0'));
+            const mm = parseInt(String(today.getMonth() + 1).padStart(2, '0'));
             const yyyy = today.getFullYear();
             const todayString = dd + '/' + mm + '/' + yyyy;
 
@@ -119,8 +121,7 @@ export class PdfInvoiceService {
               width: 175,
               align: 'justify',
             });
-            //HERE
-            doc.fillColor('#000000').text(project.dueDate, 450, 160, {
+            doc.fillColor('#000000').text(invoiceDueDateToDisplay, 450, 160, {
               width: 175,
               align: 'justify',
             });
