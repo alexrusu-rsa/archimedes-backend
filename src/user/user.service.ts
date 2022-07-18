@@ -47,10 +47,6 @@ export class UserService {
   async getUsersNumber(): Promise<number> {
     try {
       const foundUsers = await this.userRepository.find();
-      foundUsers.forEach((found) => {
-        const { password, ...foundUserNoPass } = found;
-        foundUsers[foundUsers.indexOf(found)] = foundUserNoPass;
-      });
       if (foundUsers) return foundUsers.length;
       return 0;
     } catch (err) {
