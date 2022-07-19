@@ -24,13 +24,13 @@ export class Customer {
   @Column({ nullable: true })
   customerCountry: string;
 
-  @Column()
+  @Column({ nullable: true })
   customerDirectorName: string;
 
-  @Column()
+  @Column({ nullable: true })
   customerDirectorTel: string;
 
-  @Column()
+  @Column({ nullable: true })
   customerDirectorEmail: string;
 
   @Column({ nullable: true })
