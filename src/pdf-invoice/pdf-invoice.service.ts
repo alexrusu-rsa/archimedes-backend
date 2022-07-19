@@ -19,16 +19,35 @@ export class PdfInvoiceService {
   async generatePDF(
     id: string,
     invoiceNumber: string,
-    monthYear: string,
+    month: string,
+    year: string,
   ): Promise<Buffer> {
     try {
       const project = await this.projectRepository.findOneBy({ id });
+
+      const invoiceCreationMonth = month;
+      const invoiceCreationYear = year;
+
+      let invoiceDueDate = new Date();
+      if (parseInt(invoiceCreationMonth) < 12) {
+        invoiceDueDate = new Date(
+          `${invoiceCreationYear}-${parseInt(invoiceCreationMonth) + 1}-${
+            project.invoiceTerm
+          }`,
+        );
+      } else {
+        invoiceDueDate = new Date(
+          `${parseInt(invoiceCreationYear)}-1-${project.invoiceTerm}`,
+        );
+      }
+      const invoiceDueDateToDisplay = `${invoiceDueDate.getDate()}/${
+        Number(invoiceDueDate.getMonth()) + 1
+      }/${invoiceDueDate.getFullYear()}`;
       const internalCompany = await this.customerRepository.findOneBy({
         internal: true,
       });
 
-      const formattedDate =
-        monthYear.substring(0, 1) + '/' + monthYear.substring(1);
+      const formattedDate = month + '/' + year;
       if (project) {
         const customerOfProject = await this.customerRepository.findOneBy({
           id: project.customerId,
@@ -89,8 +108,8 @@ export class PdfInvoiceService {
               align: 'justify',
             });
             const today = new Date();
-            const dd = String(today.getDate()).padStart(2, '0');
-            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const dd = parseInt(String(today.getDate()).padStart(2, '0'));
+            const mm = parseInt(String(today.getMonth() + 1).padStart(2, '0'));
             const yyyy = today.getFullYear();
             const todayString = dd + '/' + mm + '/' + yyyy;
 
@@ -102,8 +121,7 @@ export class PdfInvoiceService {
               width: 175,
               align: 'justify',
             });
-
-            doc.fillColor('#000000').text(project.dueDate, 450, 160, {
+            doc.fillColor('#000000').text(invoiceDueDateToDisplay, 450, 160, {
               width: 175,
               align: 'justify',
             });
