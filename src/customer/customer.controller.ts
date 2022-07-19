@@ -37,17 +37,19 @@ export class CustomerController {
 
   @UseGuards(JwtAuthGuard)
   @Roles(Role.Admin)
-  @Get('/invoice/pdf/:id/:invoiceNumber/:monthYear')
+  @Get('/invoice/pdf/:id/:invoiceNumber/:month/:year')
   async getInvoice(
     @Res() res: Response,
     @Param('id') id: string,
     @Param('invoiceNumber') invoiceNumber: string,
-    @Param('monthYear') monthYear: string,
+    @Param('month') month: string,
+    @Param('year') year: string,
   ): Promise<any> {
     const buffer = await this.pdfInvoiceService.generatePDF(
       id,
       invoiceNumber,
-      monthYear,
+      month,
+      year,
     );
     res.set({
       'Content-Type': 'application/pdf',
@@ -58,18 +60,20 @@ export class CustomerController {
   }
   @UseGuards(JwtAuthGuard)
   @Roles(Role.Admin)
-  @Get('/invoice/xlsx/:id/:invoiceNumber/:monthYear')
+  @Get('/invoice/xlsx/:id/:invoiceNumber/:month/:year')
   getCustomerXlsx(
     @Res() res: Response,
     @Param('id') id: string,
     @Param('invoiceNumber') invoiceNumber: string,
-    @Param('monthYear') monthYear: string,
+    @Param('month') month: string,
+    @Param('year') year: string,
   ) {
     return this.xlsxInvoiceService.getCustomerExcel(
       res,
       id,
       invoiceNumber,
-      monthYear,
+      month,
+      year,
     );
   }
 
