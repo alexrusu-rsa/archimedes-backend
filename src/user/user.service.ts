@@ -43,6 +43,16 @@ export class UserService {
       throw err;
     }
   }
+
+  async getUsersNumber(): Promise<number> {
+    try {
+      const foundUsers = await this.userRepository.find();
+      if (foundUsers) return foundUsers.length;
+      return 0;
+    } catch (err) {
+      throw err;
+    }
+  }
   async addUser(user: User): Promise<User> {
     try {
       if (user.password) {
@@ -52,6 +62,29 @@ export class UserService {
         user.password = await this.hashPassword(generatedPassword);
         this.mailService.sendUserConfirmation(user, generatedPassword);
       }
+      const newUserId = (await this.userRepository.insert(user)).identifiers[0]
+        ?.id;
+      if (newUserId)
+        return await this.userRepository.findOneBy({ id: newUserId });
+      throw new HttpException(
+        'Bad request when trying to add user!',
+        HttpStatus.NOT_ACCEPTABLE,
+      );
+    } catch (err) {
+      throw err;
+    }
+  }
+
+  async addNewAdmin(user: User): Promise<User> {
+    try {
+      if (user.password) {
+        user.password = await this.hashPassword(user.password);
+      } else {
+        const generatedPassword = this.generateNewPassword();
+        user.password = await this.hashPassword(generatedPassword);
+        // this.mailService.sendUserConfirmation(user, generatedPassword);
+      }
+      user.roles = 'admin';
       const newUserId = (await this.userRepository.insert(user)).identifiers[0]
         ?.id;
       if (newUserId)
