@@ -19,4 +19,7 @@ export class Project {
 
   @Column({ nullable: true })
   invoiceTerm: number;
+
+  @Column({ nullable: true })
+  contractSignDate: string;
 }
