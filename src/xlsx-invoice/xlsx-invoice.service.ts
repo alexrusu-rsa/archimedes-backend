@@ -255,7 +255,6 @@ export class XlsxInvoiceService {
           worksheet.mergeCells('H49:J49');
           worksheet.mergeCells('H50:J50');
           if (internalCompany) {
-            worksheet.mergeCells('A43:D43');
             worksheet.getCell('A43').value = `${internalCompany.customerName}`;
             worksheet.getCell(
               'A46',
@@ -421,8 +420,6 @@ export class XlsxInvoiceService {
                 invoiceHoursTime + timeForCurrentActivity.hours;
               invoiceMinutesTime =
                 invoiceMinutesTime + timeForCurrentActivity.minutes;
-              const minutesToHours = invoiceMinutesTime / 60;
-              invoiceHoursTime = invoiceHoursTime + minutesToHours;
 
               annexWorksheet.getCell(annexStartLine, 15).value =
                 'HOURS: ' +
