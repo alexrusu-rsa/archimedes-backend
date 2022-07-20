@@ -46,7 +46,7 @@ import { RateModule } from './rate/rate.module';
       },
     ]),
   ],
-  controllers: [AppController, RateController],
+  controllers: [AppController],
   providers: [
     AppService,
     {
