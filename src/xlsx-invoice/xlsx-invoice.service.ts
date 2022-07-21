@@ -238,6 +238,8 @@ export class XlsxInvoiceService {
           worksheet.getCell('H5').font = { size: 18 };
           worksheet.getCell('A13').value = 'CLIENT';
 
+          worksheet.getCell('H27').alignment = { horizontal: 'center' };
+          worksheet.getCell('H27').value = `${euroExchange.toString()} RON/EUR`;
           worksheet.mergeCells('A38:J40');
           worksheet.getCell('A38').font = { size: 6 };
           worksheet.getCell('A38').value =
