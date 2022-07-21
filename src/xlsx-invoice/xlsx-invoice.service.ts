@@ -25,12 +25,30 @@ export class XlsxInvoiceService {
     res: Response,
     id: string,
     invoiceNumber: string,
-    monthYear: string,
+    month: string,
+    year: string,
   ) {
     try {
       const project = await this.projectRepository.findOneBy({ id });
-      const formattedDate =
-        monthYear.substring(0, 1) + '/' + monthYear.substring(1);
+      const invoiceCreationMonth = month;
+      const invoiceCreationYear = year;
+
+      const formattedDate = month + '/' + year;
+      let invoiceDueDate = new Date();
+      if (parseInt(invoiceCreationMonth) < 12) {
+        invoiceDueDate = new Date(
+          `${invoiceCreationYear}-${parseInt(invoiceCreationMonth) + 1}-${
+            project.invoiceTerm
+          }`,
+        );
+      } else {
+        invoiceDueDate = new Date(
+          `${parseInt(invoiceCreationYear)}-1-${project.invoiceTerm}`,
+        );
+      }
+      const invoiceDueDateToDisplay = `${invoiceDueDate.getDate()}/${
+        Number(invoiceDueDate.getMonth()) + 1
+      }/${invoiceDueDate.getFullYear()}`;
       const internalCompany = await this.customerRepository.findOneBy({
         internal: true,
       });
@@ -244,7 +262,7 @@ export class XlsxInvoiceService {
 
           worksheet.getCell('I9').value = todayString;
           if (project.dueDate) {
-            worksheet.getCell('I10').value = project.dueDate;
+            worksheet.getCell('I10').value = invoiceDueDateToDisplay;
           }
           worksheet.mergeCells('A46:E46');
           worksheet.mergeCells('A47:E47');

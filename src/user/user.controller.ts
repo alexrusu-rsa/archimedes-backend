@@ -21,6 +21,16 @@ import { UserService } from './user.service';
 export class UserController {
   constructor(private userService: UserService) {}
 
+  @Get('/number')
+  getUsersNumber(): Promise<number> {
+    return this.userService.getUsersNumber();
+  }
+
+  @Post('/first')
+  addNewAdmin(@Body() user: User): Promise<User> {
+    return this.userService.addNewAdmin(user);
+  }
+
   @UseGuards(JwtAuthGuard)
   @Get()
   @Roles(Role.Admin)
