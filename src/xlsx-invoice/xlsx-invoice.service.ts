@@ -27,12 +27,12 @@ export class XlsxInvoiceService {
     invoiceNumber: string,
     month: string,
     year: string,
+    euroExchange: number,
   ) {
     try {
       const project = await this.projectRepository.findOneBy({ id });
       const invoiceCreationMonth = month;
       const invoiceCreationYear = year;
-
       const formattedDate = month + '/' + year;
       let invoiceDueDate = new Date();
       if (parseInt(invoiceCreationMonth) < 12) {

@@ -21,10 +21,10 @@ export class PdfInvoiceService {
     invoiceNumber: string,
     month: string,
     year: string,
+    euroExchange: number,
   ): Promise<Buffer> {
     try {
       const project = await this.projectRepository.findOneBy({ id });
-
       const invoiceCreationMonth = month;
       const invoiceCreationYear = year;
 
@@ -260,6 +260,12 @@ export class PdfInvoiceService {
             doc
               .fillColor('#000000')
               .text('Curs BNR:', 375, 458, { width: 100, align: 'center' });
+            doc
+              .fillColor('#000000')
+              .text(`${euroExchange.toString()} RON/EUR`, 465, 458, {
+                width: 100,
+                align: 'center',
+              });
 
             doc
               .fillColor('#000000')
