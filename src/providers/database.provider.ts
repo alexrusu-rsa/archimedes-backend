@@ -1,6 +1,7 @@
 import { Activity } from 'src/entity/activity.entity';
 import { Customer } from 'src/entity/customer.entity';
 import { Project } from 'src/entity/project.entity';
+import { Rate } from 'src/entity/rate.entity';
 import { User } from 'src/entity/user.entity';
 import { createConnection } from 'typeorm';
 
@@ -15,7 +16,7 @@ export const databaseProvider = [
         username: process.env.DATABASE_USERNAME,
         password: process.env.DATABASE_P,
         database: process.env.DATABASE_NAME,
-        entities: [Activity, User, Customer, Project],
+        entities: [Activity, User, Customer, Project, Rate],
         ssl: { rejectUnauthorized: false },
         synchronize: false,
       }),

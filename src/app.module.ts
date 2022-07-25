@@ -10,6 +10,9 @@ import { RolesGuard } from './auth/roles.guard';
 import { CustomerModule } from './customer/customer.module';
 import { ProjectModule } from './project/project.module';
 import { DateFormatService } from './date-format/date-format.service';
+import { RateController } from './rate/rate.controller';
+import { RateService } from './rate/rate.service';
+import { RateModule } from './rate/rate.module';
 
 @Module({
   imports: [
@@ -18,6 +21,8 @@ import { DateFormatService } from './date-format/date-format.service';
     CustomerModule,
     ProjectModule,
     AuthModule,
+    MailModule,
+    RateModule,
     RouterModule.register([
       {
         path: 'activity',
@@ -35,8 +40,11 @@ import { DateFormatService } from './date-format/date-format.service';
         path: 'project',
         module: ProjectModule,
       },
+      {
+        path: 'rate',
+        module: RateModule,
+      },
     ]),
-    MailModule,
   ],
   controllers: [AppController],
   providers: [

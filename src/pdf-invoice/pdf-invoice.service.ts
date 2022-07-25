@@ -5,6 +5,8 @@ import { Project } from 'src/entity/project.entity';
 import { getRepository, Repository } from 'typeorm';
 import * as PDFDocument from 'pdfkit';
 import { DateFormatService } from 'src/date-format/date-format.service';
+import { Rate } from 'src/entity/rate.entity';
+import { RateType } from 'src/custom/rate-type.enum';
 
 @Injectable()
 export class PdfInvoiceService {
@@ -15,20 +17,43 @@ export class PdfInvoiceService {
     private projectRepository: Repository<Project>,
     @Inject('CUSTOMER_REPOSITORY')
     private customerRepository: Repository<Customer>,
+    @Inject('RATE_REPOSITORY')
+    private rateRepository: Repository<Rate>,
   ) {}
   async generatePDF(
     id: string,
     invoiceNumber: string,
-    monthYear: string,
+    month: string,
+    year: string,
+    euroExchange: number,
   ): Promise<Buffer> {
     try {
+      const rateForProject = await this.rateRepository.findOneBy({
+        projectId: id,
+      });
       const project = await this.projectRepository.findOneBy({ id });
+      const invoiceCreationMonth = month;
+      const invoiceCreationYear = year;
+      let invoiceDueDate = new Date();
+      if (parseInt(invoiceCreationMonth) < 12) {
+        invoiceDueDate = new Date(
+          `${invoiceCreationYear}-${parseInt(invoiceCreationMonth) + 1}-${
+            project.invoiceTerm
+          }`,
+        );
+      } else {
+        invoiceDueDate = new Date(
+          `${parseInt(invoiceCreationYear)}-1-${project.invoiceTerm}`,
+        );
+      }
+      const invoiceDueDateToDisplay = `${invoiceDueDate.getDate()}/${
+        Number(invoiceDueDate.getMonth()) + 1
+      }/${invoiceDueDate.getFullYear()}`;
       const internalCompany = await this.customerRepository.findOneBy({
         internal: true,
       });
 
-      const formattedDate =
-        monthYear.substring(0, 1) + '/' + monthYear.substring(1);
+      const formattedDate = month + '/' + year;
       if (project) {
         const customerOfProject = await this.customerRepository.findOneBy({
           id: project.customerId,
@@ -89,8 +114,8 @@ export class PdfInvoiceService {
               align: 'justify',
             });
             const today = new Date();
-            const dd = String(today.getDate()).padStart(2, '0');
-            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const dd = parseInt(String(today.getDate()).padStart(2, '0'));
+            const mm = parseInt(String(today.getMonth() + 1).padStart(2, '0'));
             const yyyy = today.getFullYear();
             const todayString = dd + '/' + mm + '/' + yyyy;
 
@@ -102,8 +127,7 @@ export class PdfInvoiceService {
               width: 175,
               align: 'justify',
             });
-
-            doc.fillColor('#000000').text(project.dueDate, 450, 160, {
+            doc.fillColor('#000000').text(invoiceDueDateToDisplay, 450, 160, {
               width: 175,
               align: 'justify',
             });
@@ -207,10 +231,16 @@ export class PdfInvoiceService {
                 align: 'center',
               });
 
-            doc
-              .font('Helvetica-Bold')
-              .fillColor('#ffffff')
-              .text('U.M(ore)', 250, 294, { width: 75, align: 'center' });
+            if (rateForProject.rateType === RateType.HOURLY)
+              doc
+                .font('Helvetica-Bold')
+                .fillColor('#ffffff')
+                .text('U.M(ore)', 250, 294, { width: 75, align: 'center' });
+            if (rateForProject.rateType === RateType.MONTHLY)
+              doc
+                .font('Helvetica-Bold')
+                .fillColor('#ffffff')
+                .text('U.M(luni)', 250, 294, { width: 75, align: 'center' });
 
             doc
               .font('Helvetica-Bold')
@@ -242,6 +272,13 @@ export class PdfInvoiceService {
             doc
               .fillColor('#000000')
               .text('Curs BNR:', 375, 458, { width: 100, align: 'center' });
+
+            doc
+              .fillColor('#000000')
+              .text(`${euroExchange.toString()} RON/EUR`, 465, 458, {
+                width: 100,
+                align: 'center',
+              });
 
             doc
               .fillColor('#000000')
@@ -420,14 +457,102 @@ export class PdfInvoiceService {
             const minutesToHours = invoiceMinutesTime / 60;
             invoiceHoursTime = invoiceHoursTime + minutesToHours;
             doc.switchToPage(0);
-            doc
-              .font('Helvetica-Bold')
-              .fillColor('#000000')
-              .text(invoiceHoursTime.toString(), 210, 320, {
-                width: 160,
-                align: 'center',
-              });
-
+            if (rateForProject.rateType === RateType.HOURLY) {
+              doc
+                .font('Helvetica-Bold')
+                .fillColor('#000000')
+                .text(invoiceHoursTime.toString(), 210, 335, {
+                  width: 160,
+                  align: 'center',
+                });
+              doc
+                .font('Helvetica-Bold')
+                .fillColor('#000000')
+                .text(
+                  (rateForProject.rate * euroExchange).toFixed(2).toString() +
+                    ' RON',
+                  300,
+                  335,
+                  {
+                    width: 160,
+                    align: 'center',
+                  },
+                );
+              doc
+                .font('Helvetica-Bold')
+                .fillColor('#000000')
+                .text(
+                  (invoiceHoursTime * rateForProject.rate * euroExchange)
+                    .toFixed(2)
+                    .toString() + ' RON',
+                  420,
+                  335,
+                  {
+                    width: 160,
+                    align: 'center',
+                  },
+                );
+              doc
+                .font('Helvetica-Bold')
+                .fillColor('#000000')
+                .text(
+                  (invoiceHoursTime * rateForProject.rate * euroExchange)
+                    .toFixed(2)
+                    .toString() + ' RON',
+                  435,
+                  508,
+                  {
+                    width: 160,
+                    align: 'center',
+                  },
+                );
+            }
+            if (rateForProject.rateType === RateType.MONTHLY) {
+              doc
+                .font('Helvetica-Bold')
+                .fillColor('#000000')
+                .text('1', 210, 335, {
+                  width: 160,
+                  align: 'center',
+                });
+              doc
+                .font('Helvetica-Bold')
+                .fillColor('#000000')
+                .text(
+                  (rateForProject.rate * euroExchange).toFixed(2).toString() +
+                    ' RON',
+                  300,
+                  335,
+                  {
+                    width: 160,
+                    align: 'center',
+                  },
+                );
+              doc
+                .font('Helvetica-Bold')
+                .fillColor('#000000')
+                .text(
+                  (rateForProject.rate * euroExchange).toFixed(2).toString(),
+                  420,
+                  335,
+                  {
+                    width: 160,
+                    align: 'center',
+                  },
+                );
+              doc
+                .font('Helvetica-Bold')
+                .fillColor('#000000')
+                .text(
+                  (rateForProject.rate * euroExchange).toFixed(2).toString(),
+                  435,
+                  508,
+                  {
+                    width: 160,
+                    align: 'center',
+                  },
+                );
+            }
             doc
               .lineCap('butt')
               .moveTo(40, 800)

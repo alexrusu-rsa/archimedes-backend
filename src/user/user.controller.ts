@@ -12,6 +12,7 @@ import {
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { Role } from 'src/auth/role.enum';
 import { Roles } from 'src/auth/roles.decorator';
+import { PasswordChangeData } from 'src/custom/password-change-data';
 import { RequestWrapper } from 'src/custom/requestwrapper';
 import { RequestWrapperWithUserRole } from 'src/custom/requestWrapperWithUserRole';
 import { User } from 'src/entity/user.entity';
@@ -20,6 +21,16 @@ import { UserService } from './user.service';
 @Controller()
 export class UserController {
   constructor(private userService: UserService) {}
+
+  @Get('/number')
+  getUsersNumber(): Promise<number> {
+    return this.userService.getUsersNumber();
+  }
+
+  @Post('/first')
+  addNewAdmin(@Body() user: User): Promise<User> {
+    return this.userService.addNewAdmin(user);
+  }
 
   @UseGuards(JwtAuthGuard)
   @Get()
@@ -37,6 +48,15 @@ export class UserController {
   @Put('/password')
   resetUserPassword(@Body() user: User) {
     return this.userService.resetUserPassword(user.email);
+  }
+
+  @Put('/change')
+  @UseGuards(JwtAuthGuard)
+  changeUserPassword(@Body() passwordChangeData: PasswordChangeData) {
+    return this.userService.changeUserPassword(
+      passwordChangeData.newPassword,
+      passwordChangeData.userId,
+    );
   }
 
   @UseGuards(JwtAuthGuard)
