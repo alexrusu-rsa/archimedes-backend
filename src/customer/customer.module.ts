@@ -5,6 +5,7 @@ import { PdfInvoiceService } from 'src/pdf-invoice/pdf-invoice.service';
 import { ProjectModule } from 'src/project/project.module';
 import { CustomerProvider } from 'src/providers/customer.provider';
 import { ProjectProvider } from 'src/providers/project.provider';
+import { RateProvider } from 'src/providers/rate.provider';
 import { XlsxInvoiceService } from 'src/xlsx-invoice/xlsx-invoice.service';
 import { CustomerController } from './customer.controller';
 import { CustomerService } from './customer.service';
@@ -15,6 +16,7 @@ import { CustomerService } from './customer.service';
   providers: [
     ...CustomerProvider,
     ...ProjectProvider,
+    ...RateProvider,
     CustomerService,
     XlsxInvoiceService,
     PdfInvoiceService,

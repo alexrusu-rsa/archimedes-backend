@@ -8,6 +8,8 @@ import { getRepository, Repository } from 'typeorm';
 import * as exceljs from 'exceljs';
 import { DateFormatService } from 'src/date-format/date-format.service';
 import { time } from 'console';
+import { Rate } from 'src/entity/rate.entity';
+import { RateType } from 'src/custom/rate-type.enum';
 
 @Injectable()
 export class XlsxInvoiceService {
@@ -17,6 +19,8 @@ export class XlsxInvoiceService {
     private projectRepository: Repository<Project>,
     @Inject('CUSTOMER_REPOSITORY')
     private customerRepository: Repository<Customer>,
+    @Inject('RATE_REPOSITORY')
+    private rateRepository: Repository<Rate>,
   ) {}
 
   activitiesOfProjectPerMonthYear: Activity[];
@@ -30,6 +34,9 @@ export class XlsxInvoiceService {
     euroExchange: number,
   ) {
     try {
+      const rateForProject = await this.rateRepository.findOneBy({
+        projectId: id,
+      });
       const project = await this.projectRepository.findOneBy({ id });
       const invoiceCreationMonth = month;
       const invoiceCreationYear = year;
@@ -186,8 +193,15 @@ export class XlsxInvoiceService {
           worksheet.getCell('B20').value = 'Descriere Servicii';
           worksheet.getCell('B20').alignment = { horizontal: 'left' };
 
-          worksheet.getCell('D20').value = 'U.M. (ore)';
-          worksheet.getCell('D20').alignment = { horizontal: 'left' };
+          if (rateForProject.rateType === RateType.HOURLY) {
+            worksheet.getCell('D20').value = 'U.M. (ore)';
+            worksheet.getCell('D20').alignment = { horizontal: 'left' };
+          }
+
+          if (rateForProject.rateType === RateType.MONTHLY) {
+            worksheet.getCell('D20').value = 'U.M. (luni)';
+            worksheet.getCell('D20').alignment = { horizontal: 'left' };
+          }
 
           worksheet.getCell('F20').value = 'Valoare Unitară';
           worksheet.getCell('F20').alignment = { horizontal: 'left' };
@@ -320,11 +334,6 @@ export class XlsxInvoiceService {
             worksheet.getCell('C16').value = customerOfProject.customerReg;
             worksheet.getCell('C17').value = customerOfProject.customerAddress;
 
-            worksheet.getCell('D21').value =
-              this.activitiesOfProjectPerMonthYear.length;
-            worksheet.getCell('D21').font = { size: 11 };
-            worksheet.getCell('D21').alignment = { horizontal: 'center' };
-
             worksheet.getCell('B21').value = '';
             worksheet.getCell('B21').font = { size: 11 };
             worksheet.getCell('B21').alignment = { horizontal: 'center' };
@@ -369,11 +378,6 @@ export class XlsxInvoiceService {
             worksheet.getCell('C15').value = customerOfProject.customerCUI;
             worksheet.getCell('C16').value = customerOfProject.customerReg;
             worksheet.getCell('C17').value = customerOfProject.customerAddress;
-
-            worksheet.getCell('D21').value =
-              this.activitiesOfProjectPerMonthYear.length;
-            worksheet.getCell('D21').font = { size: 11 };
-            worksheet.getCell('D21').alignment = { horizontal: 'center' };
 
             worksheet.getCell('B21').value = '';
             worksheet.getCell('B21').font = { size: 11 };
@@ -449,7 +453,34 @@ export class XlsxInvoiceService {
             });
             const minutesToHours = invoiceMinutesTime / 60;
             invoiceHoursTime = invoiceHoursTime + minutesToHours;
-            worksheet.getCell('D21').value = invoiceHoursTime;
+            worksheet.getCell('H31').alignment = { horizontal: 'center' };
+            worksheet.getCell('B21').alignment = { horizontal: 'center' };
+            worksheet.getCell('D21').alignment = { horizontal: 'center' };
+            worksheet.getCell('F21').alignment = { horizontal: 'center' };
+            worksheet.getCell('H21').alignment = { horizontal: 'center' };
+            if (rateForProject.rateType === RateType.HOURLY) {
+              worksheet.getCell('D21').value = invoiceHoursTime;
+              worksheet.getCell('H21').value =
+                (invoiceHoursTime * rateForProject.rate * euroExchange)
+                  .toFixed(2)
+                  .toString() + ' RON';
+              worksheet.getCell('H31').value =
+                (invoiceHoursTime * rateForProject.rate * euroExchange)
+                  .toFixed(2)
+                  .toString() + ' RON';
+            }
+            if (rateForProject.rateType === RateType.MONTHLY) {
+              worksheet.getCell('D21').value = 1;
+              worksheet.getCell('H21').value =
+                (rateForProject.rate * euroExchange).toFixed(2).toString() +
+                ' RON';
+              worksheet.getCell('H31').value =
+                (rateForProject.rate * euroExchange).toFixed(2).toString() +
+                ' RON';
+            }
+            worksheet.getCell('F21').value =
+              (rateForProject.rate * euroExchange).toFixed(2).toString() +
+              ' RON';
           }
           res.setHeader(
             'Content-Type',
