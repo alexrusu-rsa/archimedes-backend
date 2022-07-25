@@ -12,6 +12,7 @@ import {
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { Role } from 'src/auth/role.enum';
 import { Roles } from 'src/auth/roles.decorator';
+import { PasswordChangeData } from 'src/custom/password-change-data';
 import { RequestWrapper } from 'src/custom/requestwrapper';
 import { RequestWrapperWithUserRole } from 'src/custom/requestWrapperWithUserRole';
 import { User } from 'src/entity/user.entity';
@@ -47,6 +48,15 @@ export class UserController {
   @Put('/password')
   resetUserPassword(@Body() user: User) {
     return this.userService.resetUserPassword(user.email);
+  }
+
+  @Put('/change')
+  @UseGuards(JwtAuthGuard)
+  changeUserPassword(@Body() passwordChangeData: PasswordChangeData) {
+    return this.userService.changeUserPassword(
+      passwordChangeData.newPassword,
+      passwordChangeData.userId,
+    );
   }
 
   @UseGuards(JwtAuthGuard)

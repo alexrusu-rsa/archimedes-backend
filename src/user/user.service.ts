@@ -228,6 +228,31 @@ export class UserService {
     }
   }
 
+  async changeUserPassword(newPassword: string, userId: string) {
+    try {
+      const hashedNewPassword = await this.hashPassword(newPassword);
+      const foundUser = await this.userRepository.findOneBy({ id: userId });
+      if (foundUser) {
+        foundUser.password = hashedNewPassword;
+        const updatedUserResult = await this.userRepository.update(
+          userId,
+          foundUser,
+        );
+        if (updatedUserResult) {
+          return updatedUserResult;
+        } else {
+          return new HttpException(
+            'The user password was not updated',
+            HttpStatus.NOT_FOUND,
+          );
+        }
+      }
+      return new HttpException('The user was not found', HttpStatus.NOT_FOUND);
+    } catch (err) {
+      throw err;
+    }
+  }
+
   async hashPassword(plainTextPassword: string) {
     const saltOrRounds = 10;
     const hash = await bcrypt.hash(plainTextPassword, saltOrRounds);
