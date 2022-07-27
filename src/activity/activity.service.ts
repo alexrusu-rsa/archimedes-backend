@@ -9,6 +9,7 @@ import {
   Like,
   Repository,
 } from 'typeorm';
+import { ActivityDuplicateRange } from 'src/custom/activity-duplicate-range';
 
 @Injectable()
 export class ActivityService {
@@ -33,6 +34,46 @@ export class ActivityService {
 
   async getActivityTypes() {
     return ActivityType;
+  }
+
+  async addActivitiesInRange(duplicateActivityRange: ActivityDuplicateRange) {
+    const startDateType = new Date(duplicateActivityRange.startDate);
+    const endDateType = new Date(duplicateActivityRange.endDate);
+    const date = new Date();
+    date.setDate(startDateType.getDate());
+    date.setMonth(startDateType.getMonth());
+    date.setFullYear(startDateType.getFullYear());
+    const whileStop = new Date();
+    whileStop.setDate(endDateType.getDate());
+    whileStop.setMonth(endDateType.getMonth());
+    whileStop.setFullYear(endDateType.getFullYear());
+    const dates = [];
+    while (date <= whileStop) {
+      dates.push(
+        this.dateFormatService.formatISOToDB(
+          new Date(date).toISOString().split('T')[0],
+        ),
+      );
+      date.setDate(date.getDate() + 1);
+    }
+    try {
+      dates.forEach(async (date) => {
+        const activity = <Activity>{
+          name: duplicateActivityRange.activity.name,
+          date: date,
+          start: duplicateActivityRange.activity.start,
+          end: duplicateActivityRange.activity.end,
+          projectId: duplicateActivityRange.activity.projectId,
+          activityType: duplicateActivityRange.activity.activityType,
+          description: duplicateActivityRange.activity.description,
+          extras: duplicateActivityRange.activity.extras,
+          employeeId: duplicateActivityRange.activity.employeeId,
+        };
+        await this.addActivity(activity);
+      });
+    } catch (err) {
+      throw err;
+    }
   }
 
   async addActivity(activity: Activity): Promise<Activity> {

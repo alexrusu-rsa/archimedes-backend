@@ -19,6 +19,11 @@ export class DateFormatService {
     return activityDate[2] + '-' + activityDate[1] + '-' + activityDate[0];
   }
 
+  formatISOToDB(dateiso: string) {
+    const activityDate = dateiso.split('-');
+    return activityDate[2] + '/' + activityDate[1] + '/' + activityDate[0];
+  }
+
   getNewDateWithTime(time: string): Date {
     const newDate = new Date();
     newDate.setTime(this.toMilliseconds(time));
