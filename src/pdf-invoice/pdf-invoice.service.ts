@@ -222,7 +222,10 @@ export class PdfInvoiceService {
               .font('Helvetica-Bold')
               .fillColor('#ffffff')
               .text('Nr. crt.', 20, 294, { width: 90, align: 'center' });
-
+            doc.font('Helvetica-Bold').fillColor('#000000').text('1', 38, 335, {
+              width: 60,
+              align: 'center',
+            });
             doc
               .font('Helvetica-Bold')
               .fillColor('#ffffff')
@@ -275,7 +278,7 @@ export class PdfInvoiceService {
 
             doc
               .fillColor('#000000')
-              .text(`${euroExchange.toString()} RON/EUR`, 465, 458, {
+              .text(`${euroExchange.toString()}`, 465, 458, {
                 width: 100,
                 align: 'center',
               });
@@ -306,14 +309,45 @@ export class PdfInvoiceService {
               .moveTo(40, 645)
               .lineTo(555.28, 645)
               .stroke('#2D508F');
+
+            const dateToDisplayOnServicesColumn = new Date();
+            dateToDisplayOnServicesColumn.setDate(1);
+            dateToDisplayOnServicesColumn.setMonth(parseInt(month) - 1);
+            dateToDisplayOnServicesColumn.setFullYear(parseInt(year));
+            const isoDateToDisplayOnServicesColumn =
+              dateToDisplayOnServicesColumn.toISOString().split('T')[0];
+            const arrayDateMonthYear =
+              isoDateToDisplayOnServicesColumn.split('-');
+            const finalDateToDisplay = `${arrayDateMonthYear[2]}.${arrayDateMonthYear[1]}.${arrayDateMonthYear[0]}`;
+
+            const invoiceEndDateMonth = month;
+            const invoiceEndDate = new Date(
+              parseInt(year),
+              parseInt(invoiceEndDateMonth) + 1,
+              -1,
+            );
+            const endDateLastDay = invoiceEndDate.getDate();
+            const endDateToDisplayOnServicesColumn = new Date();
+            endDateToDisplayOnServicesColumn.setDate(endDateLastDay);
+            endDateToDisplayOnServicesColumn.setMonth(parseInt(month) - 1);
+            endDateToDisplayOnServicesColumn.setFullYear(parseInt(year));
+            const isoEndDateToDisplayOnServicesColumn =
+              endDateToDisplayOnServicesColumn.toISOString().split('T')[0];
+            const arrayEndDateMonthYear =
+              isoEndDateToDisplayOnServicesColumn.split('-');
+            const finalEndDateToDisplay = `${arrayEndDateMonthYear[2]}.${arrayEndDateMonthYear[1]}.${arrayEndDateMonthYear[0]}`;
+            const serviceToDisplay = `Prestare servicii IT, pe perioada \n ${finalDateToDisplay} - ${finalEndDateToDisplay} \n Consulting & Software development, \n Time & Material \n Conform Contract ${project.contract} `;
+
+            doc.fontSize(8);
             doc
               .font('Helvetica-Bold')
               .fillColor('#000000')
-              .text(project.projectName, 90, 335, {
+              .text(serviceToDisplay, 90, 315, {
                 width: 160,
                 align: 'center',
               });
 
+            doc.fontSize(10);
             if (internalCompany) {
               doc
                 .fillColor('#000000')
@@ -431,7 +465,22 @@ export class PdfInvoiceService {
             let index = 1;
             let invoiceHoursTime = 0;
             let invoiceMinutesTime = 0;
-            this.activitiesOfProjectPerMonthYear.forEach((activity) => {
+
+            const activitiesOfProjectMonthYearSortedASC =
+              this.activitiesOfProjectPerMonthYear.sort(
+                (activity1, activity2) =>
+                  new Date(
+                    this.dateFormatService.formatDBDateStringToISO(
+                      activity1.date,
+                    ),
+                  ).getTime() -
+                  new Date(
+                    this.dateFormatService.formatDBDateStringToISO(
+                      activity2.date,
+                    ),
+                  ).getTime(),
+              );
+            activitiesOfProjectMonthYearSortedASC.forEach((activity) => {
               const startDateTime = this.dateFormatService.getNewDateWithTime(
                 activity.start,
               );
@@ -449,7 +498,7 @@ export class PdfInvoiceService {
               doc
                 .fillColor('#000000')
                 .text(
-                  `${index}. ${activity.name} - ${activity.activityType} - HOURS: ${timeForCurrentActivity.hours} MINUTES: ${timeForCurrentActivity.minutes}`,
+                  `${activity.date}. ${activity.name} - ${activity.activityType} - HOURS: ${timeForCurrentActivity.hours} MINUTES: ${timeForCurrentActivity.minutes}`,
                 );
 
               index = index + 1;
@@ -511,7 +560,7 @@ export class PdfInvoiceService {
               doc
                 .font('Helvetica-Bold')
                 .fillColor('#000000')
-                .text('1', 210, 335, {
+                .text('1', 205, 335, {
                   width: 160,
                   align: 'center',
                 });
@@ -532,7 +581,8 @@ export class PdfInvoiceService {
                 .font('Helvetica-Bold')
                 .fillColor('#000000')
                 .text(
-                  (rateForProject.rate * euroExchange).toFixed(2).toString(),
+                  (rateForProject.rate * euroExchange).toFixed(2).toString() +
+                    ' RON',
                   420,
                   335,
                   {
@@ -544,7 +594,8 @@ export class PdfInvoiceService {
                 .font('Helvetica-Bold')
                 .fillColor('#000000')
                 .text(
-                  (rateForProject.rate * euroExchange).toFixed(2).toString(),
+                  (rateForProject.rate * euroExchange).toFixed(2).toString() +
+                    ' RON',
                   435,
                   508,
                   {

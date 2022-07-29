@@ -12,6 +12,7 @@ import {
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { Role } from 'src/auth/role.enum';
 import { Roles } from 'src/auth/roles.decorator';
+import { ActivityDuplicateRange } from 'src/custom/activity-duplicate-range';
 import { RequestWrapper } from 'src/custom/requestwrapper';
 import { Activity } from 'src/entity/activity.entity';
 import { ActivityService } from './activity.service';
@@ -24,6 +25,13 @@ export class ActivityController {
   @Get()
   getAllActivities(): Promise<Activity[]> {
     return this.activityService.getActivities();
+  }
+
+  @Post('/duplicate')
+  duplicateActivityInDateRange(
+    @Body() activityDuplicateRange: ActivityDuplicateRange,
+  ) {
+    return this.activityService.addActivitiesInRange(activityDuplicateRange);
   }
 
   @UseGuards(JwtAuthGuard)

@@ -10,6 +10,7 @@ import { DateFormatService } from 'src/date-format/date-format.service';
 import { time } from 'console';
 import { Rate } from 'src/entity/rate.entity';
 import { RateType } from 'src/custom/rate-type.enum';
+import { databaseProvider } from 'src/providers/database.provider';
 
 @Injectable()
 export class XlsxInvoiceService {
@@ -253,7 +254,7 @@ export class XlsxInvoiceService {
           worksheet.getCell('A13').value = 'CLIENT';
 
           worksheet.getCell('H27').alignment = { horizontal: 'center' };
-          worksheet.getCell('H27').value = `${euroExchange.toString()} RON/EUR`;
+          worksheet.getCell('H27').value = `${euroExchange.toString()}`;
           worksheet.mergeCells('A38:J40');
           worksheet.getCell('A38').font = { size: 6 };
           worksheet.getCell('A38').value =
@@ -409,6 +410,56 @@ export class XlsxInvoiceService {
           let annexStartLine = 2;
           let invoiceHoursTime = 0;
           let invoiceMinutesTime = 0;
+          worksheet.getColumn('B').width = 20;
+          worksheet.getCell('A21').alignment = { horizontal: 'center' };
+          worksheet.getCell('A21').value = '1';
+
+          const dateToDisplayOnServicesColumn = new Date();
+          dateToDisplayOnServicesColumn.setDate(1);
+          dateToDisplayOnServicesColumn.setMonth(parseInt(month) - 1);
+          dateToDisplayOnServicesColumn.setFullYear(parseInt(year));
+          const isoDateToDisplayOnServicesColumn = dateToDisplayOnServicesColumn
+            .toISOString()
+            .split('T')[0];
+          const arrayDateMonthYear =
+            isoDateToDisplayOnServicesColumn.split('-');
+          const finalDateToDisplay = `${arrayDateMonthYear[2]}.${arrayDateMonthYear[1]}.${arrayDateMonthYear[0]}`;
+
+          const invoiceEndDateMonth = month;
+          const invoiceEndDate = new Date(
+            parseInt(year),
+            parseInt(invoiceEndDateMonth) + 1,
+            -1,
+          );
+          const endDateLastDay = invoiceEndDate.getDate();
+          const endDateToDisplayOnServicesColumn = new Date();
+          endDateToDisplayOnServicesColumn.setDate(endDateLastDay);
+          endDateToDisplayOnServicesColumn.setMonth(parseInt(month) - 1);
+          endDateToDisplayOnServicesColumn.setFullYear(parseInt(year));
+          const isoEndDateToDisplayOnServicesColumn =
+            endDateToDisplayOnServicesColumn.toISOString().split('T')[0];
+          const arrayEndDateMonthYear =
+            isoEndDateToDisplayOnServicesColumn.split('-');
+          const finalEndDateToDisplay = `${arrayEndDateMonthYear[2]}.${arrayEndDateMonthYear[1]}.${arrayEndDateMonthYear[0]}`;
+          worksheet.getCell(
+            'B21',
+          ).value = `Prestare servicii IT, pe perioada \n ${finalDateToDisplay} - ${finalEndDateToDisplay} \n Consulting & Software development, \n Time & Material \n Conform Contract ${project.contract} `;
+          worksheet.getCell('B21').font = { size: 8 };
+
+          const activitiesOfProjectMonthYearSortedASC =
+            this.activitiesOfProjectPerMonthYear.sort(
+              (activity1, activity2) =>
+                new Date(
+                  this.dateFormatService.formatDBDateStringToISO(
+                    activity1.date,
+                  ),
+                ).getTime() -
+                new Date(
+                  this.dateFormatService.formatDBDateStringToISO(
+                    activity2.date,
+                  ),
+                ).getTime(),
+            );
 
           const annexLineEndColumn = 12;
           annexWorksheet.mergeCells('A2:L2');
@@ -417,8 +468,8 @@ export class XlsxInvoiceService {
           annexWorksheet.getCell('A2').value = 'Activity Name';
           annexWorksheet.getCell('M2').value = 'Activity Type';
           annexWorksheet.getCell('O2').value = 'Activity Time';
-          if (this.activitiesOfProjectPerMonthYear.length >= 1) {
-            this.activitiesOfProjectPerMonthYear.forEach((activity) => {
+          if (activitiesOfProjectMonthYearSortedASC.length >= 1) {
+            activitiesOfProjectMonthYearSortedASC.forEach((activity) => {
               annexStartLine = annexStartLine + 1;
               annexWorksheet.mergeCells(
                 annexStartLine,
@@ -426,7 +477,10 @@ export class XlsxInvoiceService {
                 annexStartLine,
                 annexLineEndColumn,
               );
-              annexWorksheet.getCell(annexStartLine, 1).value = activity.name;
+              annexWorksheet.getCell(
+                annexStartLine,
+                2,
+              ).value = `${activity.date} - ${activity.name}`;
               annexWorksheet.getCell(annexStartLine, 13).value =
                 activity.activityType;
               const startDateTime = this.dateFormatService.getNewDateWithTime(
