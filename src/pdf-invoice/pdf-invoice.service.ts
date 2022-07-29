@@ -465,7 +465,22 @@ export class PdfInvoiceService {
             let index = 1;
             let invoiceHoursTime = 0;
             let invoiceMinutesTime = 0;
-            this.activitiesOfProjectPerMonthYear.forEach((activity) => {
+
+            const activitiesOfProjectMonthYearSortedASC =
+              this.activitiesOfProjectPerMonthYear.sort(
+                (activity1, activity2) =>
+                  new Date(
+                    this.dateFormatService.formatDBDateStringToISO(
+                      activity1.date,
+                    ),
+                  ).getTime() -
+                  new Date(
+                    this.dateFormatService.formatDBDateStringToISO(
+                      activity2.date,
+                    ),
+                  ).getTime(),
+              );
+            activitiesOfProjectMonthYearSortedASC.forEach((activity) => {
               const startDateTime = this.dateFormatService.getNewDateWithTime(
                 activity.start,
               );

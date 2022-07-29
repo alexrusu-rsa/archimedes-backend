@@ -446,6 +446,21 @@ export class XlsxInvoiceService {
           ).value = `Prestare servicii IT, pe perioada \n ${finalDateToDisplay} - ${finalEndDateToDisplay} \n Consulting & Software development, \n Time & Material \n Conform Contract ${project.contract} `;
           worksheet.getCell('B21').font = { size: 8 };
 
+          const activitiesOfProjectMonthYearSortedASC =
+            this.activitiesOfProjectPerMonthYear.sort(
+              (activity1, activity2) =>
+                new Date(
+                  this.dateFormatService.formatDBDateStringToISO(
+                    activity1.date,
+                  ),
+                ).getTime() -
+                new Date(
+                  this.dateFormatService.formatDBDateStringToISO(
+                    activity2.date,
+                  ),
+                ).getTime(),
+            );
+
           const annexLineEndColumn = 12;
           annexWorksheet.mergeCells('A2:L2');
           annexWorksheet.mergeCells('M2:N2');
@@ -453,8 +468,8 @@ export class XlsxInvoiceService {
           annexWorksheet.getCell('A2').value = 'Activity Name';
           annexWorksheet.getCell('M2').value = 'Activity Type';
           annexWorksheet.getCell('O2').value = 'Activity Time';
-          if (this.activitiesOfProjectPerMonthYear.length >= 1) {
-            this.activitiesOfProjectPerMonthYear.forEach((activity) => {
+          if (activitiesOfProjectMonthYearSortedASC.length >= 1) {
+            activitiesOfProjectMonthYearSortedASC.forEach((activity) => {
               annexStartLine = annexStartLine + 1;
               annexWorksheet.mergeCells(
                 annexStartLine,
