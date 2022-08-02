@@ -19,12 +19,14 @@ import { CustomerService } from './customer.service';
 import * as fs from 'fs';
 import { PdfInvoiceService } from 'src/pdf-invoice/pdf-invoice.service';
 import { XlsxInvoiceService } from 'src/xlsx-invoice/xlsx-invoice.service';
+import { ProjectService } from 'src/project/project.service';
 
 @Controller()
 export class CustomerController {
   constructor(
     private customerService: CustomerService,
     private pdfInvoiceService: PdfInvoiceService,
+    private projectService: ProjectService,
     private xlsxInvoiceService: XlsxInvoiceService,
   ) {}
 
@@ -53,9 +55,12 @@ export class CustomerController {
       year,
       euroExchange,
     );
+    const project = await this.projectService.getProject(id);
+    const customer = await this.customerService.getCustomer(project.customerId);
+
     res.set({
       'Content-Type': 'application/pdf',
-      'Content-Disposition': 'attachment; filename=invoice.pdf',
+      'Content-Disposition': `attachment; filename=invoice.pdf`,
       'Content-Length': buffer.length,
     });
     res.end(buffer);

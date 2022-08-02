@@ -3,6 +3,7 @@ import { DatabaseModule } from 'src/database.module';
 import { DateFormatService } from 'src/date-format/date-format.service';
 import { PdfInvoiceService } from 'src/pdf-invoice/pdf-invoice.service';
 import { ProjectModule } from 'src/project/project.module';
+import { ProjectService } from 'src/project/project.service';
 import { CustomerProvider } from 'src/providers/customer.provider';
 import { ProjectProvider } from 'src/providers/project.provider';
 import { RateProvider } from 'src/providers/rate.provider';
@@ -20,6 +21,7 @@ import { CustomerService } from './customer.service';
     CustomerService,
     XlsxInvoiceService,
     PdfInvoiceService,
+    ProjectService,
     DateFormatService,
   ],
 })

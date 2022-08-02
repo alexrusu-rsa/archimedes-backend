@@ -9,6 +9,15 @@ export class ProjectService {
     private projectRepository: Repository<Project>,
   ) {}
 
+  async getProject(id: string): Promise<Project> {
+    try {
+      const projectFound = await this.projectRepository.findOneBy({ id: id });
+      if (projectFound) return projectFound;
+      throw new HttpException('Project was not found!', HttpStatus.NOT_FOUND);
+    } catch (err) {
+      throw err;
+    }
+  }
   async getProjects(): Promise<Project[]> {
     try {
       const projects = this.projectRepository.find();
