@@ -55,17 +55,21 @@ export class UserService {
   }
   async addUser(user: User): Promise<User> {
     try {
+      let generatedPasswordForReturnedUser = '';
       if (user.password) {
         user.password = await this.hashPassword(user.password);
       } else {
         const generatedPassword = this.generateNewPassword();
+        generatedPasswordForReturnedUser = generatedPassword;
         user.password = await this.hashPassword(generatedPassword);
-        this.mailService.sendUserConfirmation(user, generatedPassword);
+        // this.mailService.sendUserConfirmation(user, generatedPassword);
       }
       const newUserId = (await this.userRepository.insert(user)).identifiers[0]
         ?.id;
-      if (newUserId)
-        return await this.userRepository.findOneBy({ id: newUserId });
+      user.password = generatedPasswordForReturnedUser;
+      if (newUserId) {
+        return user;
+      }
       throw new HttpException(
         'Bad request when trying to add user!',
         HttpStatus.NOT_ACCEPTABLE,
