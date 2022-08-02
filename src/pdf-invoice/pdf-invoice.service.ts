@@ -191,7 +191,7 @@ export class PdfInvoiceService {
               .rect(45, 290, 505.28, 15)
               .fillOpacity(1)
               .fillAndStroke('#2D508F', '#000000');
-            doc.lineJoin('square').rect(45, 290, 505.28, 110).stroke('#000000');
+            doc.lineJoin('square').rect(45, 290, 505.28, 80).stroke('#000000');
             doc
               .lineCap('butt')
               .moveTo(45, 305)
@@ -200,29 +200,29 @@ export class PdfInvoiceService {
             doc
               .lineCap('butt')
               .moveTo(90, 290)
-              .lineTo(90, 400)
+              .lineTo(90, 370)
               .stroke('#000000');
             doc
               .lineCap('butt')
               .moveTo(250, 290)
-              .lineTo(250, 400)
+              .lineTo(250, 370)
               .stroke('#000000');
             doc
               .lineCap('butt')
               .moveTo(325, 290)
-              .lineTo(325, 400)
+              .lineTo(325, 370)
               .stroke('#000000');
             doc
               .lineCap('butt')
               .moveTo(440, 290)
-              .lineTo(440, 400)
+              .lineTo(440, 370)
               .stroke('#000000');
             doc.fontSize(10);
             doc
               .font('Helvetica-Bold')
               .fillColor('#ffffff')
               .text('Nr. crt.', 20, 294, { width: 90, align: 'center' });
-            doc.font('Helvetica-Bold').fillColor('#000000').text('1', 38, 350, {
+            doc.font('Helvetica-Bold').fillColor('#000000').text('1', 38, 335, {
               width: 60,
               align: 'center',
             });
@@ -342,7 +342,7 @@ export class PdfInvoiceService {
             doc
               .font('Helvetica-Bold')
               .fillColor('#000000')
-              .text(serviceToDisplay, 90, 320, {
+              .text(serviceToDisplay, 90, 315, {
                 width: 160,
                 align: 'center',
               });
@@ -510,7 +510,7 @@ export class PdfInvoiceService {
               doc
                 .font('Helvetica-Bold')
                 .fillColor('#000000')
-                .text(invoiceHoursTime.toString(), 210, 350, {
+                .text(invoiceHoursTime.toString(), 210, 335, {
                   width: 160,
                   align: 'center',
                 });
@@ -521,7 +521,7 @@ export class PdfInvoiceService {
                   (rateForProject.rate * euroExchange).toFixed(2).toString() +
                     ' RON',
                   300,
-                  350,
+                  335,
                   {
                     width: 160,
                     align: 'center',
@@ -535,7 +535,7 @@ export class PdfInvoiceService {
                     .toFixed(2)
                     .toString() + ' RON',
                   420,
-                  350,
+                  335,
                   {
                     width: 160,
                     align: 'center',
@@ -560,7 +560,7 @@ export class PdfInvoiceService {
               doc
                 .font('Helvetica-Bold')
                 .fillColor('#000000')
-                .text('1', 205, 350, {
+                .text('1', 205, 335, {
                   width: 160,
                   align: 'center',
                 });
@@ -571,7 +571,7 @@ export class PdfInvoiceService {
                   (rateForProject.rate * euroExchange).toFixed(2).toString() +
                     ' RON',
                   300,
-                  350,
+                  335,
                   {
                     width: 160,
                     align: 'center',
@@ -584,7 +584,7 @@ export class PdfInvoiceService {
                   (rateForProject.rate * euroExchange).toFixed(2).toString() +
                     ' RON',
                   420,
-                  350,
+                  335,
                   {
                     width: 160,
                     align: 'center',
