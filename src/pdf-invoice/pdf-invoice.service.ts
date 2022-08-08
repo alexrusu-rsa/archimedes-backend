@@ -11,6 +11,8 @@ import { RateType } from 'src/custom/rate-type.enum';
 @Injectable()
 export class PdfInvoiceService {
   activitiesOfProjectPerMonthYear: Activity[];
+  numberOfDaysWorkedOnProjectDuringMonth: number;
+
   constructor(
     private dateFormatService: DateFormatService,
     @Inject('PROJECT_REPOSITORY')
@@ -68,6 +70,10 @@ export class PdfInvoiceService {
           })
           .getMany();
         if (this.activitiesOfProjectPerMonthYear) {
+          this.numberOfDaysWorkedOnProjectDuringMonth =
+            this.getNumberOfDayWithActivitiesOfProjectFromMonth(
+              this.activitiesOfProjectPerMonthYear,
+            );
           const pdfBuffer: Buffer = await new Promise((resolve) => {
             const doc = new PDFDocument({
               size: 'A4',
@@ -609,15 +615,19 @@ export class PdfInvoiceService {
                 );
             }
 
-            //HERE
             if (rateForProject.rateType === RateType.DAILY) {
               doc
                 .font('Helvetica-Bold')
                 .fillColor('#000000')
-                .text('1', 205, 350, {
-                  width: 160,
-                  align: 'center',
-                });
+                .text(
+                  this.numberOfDaysWorkedOnProjectDuringMonth.toString(),
+                  205,
+                  350,
+                  {
+                    width: 160,
+                    align: 'center',
+                  },
+                );
               doc
                 .font('Helvetica-Bold')
                 .fillColor('#000000')
@@ -635,8 +645,13 @@ export class PdfInvoiceService {
                 .font('Helvetica-Bold')
                 .fillColor('#000000')
                 .text(
-                  (rateForProject.rate * euroExchange).toFixed(2).toString() +
-                    ' RON',
+                  (
+                    rateForProject.rate *
+                    euroExchange *
+                    this.numberOfDaysWorkedOnProjectDuringMonth
+                  )
+                    .toFixed(2)
+                    .toString() + ' RON',
                   420,
                   350,
                   {
@@ -648,8 +663,13 @@ export class PdfInvoiceService {
                 .font('Helvetica-Bold')
                 .fillColor('#000000')
                 .text(
-                  (rateForProject.rate * euroExchange).toFixed(2).toString() +
-                    ' RON',
+                  (
+                    rateForProject.rate *
+                    euroExchange *
+                    this.numberOfDaysWorkedOnProjectDuringMonth
+                  )
+                    .toFixed(2)
+                    .toString() + ' RON',
                   435,
                   508,
                   {
@@ -690,5 +710,17 @@ export class PdfInvoiceService {
     } catch (err) {
       throw err;
     }
+  }
+
+  getNumberOfDayWithActivitiesOfProjectFromMonth(
+    activities: Activity[],
+  ): number {
+    const notUniqueDates = [];
+    activities.forEach((activity) => {
+      notUniqueDates.push(activity.date);
+    });
+    const uniqueDates = [...new Set(notUniqueDates)];
+    if (uniqueDates) return uniqueDates.length;
+    return 0;
   }
 }

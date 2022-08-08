@@ -25,6 +25,8 @@ export class XlsxInvoiceService {
   ) {}
 
   activitiesOfProjectPerMonthYear: Activity[];
+  numberOfDaysWorkedOnProjectDuringMonth: number;
+  allActivitiesOnProject: Activity[];
 
   async getCustomerExcel(
     res: Response,
@@ -75,6 +77,10 @@ export class XlsxInvoiceService {
           })
           .getMany();
         if (this.activitiesOfProjectPerMonthYear) {
+          this.numberOfDaysWorkedOnProjectDuringMonth =
+            this.getNumberOfDayWithActivitiesOfProjectFromMonth(
+              this.activitiesOfProjectPerMonthYear,
+            );
           const workbook = new exceljs.Workbook();
           const worksheet = workbook.addWorksheet('Invoice');
           const annexWorksheet = workbook.addWorksheet('Anexa 001');
@@ -210,7 +216,7 @@ export class XlsxInvoiceService {
           }
 
           if (rateForProject.rateType === RateType.PROJECT) {
-            worksheet.getCell('D20').value = 'U.M. (zile)';
+            worksheet.getCell('D20').value = 'U.M. (proiect)';
             worksheet.getCell('D20').alignment = { horizontal: 'left' };
           }
 
@@ -542,15 +548,25 @@ export class XlsxInvoiceService {
                 (rateForProject.rate * euroExchange).toFixed(2).toString() +
                 ' RON';
             }
-            //HERE2
             if (rateForProject.rateType === RateType.DAILY) {
-              worksheet.getCell('D21').value = 1;
+              worksheet.getCell('D21').value =
+                this.numberOfDaysWorkedOnProjectDuringMonth;
               worksheet.getCell('H21').value =
-                (rateForProject.rate * euroExchange).toFixed(2).toString() +
-                ' RON';
+                (
+                  rateForProject.rate *
+                  euroExchange *
+                  this.numberOfDaysWorkedOnProjectDuringMonth
+                )
+                  .toFixed(2)
+                  .toString() + ' RON';
               worksheet.getCell('H31').value =
-                (rateForProject.rate * euroExchange).toFixed(2).toString() +
-                ' RON';
+                (
+                  rateForProject.rate *
+                  euroExchange *
+                  this.numberOfDaysWorkedOnProjectDuringMonth
+                )
+                  .toFixed(2)
+                  .toString() + ' RON';
             }
             worksheet.getCell('F21').value =
               (rateForProject.rate * euroExchange).toFixed(2).toString() +
@@ -584,4 +600,17 @@ export class XlsxInvoiceService {
       throw err;
     }
   }
+  getNumberOfDayWithActivitiesOfProjectFromMonth(
+    activities: Activity[],
+  ): number {
+    const notUniqueDates = [];
+    activities.forEach((activity) => {
+      notUniqueDates.push(activity.date);
+    });
+    const uniqueDates = [...new Set(notUniqueDates)];
+    if (uniqueDates) return uniqueDates.length;
+    return 0;
+  }
+
+  getAllActivitiesOnProject()
 }
