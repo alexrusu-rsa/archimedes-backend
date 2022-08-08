@@ -236,22 +236,7 @@ export class ActivityService {
       throw err;
     }
   }
-
-  // async getActivitiesOfProjectWithId(projectId: string): Promise<Activity[]> {
-  //   try {
-  //     const activitiesWithProjectId = await this.activityRepository.findBy({
-  //       projectId: projectId,
-  //     });
-  //     if (activitiesWithProjectId) return activitiesWithProjectId;
-  //     throw new HttpException(
-  //       'No activities were found for this project',
-  //       HttpStatus.NOT_FOUND,
-  //     );
-  //   } catch (err) {
-  //     throw err;
-  //   }
-  // }
-
+  
   async getActivitiesMonthYear(year: string, month: string) {
     try {
       const monthYear = month + '/' + year;

@@ -22,6 +22,8 @@ export class XlsxInvoiceService {
     private customerRepository: Repository<Customer>,
     @Inject('RATE_REPOSITORY')
     private rateRepository: Repository<Rate>,
+    @Inject('ACTIVITY_REPOSITORY')
+    private activityRepository: Repository<Activity>,
   ) {}
 
   activitiesOfProjectPerMonthYear: Activity[];
@@ -461,7 +463,10 @@ export class XlsxInvoiceService {
             'B21',
           ).value = `Prestare servicii IT, pe perioada \n ${finalDateToDisplay} - ${finalEndDateToDisplay} \n Consulting & Software development, \n Time & Material \n Conform Contract ${project.contract} `;
           worksheet.getCell('B21').font = { size: 8 };
-
+          if (rateForProject.rateType === RateType.PROJECT) {
+            this.activitiesOfProjectPerMonthYear =
+              await this.getAllActivitiesOnProject(id);
+          }
           const activitiesOfProjectMonthYearSortedASC =
             this.activitiesOfProjectPerMonthYear.sort(
               (activity1, activity2) =>
@@ -568,6 +573,15 @@ export class XlsxInvoiceService {
                   .toFixed(2)
                   .toString() + ' RON';
             }
+            if (rateForProject.rateType === RateType.PROJECT) {
+              worksheet.getCell('D21').value = 1;
+              worksheet.getCell('H21').value =
+                (rateForProject.rate * euroExchange).toFixed(2).toString() +
+                ' RON';
+              worksheet.getCell('H31').value =
+                (rateForProject.rate * euroExchange).toFixed(2).toString() +
+                ' RON';
+            }
             worksheet.getCell('F21').value =
               (rateForProject.rate * euroExchange).toFixed(2).toString() +
               ' RON';
@@ -612,5 +626,18 @@ export class XlsxInvoiceService {
     return 0;
   }
 
-  getAllActivitiesOnProject()
+  getAllActivitiesOnProject(projectId: string): Promise<Activity[]> {
+    try {
+      const activitiesOfProject = this.activityRepository.findBy({
+        projectId: projectId,
+      });
+      if (activitiesOfProject) return activitiesOfProject;
+      throw new HttpException(
+        'No activities for project',
+        HttpStatus.NOT_FOUND,
+      );
+    } catch (err) {
+      throw err;
+    }
+  }
 }
