@@ -244,7 +244,11 @@ export class PdfInvoiceService {
                 .font('Helvetica-Bold')
                 .fillColor('#ffffff')
                 .text('U.M(luni)', 250, 294, { width: 75, align: 'center' });
-
+            if (rateForProject.rateType === RateType.DAILY)
+              doc
+                .font('Helvetica-Bold')
+                .fillColor('#ffffff')
+                .text('U.M(zile)', 250, 294, { width: 75, align: 'center' });
             doc
               .font('Helvetica-Bold')
               .fillColor('#ffffff')
@@ -604,6 +608,57 @@ export class PdfInvoiceService {
                   },
                 );
             }
+
+            //HERE
+            if (rateForProject.rateType === RateType.DAILY) {
+              doc
+                .font('Helvetica-Bold')
+                .fillColor('#000000')
+                .text('1', 205, 350, {
+                  width: 160,
+                  align: 'center',
+                });
+              doc
+                .font('Helvetica-Bold')
+                .fillColor('#000000')
+                .text(
+                  (rateForProject.rate * euroExchange).toFixed(2).toString() +
+                    ' RON',
+                  300,
+                  350,
+                  {
+                    width: 160,
+                    align: 'center',
+                  },
+                );
+              doc
+                .font('Helvetica-Bold')
+                .fillColor('#000000')
+                .text(
+                  (rateForProject.rate * euroExchange).toFixed(2).toString() +
+                    ' RON',
+                  420,
+                  350,
+                  {
+                    width: 160,
+                    align: 'center',
+                  },
+                );
+              doc
+                .font('Helvetica-Bold')
+                .fillColor('#000000')
+                .text(
+                  (rateForProject.rate * euroExchange).toFixed(2).toString() +
+                    ' RON',
+                  435,
+                  508,
+                  {
+                    width: 160,
+                    align: 'center',
+                  },
+                );
+            }
+            //HERE
             doc
               .lineCap('butt')
               .moveTo(40, 800)

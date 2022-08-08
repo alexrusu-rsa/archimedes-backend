@@ -204,6 +204,16 @@ export class XlsxInvoiceService {
             worksheet.getCell('D20').alignment = { horizontal: 'left' };
           }
 
+          if (rateForProject.rateType === RateType.DAILY) {
+            worksheet.getCell('D20').value = 'U.M. (zile)';
+            worksheet.getCell('D20').alignment = { horizontal: 'left' };
+          }
+
+          if (rateForProject.rateType === RateType.PROJECT) {
+            worksheet.getCell('D20').value = 'U.M. (zile)';
+            worksheet.getCell('D20').alignment = { horizontal: 'left' };
+          }
+
           worksheet.getCell('F20').value = 'Valoare Unitară';
           worksheet.getCell('F20').alignment = { horizontal: 'left' };
 
@@ -524,6 +534,16 @@ export class XlsxInvoiceService {
                   .toString() + ' RON';
             }
             if (rateForProject.rateType === RateType.MONTHLY) {
+              worksheet.getCell('D21').value = 1;
+              worksheet.getCell('H21').value =
+                (rateForProject.rate * euroExchange).toFixed(2).toString() +
+                ' RON';
+              worksheet.getCell('H31').value =
+                (rateForProject.rate * euroExchange).toFixed(2).toString() +
+                ' RON';
+            }
+            //HERE2
+            if (rateForProject.rateType === RateType.DAILY) {
               worksheet.getCell('D21').value = 1;
               worksheet.getCell('H21').value =
                 (rateForProject.rate * euroExchange).toFixed(2).toString() +
