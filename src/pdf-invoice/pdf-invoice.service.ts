@@ -150,7 +150,7 @@ export class PdfInvoiceService {
             doc
               .fillColor('#000000')
               .text(customerOfProject.customerName, 145, 225, {
-                width: 175,
+                width: 400,
                 align: 'left',
               });
 
@@ -160,7 +160,7 @@ export class PdfInvoiceService {
             doc
               .fillColor('#000000')
               .text(customerOfProject.customerCUI, 145, 240, {
-                width: 175,
+                width: 400,
                 align: 'left',
               });
 
@@ -170,7 +170,7 @@ export class PdfInvoiceService {
             doc
               .fillColor('#000000')
               .text(customerOfProject.customerReg, 145, 255, {
-                width: 175,
+                width: 400,
                 align: 'justify',
               });
 
@@ -180,7 +180,7 @@ export class PdfInvoiceService {
             doc
               .fillColor('#000000')
               .text(customerOfProject.customerAddress, 145, 270, {
-                width: 175,
+                width: 400,
                 align: 'justify',
               });
             doc.fontSize(14);
