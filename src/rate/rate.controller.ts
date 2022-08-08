@@ -54,6 +54,10 @@ export class RateController {
     return this.rateService.deleteRate(id);
   }
 
+  @Get('rateemployee/:id')
+  getRateForEmployee(@Param('id') id: string) {
+    return this.rateService.getRateForEmployeeId(id);
+  }
   @Roles(Role.Admin)
   @UseGuards(JwtAuthGuard)
   @Put(':id')
