@@ -1,4 +1,10 @@
-import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
+import {
+  ConsoleLogger,
+  HttpException,
+  HttpStatus,
+  Inject,
+  Injectable,
+} from '@nestjs/common';
 import { Activity } from 'src/entity/activity.entity';
 import { Customer } from 'src/entity/customer.entity';
 import { Project } from 'src/entity/project.entity';
@@ -30,7 +36,14 @@ export class PdfInvoiceService {
     month: string,
     year: string,
     euroExchange: number,
+    dateMillis: string,
   ): Promise<Buffer> {
+    const invoiceEmissionDate = new Date();
+    invoiceEmissionDate.setTime(parseInt(dateMillis) + 86400000);
+    const emmisionDateString = invoiceEmissionDate.toISOString().split('T')[0];
+    const actualEmisionDate = `${emmisionDateString.split('-')[2]}/${
+      emmisionDateString.split('-')[1]
+    }/${emmisionDateString.split('-')[0]}`;
     try {
       const rateForProject = await this.rateRepository.findOneBy({
         projectId: id,
@@ -127,9 +140,10 @@ export class PdfInvoiceService {
             const yyyy = today.getFullYear();
             const todayString = dd + '/' + mm + '/' + yyyy;
 
-            doc
-              .fillColor('#000000')
-              .text(todayString, 450, 145, { width: 175, align: 'justify' });
+            doc.fillColor('#000000').text(actualEmisionDate, 450, 145, {
+              width: 175,
+              align: 'justify',
+            });
 
             doc.fillColor('#000000').text('Data scadentei:', 325, 160, {
               width: 175,

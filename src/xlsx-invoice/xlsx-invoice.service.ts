@@ -37,7 +37,14 @@ export class XlsxInvoiceService {
     month: string,
     year: string,
     euroExchange: number,
+    dateMillis: string,
   ) {
+    const invoiceEmissionDate = new Date();
+    invoiceEmissionDate.setTime(parseInt(dateMillis) + 86400000);
+    const emmisionDateString = invoiceEmissionDate.toISOString().split('T')[0];
+    const actualEmisionDate = `${emmisionDateString.split('-')[2]}/${
+      emmisionDateString.split('-')[1]
+    }/${emmisionDateString.split('-')[0]}`;
     try {
       const rateForProject = await this.rateRepository.findOneBy({
         projectId: id,
@@ -295,7 +302,7 @@ export class XlsxInvoiceService {
           const yyyy = today.getFullYear();
           const todayString = dd + '/' + mm + '/' + yyyy;
 
-          worksheet.getCell('I9').value = todayString;
+          worksheet.getCell('I9').value = actualEmisionDate;
           if (project.dueDate) {
             worksheet.getCell('I10').value = invoiceDueDateToDisplay;
           }
