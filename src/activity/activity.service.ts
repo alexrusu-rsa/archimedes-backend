@@ -10,6 +10,7 @@ import {
   Repository,
 } from 'typeorm';
 import { ActivityDuplicateRange } from 'src/custom/activity-duplicate-range';
+import { of } from 'rxjs';
 
 @Injectable()
 export class ActivityService {
@@ -235,6 +236,7 @@ export class ActivityService {
       throw err;
     }
   }
+  
   async getActivitiesMonthYear(year: string, month: string) {
     try {
       const monthYear = month + '/' + year;

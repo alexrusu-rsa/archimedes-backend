@@ -22,9 +22,13 @@ export class XlsxInvoiceService {
     private customerRepository: Repository<Customer>,
     @Inject('RATE_REPOSITORY')
     private rateRepository: Repository<Rate>,
+    @Inject('ACTIVITY_REPOSITORY')
+    private activityRepository: Repository<Activity>,
   ) {}
 
   activitiesOfProjectPerMonthYear: Activity[];
+  numberOfDaysWorkedOnProjectDuringMonth: number;
+  allActivitiesOnProject: Activity[];
 
   async getCustomerExcel(
     res: Response,
@@ -75,6 +79,10 @@ export class XlsxInvoiceService {
           })
           .getMany();
         if (this.activitiesOfProjectPerMonthYear) {
+          this.numberOfDaysWorkedOnProjectDuringMonth =
+            this.getNumberOfDayWithActivitiesOfProjectFromMonth(
+              this.activitiesOfProjectPerMonthYear,
+            );
           const workbook = new exceljs.Workbook();
           const worksheet = workbook.addWorksheet('Invoice');
           const annexWorksheet = workbook.addWorksheet('Anexa 001');
@@ -201,6 +209,16 @@ export class XlsxInvoiceService {
 
           if (rateForProject.rateType === RateType.MONTHLY) {
             worksheet.getCell('D20').value = 'U.M. (luni)';
+            worksheet.getCell('D20').alignment = { horizontal: 'left' };
+          }
+
+          if (rateForProject.rateType === RateType.DAILY) {
+            worksheet.getCell('D20').value = 'U.M. (zile)';
+            worksheet.getCell('D20').alignment = { horizontal: 'left' };
+          }
+
+          if (rateForProject.rateType === RateType.PROJECT) {
+            worksheet.getCell('D20').value = 'U.M. (proiect)';
             worksheet.getCell('D20').alignment = { horizontal: 'left' };
           }
 
@@ -445,7 +463,10 @@ export class XlsxInvoiceService {
             'B21',
           ).value = `Prestare servicii IT, pe perioada \n ${finalDateToDisplay} - ${finalEndDateToDisplay} \n Consulting & Software development, \n Time & Material \n Conform Contract ${project.contract} `;
           worksheet.getCell('B21').font = { size: 8 };
-
+          if (rateForProject.rateType === RateType.PROJECT) {
+            this.activitiesOfProjectPerMonthYear =
+              await this.getAllActivitiesOnProject(id);
+          }
           const activitiesOfProjectMonthYearSortedASC =
             this.activitiesOfProjectPerMonthYear.sort(
               (activity1, activity2) =>
@@ -532,6 +553,35 @@ export class XlsxInvoiceService {
                 (rateForProject.rate * euroExchange).toFixed(2).toString() +
                 ' RON';
             }
+            if (rateForProject.rateType === RateType.DAILY) {
+              worksheet.getCell('D21').value =
+                this.numberOfDaysWorkedOnProjectDuringMonth;
+              worksheet.getCell('H21').value =
+                (
+                  rateForProject.rate *
+                  euroExchange *
+                  this.numberOfDaysWorkedOnProjectDuringMonth
+                )
+                  .toFixed(2)
+                  .toString() + ' RON';
+              worksheet.getCell('H31').value =
+                (
+                  rateForProject.rate *
+                  euroExchange *
+                  this.numberOfDaysWorkedOnProjectDuringMonth
+                )
+                  .toFixed(2)
+                  .toString() + ' RON';
+            }
+            if (rateForProject.rateType === RateType.PROJECT) {
+              worksheet.getCell('D21').value = 1;
+              worksheet.getCell('H21').value =
+                (rateForProject.rate * euroExchange).toFixed(2).toString() +
+                ' RON';
+              worksheet.getCell('H31').value =
+                (rateForProject.rate * euroExchange).toFixed(2).toString() +
+                ' RON';
+            }
             worksheet.getCell('F21').value =
               (rateForProject.rate * euroExchange).toFixed(2).toString() +
               ' RON';
@@ -560,6 +610,32 @@ export class XlsxInvoiceService {
           HttpStatus.NOT_FOUND,
         );
       }
+    } catch (err) {
+      throw err;
+    }
+  }
+  getNumberOfDayWithActivitiesOfProjectFromMonth(
+    activities: Activity[],
+  ): number {
+    const notUniqueDates = [];
+    activities.forEach((activity) => {
+      notUniqueDates.push(activity.date);
+    });
+    const uniqueDates = [...new Set(notUniqueDates)];
+    if (uniqueDates) return uniqueDates.length;
+    return 0;
+  }
+
+  getAllActivitiesOnProject(projectId: string): Promise<Activity[]> {
+    try {
+      const activitiesOfProject = this.activityRepository.findBy({
+        projectId: projectId,
+      });
+      if (activitiesOfProject) return activitiesOfProject;
+      throw new HttpException(
+        'No activities for project',
+        HttpStatus.NOT_FOUND,
+      );
     } catch (err) {
       throw err;
     }
