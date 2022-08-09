@@ -37,7 +37,7 @@ export class CustomerController {
 
   @UseGuards(JwtAuthGuard)
   @Roles(Role.Admin)
-  @Get('/invoice/pdf/:id/:invoiceNumber/:month/:year/:euroExchange')
+  @Get('/invoice/pdf/:id/:invoiceNumber/:month/:year/:euroExchange/:dateMillis')
   async getInvoice(
     @Res() res: Response,
     @Param('id') id: string,
@@ -45,6 +45,7 @@ export class CustomerController {
     @Param('month') month: string,
     @Param('year') year: string,
     @Param('euroExchange') euroExchange: number,
+    @Param('dateMillis') dateMillis: string,
   ): Promise<any> {
     const buffer = await this.pdfInvoiceService.generatePDF(
       id,
@@ -52,6 +53,7 @@ export class CustomerController {
       month,
       year,
       euroExchange,
+      dateMillis,
     );
     res.set({
       'Content-Type': 'application/pdf',
@@ -62,7 +64,9 @@ export class CustomerController {
   }
   @UseGuards(JwtAuthGuard)
   @Roles(Role.Admin)
-  @Get('/invoice/xlsx/:id/:invoiceNumber/:month/:year/:euroExchange')
+  @Get(
+    '/invoice/xlsx/:id/:invoiceNumber/:month/:year/:euroExchange/:dateMillis',
+  )
   getCustomerXlsx(
     @Res() res: Response,
     @Param('id') id: string,
@@ -70,6 +74,7 @@ export class CustomerController {
     @Param('month') month: string,
     @Param('year') year: string,
     @Param('euroExchange') euroExchange: number,
+    @Param('dateMillis') dateMillis: string,
   ) {
     return this.xlsxInvoiceService.getCustomerExcel(
       res,
@@ -78,6 +83,7 @@ export class CustomerController {
       month,
       year,
       euroExchange,
+      dateMillis,
     );
   }
 

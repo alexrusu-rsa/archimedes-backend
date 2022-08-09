@@ -22,9 +22,13 @@ export class XlsxInvoiceService {
     private customerRepository: Repository<Customer>,
     @Inject('RATE_REPOSITORY')
     private rateRepository: Repository<Rate>,
+    @Inject('ACTIVITY_REPOSITORY')
+    private activityRepository: Repository<Activity>,
   ) {}
 
   activitiesOfProjectPerMonthYear: Activity[];
+  numberOfDaysWorkedOnProjectDuringMonth: number;
+  allActivitiesOnProject: Activity[];
 
   async getCustomerExcel(
     res: Response,
@@ -33,7 +37,14 @@ export class XlsxInvoiceService {
     month: string,
     year: string,
     euroExchange: number,
+    dateMillis: string,
   ) {
+    const invoiceEmissionDate = new Date();
+    invoiceEmissionDate.setTime(parseInt(dateMillis) + 86400000);
+    const emmisionDateString = invoiceEmissionDate.toISOString().split('T')[0];
+    const actualEmisionDate = `${emmisionDateString.split('-')[2]}/${
+      emmisionDateString.split('-')[1]
+    }/${emmisionDateString.split('-')[0]}`;
     try {
       const rateForProject = await this.rateRepository.findOneBy({
         projectId: id,
@@ -75,6 +86,10 @@ export class XlsxInvoiceService {
           })
           .getMany();
         if (this.activitiesOfProjectPerMonthYear) {
+          this.numberOfDaysWorkedOnProjectDuringMonth =
+            this.getNumberOfDayWithActivitiesOfProjectFromMonth(
+              this.activitiesOfProjectPerMonthYear,
+            );
           const workbook = new exceljs.Workbook();
           const worksheet = workbook.addWorksheet('Invoice');
           const annexWorksheet = workbook.addWorksheet('Anexa 001');
@@ -204,6 +219,16 @@ export class XlsxInvoiceService {
             worksheet.getCell('D20').alignment = { horizontal: 'left' };
           }
 
+          if (rateForProject.rateType === RateType.DAILY) {
+            worksheet.getCell('D20').value = 'U.M. (zile)';
+            worksheet.getCell('D20').alignment = { horizontal: 'left' };
+          }
+
+          if (rateForProject.rateType === RateType.PROJECT) {
+            worksheet.getCell('D20').value = 'U.M. (proiect)';
+            worksheet.getCell('D20').alignment = { horizontal: 'left' };
+          }
+
           worksheet.getCell('F20').value = 'Valoare Unitară';
           worksheet.getCell('F20').alignment = { horizontal: 'left' };
 
@@ -277,7 +302,7 @@ export class XlsxInvoiceService {
           const yyyy = today.getFullYear();
           const todayString = dd + '/' + mm + '/' + yyyy;
 
-          worksheet.getCell('I9').value = todayString;
+          worksheet.getCell('I9').value = actualEmisionDate;
           if (project.dueDate) {
             worksheet.getCell('I10').value = invoiceDueDateToDisplay;
           }
@@ -445,7 +470,10 @@ export class XlsxInvoiceService {
             'B21',
           ).value = `Prestare servicii IT, pe perioada \n ${finalDateToDisplay} - ${finalEndDateToDisplay} \n Consulting & Software development, \n Time & Material \n Conform Contract ${project.contract} `;
           worksheet.getCell('B21').font = { size: 8 };
-
+          if (rateForProject.rateType === RateType.PROJECT) {
+            this.activitiesOfProjectPerMonthYear =
+              await this.getAllActivitiesOnProject(id);
+          }
           const activitiesOfProjectMonthYearSortedASC =
             this.activitiesOfProjectPerMonthYear.sort(
               (activity1, activity2) =>
@@ -532,6 +560,35 @@ export class XlsxInvoiceService {
                 (rateForProject.rate * euroExchange).toFixed(2).toString() +
                 ' RON';
             }
+            if (rateForProject.rateType === RateType.DAILY) {
+              worksheet.getCell('D21').value =
+                this.numberOfDaysWorkedOnProjectDuringMonth;
+              worksheet.getCell('H21').value =
+                (
+                  rateForProject.rate *
+                  euroExchange *
+                  this.numberOfDaysWorkedOnProjectDuringMonth
+                )
+                  .toFixed(2)
+                  .toString() + ' RON';
+              worksheet.getCell('H31').value =
+                (
+                  rateForProject.rate *
+                  euroExchange *
+                  this.numberOfDaysWorkedOnProjectDuringMonth
+                )
+                  .toFixed(2)
+                  .toString() + ' RON';
+            }
+            if (rateForProject.rateType === RateType.PROJECT) {
+              worksheet.getCell('D21').value = 1;
+              worksheet.getCell('H21').value =
+                (rateForProject.rate * euroExchange).toFixed(2).toString() +
+                ' RON';
+              worksheet.getCell('H31').value =
+                (rateForProject.rate * euroExchange).toFixed(2).toString() +
+                ' RON';
+            }
             worksheet.getCell('F21').value =
               (rateForProject.rate * euroExchange).toFixed(2).toString() +
               ' RON';
@@ -560,6 +617,32 @@ export class XlsxInvoiceService {
           HttpStatus.NOT_FOUND,
         );
       }
+    } catch (err) {
+      throw err;
+    }
+  }
+  getNumberOfDayWithActivitiesOfProjectFromMonth(
+    activities: Activity[],
+  ): number {
+    const notUniqueDates = [];
+    activities.forEach((activity) => {
+      notUniqueDates.push(activity.date);
+    });
+    const uniqueDates = [...new Set(notUniqueDates)];
+    if (uniqueDates) return uniqueDates.length;
+    return 0;
+  }
+
+  getAllActivitiesOnProject(projectId: string): Promise<Activity[]> {
+    try {
+      const activitiesOfProject = this.activityRepository.findBy({
+        projectId: projectId,
+      });
+      if (activitiesOfProject) return activitiesOfProject;
+      throw new HttpException(
+        'No activities for project',
+        HttpStatus.NOT_FOUND,
+      );
     } catch (err) {
       throw err;
     }

@@ -1,4 +1,10 @@
-import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
+import {
+  ConsoleLogger,
+  HttpException,
+  HttpStatus,
+  Inject,
+  Injectable,
+} from '@nestjs/common';
 import { Activity } from 'src/entity/activity.entity';
 import { Customer } from 'src/entity/customer.entity';
 import { Project } from 'src/entity/project.entity';
@@ -11,6 +17,8 @@ import { RateType } from 'src/custom/rate-type.enum';
 @Injectable()
 export class PdfInvoiceService {
   activitiesOfProjectPerMonthYear: Activity[];
+  numberOfDaysWorkedOnProjectDuringMonth: number;
+
   constructor(
     private dateFormatService: DateFormatService,
     @Inject('PROJECT_REPOSITORY')
@@ -19,6 +27,8 @@ export class PdfInvoiceService {
     private customerRepository: Repository<Customer>,
     @Inject('RATE_REPOSITORY')
     private rateRepository: Repository<Rate>,
+    @Inject('ACTIVITY_REPOSITORY')
+    private activityRepository: Repository<Activity>,
   ) {}
   async generatePDF(
     id: string,
@@ -26,7 +36,14 @@ export class PdfInvoiceService {
     month: string,
     year: string,
     euroExchange: number,
+    dateMillis: string,
   ): Promise<Buffer> {
+    const invoiceEmissionDate = new Date();
+    invoiceEmissionDate.setTime(parseInt(dateMillis) + 86400000);
+    const emmisionDateString = invoiceEmissionDate.toISOString().split('T')[0];
+    const actualEmisionDate = `${emmisionDateString.split('-')[2]}/${
+      emmisionDateString.split('-')[1]
+    }/${emmisionDateString.split('-')[0]}`;
     try {
       const rateForProject = await this.rateRepository.findOneBy({
         projectId: id,
@@ -68,7 +85,11 @@ export class PdfInvoiceService {
           })
           .getMany();
         if (this.activitiesOfProjectPerMonthYear) {
-          const pdfBuffer: Buffer = await new Promise((resolve) => {
+          this.numberOfDaysWorkedOnProjectDuringMonth =
+            this.getNumberOfDayWithActivitiesOfProjectFromMonth(
+              this.activitiesOfProjectPerMonthYear,
+            );
+          const pdfBuffer: Buffer = await new Promise(async (resolve) => {
             const doc = new PDFDocument({
               size: 'A4',
               bufferPages: true,
@@ -119,9 +140,10 @@ export class PdfInvoiceService {
             const yyyy = today.getFullYear();
             const todayString = dd + '/' + mm + '/' + yyyy;
 
-            doc
-              .fillColor('#000000')
-              .text(todayString, 450, 145, { width: 175, align: 'justify' });
+            doc.fillColor('#000000').text(actualEmisionDate, 450, 145, {
+              width: 175,
+              align: 'justify',
+            });
 
             doc.fillColor('#000000').text('Data scadentei:', 325, 160, {
               width: 175,
@@ -244,7 +266,11 @@ export class PdfInvoiceService {
                 .font('Helvetica-Bold')
                 .fillColor('#ffffff')
                 .text('U.M(luni)', 250, 294, { width: 75, align: 'center' });
-
+            if (rateForProject.rateType === RateType.DAILY)
+              doc
+                .font('Helvetica-Bold')
+                .fillColor('#ffffff')
+                .text('U.M(zile)', 250, 294, { width: 75, align: 'center' });
             doc
               .font('Helvetica-Bold')
               .fillColor('#ffffff')
@@ -465,7 +491,10 @@ export class PdfInvoiceService {
             let index = 1;
             let invoiceHoursTime = 0;
             let invoiceMinutesTime = 0;
-
+            if (rateForProject.rateType === RateType.PROJECT) {
+              this.activitiesOfProjectPerMonthYear =
+                await this.getAllActivitiesOnProject(id);
+            }
             const activitiesOfProjectMonthYearSortedASC =
               this.activitiesOfProjectPerMonthYear.sort(
                 (activity1, activity2) =>
@@ -604,6 +633,118 @@ export class PdfInvoiceService {
                   },
                 );
             }
+
+            if (rateForProject.rateType === RateType.DAILY) {
+              doc
+                .font('Helvetica-Bold')
+                .fillColor('#000000')
+                .text(
+                  this.numberOfDaysWorkedOnProjectDuringMonth.toString(),
+                  205,
+                  350,
+                  {
+                    width: 160,
+                    align: 'center',
+                  },
+                );
+              doc
+                .font('Helvetica-Bold')
+                .fillColor('#000000')
+                .text(
+                  (rateForProject.rate * euroExchange).toFixed(2).toString() +
+                    ' RON',
+                  300,
+                  350,
+                  {
+                    width: 160,
+                    align: 'center',
+                  },
+                );
+              doc
+                .font('Helvetica-Bold')
+                .fillColor('#000000')
+                .text(
+                  (
+                    rateForProject.rate *
+                    euroExchange *
+                    this.numberOfDaysWorkedOnProjectDuringMonth
+                  )
+                    .toFixed(2)
+                    .toString() + ' RON',
+                  420,
+                  350,
+                  {
+                    width: 160,
+                    align: 'center',
+                  },
+                );
+              doc
+                .font('Helvetica-Bold')
+                .fillColor('#000000')
+                .text(
+                  (
+                    rateForProject.rate *
+                    euroExchange *
+                    this.numberOfDaysWorkedOnProjectDuringMonth
+                  )
+                    .toFixed(2)
+                    .toString() + ' RON',
+                  435,
+                  508,
+                  {
+                    width: 160,
+                    align: 'center',
+                  },
+                );
+            }
+            if (rateForProject.rateType === RateType.PROJECT) {
+              doc
+                .font('Helvetica-Bold')
+                .fillColor('#000000')
+                .text('1', 205, 350, {
+                  width: 160,
+                  align: 'center',
+                });
+              doc
+                .font('Helvetica-Bold')
+                .fillColor('#000000')
+                .text(
+                  (rateForProject.rate * euroExchange).toFixed(2).toString() +
+                    ' RON',
+                  300,
+                  350,
+                  {
+                    width: 160,
+                    align: 'center',
+                  },
+                );
+              doc
+                .font('Helvetica-Bold')
+                .fillColor('#000000')
+                .text(
+                  (rateForProject.rate * euroExchange).toFixed(2).toString() +
+                    ' RON',
+                  420,
+                  350,
+                  {
+                    width: 160,
+                    align: 'center',
+                  },
+                );
+              doc
+                .font('Helvetica-Bold')
+                .fillColor('#000000')
+                .text(
+                  (rateForProject.rate * euroExchange).toFixed(2).toString() +
+                    ' RON',
+                  435,
+                  508,
+                  {
+                    width: 160,
+                    align: 'center',
+                  },
+                );
+            }
             doc
               .lineCap('butt')
               .moveTo(40, 800)
@@ -632,6 +773,33 @@ export class PdfInvoiceService {
           HttpStatus.NOT_FOUND,
         );
       }
+    } catch (err) {
+      throw err;
+    }
+  }
+
+  getNumberOfDayWithActivitiesOfProjectFromMonth(
+    activities: Activity[],
+  ): number {
+    const notUniqueDates = [];
+    activities.forEach((activity) => {
+      notUniqueDates.push(activity.date);
+    });
+    const uniqueDates = [...new Set(notUniqueDates)];
+    if (uniqueDates) return uniqueDates.length;
+    return 0;
+  }
+
+  getAllActivitiesOnProject(projectId: string): Promise<Activity[]> {
+    try {
+      const activitiesOfProject = this.activityRepository.findBy({
+        projectId: projectId,
+      });
+      if (activitiesOfProject) return activitiesOfProject;
+      throw new HttpException(
+        'No activities for project',
+        HttpStatus.NOT_FOUND,
+      );
     } catch (err) {
       throw err;
     }
