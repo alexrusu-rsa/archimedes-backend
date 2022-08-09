@@ -71,9 +71,16 @@ export class XlsxInvoiceService {
           `${parseInt(invoiceCreationYear)}-1-${project.invoiceTerm}`,
         );
       }
-      const invoiceDueDateToDisplay = `${invoiceDueDate.getDate()}.${
-        Number(invoiceDueDate.getMonth()) + 1
-      }.${invoiceDueDate.getFullYear()}`;
+      let invoiceDueDateToDisplay = '';
+      if (invoiceDueDate.getMonth() + 1 < 10) {
+        invoiceDueDateToDisplay = `${invoiceDueDate.getDate()}.0${
+          Number(invoiceDueDate.getMonth()) + 1
+        }.${invoiceDueDate.getFullYear()}`;
+      } else {
+        invoiceDueDateToDisplay = `${invoiceDueDate.getDate()}.${
+          Number(invoiceDueDate.getMonth()) + 1
+        }.${invoiceDueDate.getFullYear()}`;
+      }
       const internalCompany = await this.customerRepository.findOneBy({
         internal: true,
       });
