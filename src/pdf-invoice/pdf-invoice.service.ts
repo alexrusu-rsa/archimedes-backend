@@ -41,9 +41,9 @@ export class PdfInvoiceService {
     const invoiceEmissionDate = new Date();
     invoiceEmissionDate.setTime(parseInt(dateMillis) + 86400000);
     const emmisionDateString = invoiceEmissionDate.toISOString().split('T')[0];
-    const actualEmisionDate = `${emmisionDateString.split('-')[2]}/${
+    const actualEmisionDate = `${emmisionDateString.split('-')[2]}.${
       emmisionDateString.split('-')[1]
-    }/${emmisionDateString.split('-')[0]}`;
+    }.${emmisionDateString.split('-')[0]}`;
     try {
       const rateForProject = await this.rateRepository.findOneBy({
         projectId: id,
@@ -63,9 +63,9 @@ export class PdfInvoiceService {
           `${parseInt(invoiceCreationYear)}-1-${project.invoiceTerm}`,
         );
       }
-      const invoiceDueDateToDisplay = `${invoiceDueDate.getDate()}/${
+      const invoiceDueDateToDisplay = `${invoiceDueDate.getDate()}.${
         Number(invoiceDueDate.getMonth()) + 1
-      }/${invoiceDueDate.getFullYear()}`;
+      }.${invoiceDueDate.getFullYear()}`;
       const internalCompany = await this.customerRepository.findOneBy({
         internal: true,
       });
@@ -479,7 +479,7 @@ export class PdfInvoiceService {
             doc
               .fillColor('#000000')
               .text(
-                `ANEXA nr. 001 ${todayString} la contractul ${project.contract} si factura ${invoiceNumber} din ${todayString}`,
+                `ANEXA nr. 001 ${actualEmisionDate} la contractul ${project.contract} si factura ${invoiceNumber} din ${actualEmisionDate}`,
               );
             doc.fontSize(10);
             doc
@@ -527,7 +527,11 @@ export class PdfInvoiceService {
               doc
                 .fillColor('#000000')
                 .text(
-                  `${activity.date}. ${activity.name} - ${activity.activityType} - HOURS: ${timeForCurrentActivity.hours} MINUTES: ${timeForCurrentActivity.minutes}`,
+                  `${activity.date.replaceAll('/', '.')}. ${activity.name} - ${
+                    activity.activityType
+                  } - HOURS: ${timeForCurrentActivity.hours} MINUTES: ${
+                    timeForCurrentActivity.minutes
+                  }`,
                 );
 
               index = index + 1;
