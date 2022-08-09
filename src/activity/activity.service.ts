@@ -236,7 +236,7 @@ export class ActivityService {
       throw err;
     }
   }
-  
+
   async getActivitiesMonthYear(year: string, month: string) {
     try {
       const monthYear = month + '/' + year;
