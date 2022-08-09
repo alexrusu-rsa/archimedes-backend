@@ -40,7 +40,13 @@ export class XlsxInvoiceService {
     dateMillis: string,
   ) {
     const invoiceEmissionDate = new Date();
-    invoiceEmissionDate.setTime(parseInt(dateMillis) + 86400000);
+    const checkEmissionDate = new Date();
+    checkEmissionDate.setTime(parseInt(dateMillis));
+    if (
+      invoiceEmissionDate.toISOString().split('T')[0] !==
+      checkEmissionDate.toISOString().split('T')[0]
+    )
+      invoiceEmissionDate.setTime(parseInt(dateMillis) + 86400000);
     const emmisionDateString = invoiceEmissionDate.toISOString().split('T')[0];
     const actualEmisionDate = `${emmisionDateString.split('-')[2]}.${
       emmisionDateString.split('-')[1]
