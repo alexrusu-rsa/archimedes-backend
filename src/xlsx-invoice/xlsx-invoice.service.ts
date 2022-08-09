@@ -42,9 +42,9 @@ export class XlsxInvoiceService {
     const invoiceEmissionDate = new Date();
     invoiceEmissionDate.setTime(parseInt(dateMillis) + 86400000);
     const emmisionDateString = invoiceEmissionDate.toISOString().split('T')[0];
-    const actualEmisionDate = `${emmisionDateString.split('-')[2]}/${
+    const actualEmisionDate = `${emmisionDateString.split('-')[2]}.${
       emmisionDateString.split('-')[1]
-    }/${emmisionDateString.split('-')[0]}`;
+    }.${emmisionDateString.split('-')[0]}`;
     try {
       const rateForProject = await this.rateRepository.findOneBy({
         projectId: id,
@@ -65,9 +65,9 @@ export class XlsxInvoiceService {
           `${parseInt(invoiceCreationYear)}-1-${project.invoiceTerm}`,
         );
       }
-      const invoiceDueDateToDisplay = `${invoiceDueDate.getDate()}/${
+      const invoiceDueDateToDisplay = `${invoiceDueDate.getDate()}.${
         Number(invoiceDueDate.getMonth()) + 1
-      }/${invoiceDueDate.getFullYear()}`;
+      }.${invoiceDueDate.getFullYear()}`;
       const internalCompany = await this.customerRepository.findOneBy({
         internal: true,
       });
@@ -302,7 +302,10 @@ export class XlsxInvoiceService {
           const yyyy = today.getFullYear();
           const todayString = dd + '/' + mm + '/' + yyyy;
 
-          worksheet.getCell('I9').value = actualEmisionDate;
+          worksheet.getCell('I9').value = actualEmisionDate.replaceAll(
+            '/',
+            '.',
+          );
           if (project.dueDate) {
             worksheet.getCell('I10').value = invoiceDueDateToDisplay;
           }
@@ -424,14 +427,14 @@ export class XlsxInvoiceService {
             bgColor: { argb: 'FF2D508F' },
           };
           annexWorksheet.getCell('A1').value =
-            'ANEXA nr. 001 din' +
-            todayString +
+            'ANEXA nr. 001 din ' +
+            actualEmisionDate.replaceAll('/', '.') +
             ' la contractul ' +
             project.contract +
             ' si factura ' +
             invoiceNumber +
             ' din data ' +
-            todayString;
+            actualEmisionDate.replaceAll('/', '.');
           let annexStartLine = 2;
           let invoiceHoursTime = 0;
           let invoiceMinutesTime = 0;
@@ -468,7 +471,15 @@ export class XlsxInvoiceService {
           const finalEndDateToDisplay = `${arrayEndDateMonthYear[2]}.${arrayEndDateMonthYear[1]}.${arrayEndDateMonthYear[0]}`;
           worksheet.getCell(
             'B21',
-          ).value = `Prestare servicii IT, pe perioada \n ${finalDateToDisplay} - ${finalEndDateToDisplay} \n Consulting & Software development, \n Time & Material \n Conform Contract ${project.contract} `;
+          ).value = `Prestare servicii IT, pe perioada \n ${finalDateToDisplay.replaceAll(
+            '/',
+            '.',
+          )} - ${finalEndDateToDisplay.replaceAll(
+            '/',
+            '.',
+          )} \n Consulting & Software development, \n Time & Material \n Conform Contract ${
+            project.contract
+          } `;
           worksheet.getCell('B21').font = { size: 8 };
           if (rateForProject.rateType === RateType.PROJECT) {
             this.activitiesOfProjectPerMonthYear =
@@ -508,7 +519,9 @@ export class XlsxInvoiceService {
               annexWorksheet.getCell(
                 annexStartLine,
                 2,
-              ).value = `${activity.date} - ${activity.name}`;
+              ).value = `${activity.date.replaceAll('/', '.')} - ${
+                activity.name
+              }`;
               annexWorksheet.getCell(annexStartLine, 13).value =
                 activity.activityType;
               const startDateTime = this.dateFormatService.getNewDateWithTime(
