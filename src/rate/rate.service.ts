@@ -10,9 +10,9 @@ export class RateService {
     private rateRepository: Repository<Rate>,
   ) {}
 
-  async getRateForEmployeeId(id: string): Promise<Rate> {
+  async getRateForEmployeeId(id: string): Promise<Rate[]> {
     try {
-      const foundRate = this.rateRepository.findOneBy({ employeeId: id });
+      const foundRate = this.rateRepository.findBy({ employeeId: id });
       if (foundRate) return foundRate;
       throw new HttpException(
         'There are no rates for this employee',
