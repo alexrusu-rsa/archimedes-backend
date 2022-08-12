@@ -19,8 +19,13 @@ export class ProjectController {
   constructor(private projectService: ProjectService) {}
 
   @UseGuards(JwtAuthGuard)
+  @Get(':userId')
+  getAllProjectsUser(@Param('userId') userId: string) {
+    return this.projectService.getProjectsUser(userId);
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Get()
-  @Roles(Role.Admin)
   getAllProjects() {
     return this.projectService.getProjects();
   }
