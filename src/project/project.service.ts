@@ -1,14 +1,18 @@
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { Project } from 'src/entity/project.entity';
-import { DeleteResult, Repository } from 'typeorm';
+import { Rate } from 'src/entity/rate.entity';
+import { Any, DeleteResult, Repository } from 'typeorm';
 
 @Injectable()
 export class ProjectService {
   constructor(
     @Inject('PROJECT_REPOSITORY')
     private projectRepository: Repository<Project>,
+    @Inject('RATE_REPOSITORY')
+    private rateRepository: Repository<Rate>,
   ) {}
 
+  projectsToReturn: Project[] = [];
   async getProjects(): Promise<Project[]> {
     try {
       const projects = this.projectRepository.find();
@@ -75,6 +79,31 @@ export class ProjectService {
           HttpStatus.NOT_FOUND,
         );
       }
+    } catch (err) {
+      throw err;
+    }
+  }
+
+  async getProjectsUser(userId: string): Promise<Project[]> {
+    try {
+      const foundRatesForUser = await this.rateRepository.findBy({
+        employeeId: userId,
+      });
+      if (foundRatesForUser) {
+        (await foundRatesForUser).forEach(async (rate: Rate) => {
+          const foundProjectOfRate = await this.projectRepository.findOneBy({
+            id: rate.projectId,
+          });
+          this.projectsToReturn.push(foundProjectOfRate);
+        });
+        const projects = this.projectsToReturn;
+        this.projectsToReturn = [];
+        return projects;
+      }
+      throw new HttpException(
+        'We could not find any rates for this user.',
+        HttpStatus.NOT_FOUND,
+      );
     } catch (err) {
       throw err;
     }
