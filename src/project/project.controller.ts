@@ -20,7 +20,6 @@ export class ProjectController {
 
   @UseGuards(JwtAuthGuard)
   @Get()
-  @Roles(Role.Admin)
   getAllProjects() {
     return this.projectService.getProjects();
   }
