@@ -1,10 +1,4 @@
-import {
-  ConsoleLogger,
-  HttpException,
-  HttpStatus,
-  Inject,
-  Injectable,
-} from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { Activity } from 'src/entity/activity.entity';
 import { Customer } from 'src/entity/customer.entity';
 import { Project } from 'src/entity/project.entity';
@@ -38,18 +32,6 @@ export class PdfInvoiceService {
     euroExchange: number,
     dateMillis: string,
   ): Promise<Buffer> {
-    const invoiceEmissionDate = new Date();
-    const checkEmissionDate = new Date();
-    checkEmissionDate.setTime(parseInt(dateMillis));
-    if (
-      invoiceEmissionDate.toISOString().split('T')[0] !==
-      checkEmissionDate.toISOString().split('T')[0]
-    )
-      invoiceEmissionDate.setTime(parseInt(dateMillis) + 86400000);
-    const emmisionDateString = invoiceEmissionDate.toISOString().split('T')[0];
-    const actualEmisionDate = `${emmisionDateString.split('-')[2]}.${
-      emmisionDateString.split('-')[1]
-    }.${emmisionDateString.split('-')[0]}`;
     try {
       const rateForProject = await this.rateRepository.findOneBy({
         projectId: id,
@@ -69,16 +51,9 @@ export class PdfInvoiceService {
           `${parseInt(invoiceCreationYear)}-1-${project.invoiceTerm}`,
         );
       }
-      let invoiceDueDateToDisplay = '';
-      if (invoiceDueDate.getMonth() + 1 < 10) {
-        invoiceDueDateToDisplay = `${invoiceDueDate.getDate()}.0${
-          Number(invoiceDueDate.getMonth()) + 1
-        }.${invoiceDueDate.getFullYear()}`;
-      } else {
-        invoiceDueDateToDisplay = `${invoiceDueDate.getDate()}.${
-          Number(invoiceDueDate.getMonth()) + 1
-        }.${invoiceDueDate.getFullYear()}`;
-      }
+      const invoiceDueDateToDisplay = `${invoiceDueDate.getDate()}/${
+        Number(invoiceDueDate.getMonth()) + 1
+      }/${invoiceDueDate.getFullYear()}`;
       const internalCompany = await this.customerRepository.findOneBy({
         internal: true,
       });
@@ -153,10 +128,9 @@ export class PdfInvoiceService {
             const yyyy = today.getFullYear();
             const todayString = dd + '/' + mm + '/' + yyyy;
 
-            doc.fillColor('#000000').text(actualEmisionDate, 450, 145, {
-              width: 175,
-              align: 'justify',
-            });
+            doc
+              .fillColor('#000000')
+              .text(todayString, 450, 145, { width: 175, align: 'justify' });
 
             doc.fillColor('#000000').text('Data scadentei:', 325, 160, {
               width: 175,
@@ -487,28 +461,11 @@ export class PdfInvoiceService {
                 align: 'justify',
               });
             }
-            doc.addPage();
-            doc.fontSize(14);
-            doc
-              .fillColor('#000000')
-              .text(
-                `ANEXA nr. 001 ${actualEmisionDate} la contractul ${project.contract} si factura ${invoiceNumber} din ${actualEmisionDate}`,
-              );
-            doc.fontSize(10);
-            doc
-              .fillColor('#2D508F')
-              .text(
-                'NUMELE ACTIVITATII - TIPUL ACTIVITATII - TIMP ALOCAT PE ACTIVITATE',
-              );
+            //
+            let invoiceHoursTime2 = 0;
+            let invoiceMinutesTime2 = 0;
 
-            let index = 1;
-            let invoiceHoursTime = 0;
-            let invoiceMinutesTime = 0;
-            if (rateForProject.rateType === RateType.PROJECT) {
-              this.activitiesOfProjectPerMonthYear =
-                await this.getAllActivitiesOnProject(id);
-            }
-            const activitiesOfProjectMonthYearSortedASC =
+            const activitiesOfProjectMonthYearSortedASC2 =
               this.activitiesOfProjectPerMonthYear.sort(
                 (activity1, activity2) =>
                   new Date(
@@ -522,7 +479,7 @@ export class PdfInvoiceService {
                     ),
                   ).getTime(),
               );
-            activitiesOfProjectMonthYearSortedASC.forEach((activity) => {
+            activitiesOfProjectMonthYearSortedASC2.forEach((activity) => {
               const startDateTime = this.dateFormatService.getNewDateWithTime(
                 activity.start,
               );
@@ -533,30 +490,18 @@ export class PdfInvoiceService {
                 this.dateFormatService.millisecondsToHoursAndMinutes(
                   endDateTime.getTime() - startDateTime.getTime(),
                 );
-              invoiceHoursTime =
-                invoiceHoursTime + timeForCurrentActivity.hours;
-              invoiceMinutesTime =
-                invoiceMinutesTime + timeForCurrentActivity.minutes;
-              doc
-                .fillColor('#000000')
-                .text(
-                  `${activity.date.replaceAll('/', '.')}. ${activity.name} - ${
-                    activity.activityType
-                  } - HOURS: ${timeForCurrentActivity.hours} MINUTES: ${
-                    timeForCurrentActivity.minutes
-                  }`,
-                );
-
-              index = index + 1;
+              invoiceHoursTime2 =
+                invoiceHoursTime2 + timeForCurrentActivity.hours;
+              invoiceMinutesTime2 =
+                invoiceMinutesTime2 + timeForCurrentActivity.minutes;
             });
-            const minutesToHours = invoiceMinutesTime / 60;
-            invoiceHoursTime = invoiceHoursTime + minutesToHours;
-            doc.switchToPage(0);
+            const minutesToHours2 = invoiceMinutesTime2 / 60;
+            invoiceHoursTime2 = invoiceHoursTime2 + minutesToHours2;
             if (rateForProject.rateType === RateType.HOURLY) {
               doc
                 .font('Helvetica-Bold')
                 .fillColor('#000000')
-                .text(invoiceHoursTime.toString(), 210, 350, {
+                .text(invoiceHoursTime2.toString(), 210, 350, {
                   width: 160,
                   align: 'center',
                 });
@@ -577,7 +522,7 @@ export class PdfInvoiceService {
                 .font('Helvetica-Bold')
                 .fillColor('#000000')
                 .text(
-                  (invoiceHoursTime * rateForProject.rate * euroExchange)
+                  (invoiceHoursTime2 * rateForProject.rate * euroExchange)
                     .toFixed(2)
                     .toString() + ' RON',
                   420,
@@ -591,7 +536,7 @@ export class PdfInvoiceService {
                 .font('Helvetica-Bold')
                 .fillColor('#000000')
                 .text(
-                  (invoiceHoursTime * rateForProject.rate * euroExchange)
+                  (invoiceHoursTime2 * rateForProject.rate * euroExchange)
                     .toFixed(2)
                     .toString() + ' RON',
                   435,
@@ -767,6 +712,282 @@ export class PdfInvoiceService {
               .moveTo(40, 800)
               .lineTo(555.28, 800)
               .stroke('#2D508F');
+            //
+            doc.addPage();
+            doc.fontSize(14);
+            doc
+              .fillColor('#000000')
+              .text(
+                `ANEXA nr. 001 ${todayString} la contractul ${project.contract} si factura ${invoiceNumber} din ${todayString}`,
+              );
+            doc.fontSize(10);
+            doc
+              .fillColor('#2D508F')
+              .text(
+                'NUMELE ACTIVITATII - TIPUL ACTIVITATII - TIMP ALOCAT PE ACTIVITATE',
+              );
+
+            let index = 1;
+            let invoiceHoursTime = 0;
+            let invoiceMinutesTime = 0;
+            if (rateForProject.rateType === RateType.PROJECT) {
+              this.activitiesOfProjectPerMonthYear =
+                await this.getAllActivitiesOnProject(id);
+            }
+            const activitiesOfProjectMonthYearSortedASC =
+              this.activitiesOfProjectPerMonthYear.sort(
+                (activity1, activity2) =>
+                  new Date(
+                    this.dateFormatService.formatDBDateStringToISO(
+                      activity1.date,
+                    ),
+                  ).getTime() -
+                  new Date(
+                    this.dateFormatService.formatDBDateStringToISO(
+                      activity2.date,
+                    ),
+                  ).getTime(),
+              );
+            activitiesOfProjectMonthYearSortedASC.forEach((activity) => {
+              const startDateTime = this.dateFormatService.getNewDateWithTime(
+                activity.start,
+              );
+              const endDateTime = this.dateFormatService.getNewDateWithTime(
+                activity.end,
+              );
+              const timeForCurrentActivity =
+                this.dateFormatService.millisecondsToHoursAndMinutes(
+                  endDateTime.getTime() - startDateTime.getTime(),
+                );
+              invoiceHoursTime =
+                invoiceHoursTime + timeForCurrentActivity.hours;
+              invoiceMinutesTime =
+                invoiceMinutesTime + timeForCurrentActivity.minutes;
+              doc
+                .fillColor('#000000')
+                .text(
+                  `${activity.date}. ${activity.name} - ${activity.activityType} - HOURS: ${timeForCurrentActivity.hours} MINUTES: ${timeForCurrentActivity.minutes}`,
+                );
+
+              index = index + 1;
+            });
+            // const minutesToHours = invoiceMinutesTime / 60;
+            // invoiceHoursTime = invoiceHoursTime + minutesToHours;
+            // if (rateForProject.rateType === RateType.HOURLY) {
+            //   doc
+            //     .font('Helvetica-Bold')
+            //     .fillColor('#000000')
+            //     .text(invoiceHoursTime.toString(), 210, 350, {
+            //       width: 160,
+            //       align: 'center',
+            //     });
+            //   doc
+            //     .font('Helvetica-Bold')
+            //     .fillColor('#000000')
+            //     .text(
+            //       (rateForProject.rate * euroExchange).toFixed(2).toString() +
+            //         ' RON',
+            //       300,
+            //       350,
+            //       {
+            //         width: 160,
+            //         align: 'center',
+            //       },
+            //     );
+            //   doc
+            //     .font('Helvetica-Bold')
+            //     .fillColor('#000000')
+            //     .text(
+            //       (invoiceHoursTime * rateForProject.rate * euroExchange)
+            //         .toFixed(2)
+            //         .toString() + ' RON',
+            //       420,
+            //       350,
+            //       {
+            //         width: 160,
+            //         align: 'center',
+            //       },
+            //     );
+            //   doc
+            //     .font('Helvetica-Bold')
+            //     .fillColor('#000000')
+            //     .text(
+            //       (invoiceHoursTime * rateForProject.rate * euroExchange)
+            //         .toFixed(2)
+            //         .toString() + ' RON',
+            //       435,
+            //       508,
+            //       {
+            //         width: 160,
+            //         align: 'center',
+            //       },
+            //     );
+            // }
+            // if (rateForProject.rateType === RateType.MONTHLY) {
+            //   doc
+            //     .font('Helvetica-Bold')
+            //     .fillColor('#000000')
+            //     .text('1', 205, 350, {
+            //       width: 160,
+            //       align: 'center',
+            //     });
+            //   doc
+            //     .font('Helvetica-Bold')
+            //     .fillColor('#000000')
+            //     .text(
+            //       (rateForProject.rate * euroExchange).toFixed(2).toString() +
+            //         ' RON',
+            //       300,
+            //       350,
+            //       {
+            //         width: 160,
+            //         align: 'center',
+            //       },
+            //     );
+            //   doc
+            //     .font('Helvetica-Bold')
+            //     .fillColor('#000000')
+            //     .text(
+            //       (rateForProject.rate * euroExchange).toFixed(2).toString() +
+            //         ' RON',
+            //       420,
+            //       350,
+            //       {
+            //         width: 160,
+            //         align: 'center',
+            //       },
+            //     );
+            //   doc
+            //     .font('Helvetica-Bold')
+            //     .fillColor('#000000')
+            //     .text(
+            //       (rateForProject.rate * euroExchange).toFixed(2).toString() +
+            //         ' RON',
+            //       435,
+            //       508,
+            //       {
+            //         width: 160,
+            //         align: 'center',
+            //       },
+            //     );
+            // }
+
+            // if (rateForProject.rateType === RateType.DAILY) {
+            //   doc
+            //     .font('Helvetica-Bold')
+            //     .fillColor('#000000')
+            //     .text(
+            //       this.numberOfDaysWorkedOnProjectDuringMonth.toString(),
+            //       205,
+            //       350,
+            //       {
+            //         width: 160,
+            //         align: 'center',
+            //       },
+            //     );
+            //   doc
+            //     .font('Helvetica-Bold')
+            //     .fillColor('#000000')
+            //     .text(
+            //       (rateForProject.rate * euroExchange).toFixed(2).toString() +
+            //         ' RON',
+            //       300,
+            //       350,
+            //       {
+            //         width: 160,
+            //         align: 'center',
+            //       },
+            //     );
+            //   doc
+            //     .font('Helvetica-Bold')
+            //     .fillColor('#000000')
+            //     .text(
+            //       (
+            //         rateForProject.rate *
+            //         euroExchange *
+            //         this.numberOfDaysWorkedOnProjectDuringMonth
+            //       )
+            //         .toFixed(2)
+            //         .toString() + ' RON',
+            //       420,
+            //       350,
+            //       {
+            //         width: 160,
+            //         align: 'center',
+            //       },
+            //     );
+            //   doc
+            //     .font('Helvetica-Bold')
+            //     .fillColor('#000000')
+            //     .text(
+            //       (
+            //         rateForProject.rate *
+            //         euroExchange *
+            //         this.numberOfDaysWorkedOnProjectDuringMonth
+            //       )
+            //         .toFixed(2)
+            //         .toString() + ' RON',
+            //       435,
+            //       508,
+            //       {
+            //         width: 160,
+            //         align: 'center',
+            //       },
+            //     );
+            // }
+            // if (rateForProject.rateType === RateType.PROJECT) {
+            //   doc
+            //     .font('Helvetica-Bold')
+            //     .fillColor('#000000')
+            //     .text('1', 205, 350, {
+            //       width: 160,
+            //       align: 'center',
+            //     });
+            //   doc
+            //     .font('Helvetica-Bold')
+            //     .fillColor('#000000')
+            //     .text(
+            //       (rateForProject.rate * euroExchange).toFixed(2).toString() +
+            //         ' RON',
+            //       300,
+            //       350,
+            //       {
+            //         width: 160,
+            //         align: 'center',
+            //       },
+            //     );
+            //   doc
+            //     .font('Helvetica-Bold')
+            //     .fillColor('#000000')
+            //     .text(
+            //       (rateForProject.rate * euroExchange).toFixed(2).toString() +
+            //         ' RON',
+            //       420,
+            //       350,
+            //       {
+            //         width: 160,
+            //         align: 'center',
+            //       },
+            //     );
+            //   doc
+            //     .font('Helvetica-Bold')
+            //     .fillColor('#000000')
+            //     .text(
+            //       (rateForProject.rate * euroExchange).toFixed(2).toString() +
+            //         ' RON',
+            //       435,
+            //       508,
+            //       {
+            //         width: 160,
+            //         align: 'center',
+            //       },
+            //     );
+            // }
+            // doc
+            //   .lineCap('butt')
+            //   .moveTo(40, 800)
+            //   .lineTo(555.28, 800)
+            //   .stroke('#2D508F');
 
             doc.end();
 
