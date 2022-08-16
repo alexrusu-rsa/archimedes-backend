@@ -1,10 +1,4 @@
-import {
-  ConsoleLogger,
-  HttpException,
-  HttpStatus,
-  Inject,
-  Injectable,
-} from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { Activity } from 'src/entity/activity.entity';
 import { Customer } from 'src/entity/customer.entity';
 import { Project } from 'src/entity/project.entity';
@@ -13,6 +7,7 @@ import * as PDFDocument from 'pdfkit';
 import { DateFormatService } from 'src/date-format/date-format.service';
 import { Rate } from 'src/entity/rate.entity';
 import { RateType } from 'src/custom/rate-type.enum';
+import { fillAndStroke } from 'pdfkit';
 
 @Injectable()
 export class PdfInvoiceService {
@@ -38,12 +33,6 @@ export class PdfInvoiceService {
     euroExchange: number,
     dateMillis: string,
   ): Promise<Buffer> {
-    const invoiceEmissionDate = new Date();
-    invoiceEmissionDate.setTime(parseInt(dateMillis) + 86400000);
-    const emmisionDateString = invoiceEmissionDate.toISOString().split('T')[0];
-    const actualEmisionDate = `${emmisionDateString.split('-')[2]}.${
-      emmisionDateString.split('-')[1]
-    }.${emmisionDateString.split('-')[0]}`;
     try {
       const rateForProject = await this.rateRepository.findOneBy({
         projectId: id,
@@ -63,9 +52,9 @@ export class PdfInvoiceService {
           `${parseInt(invoiceCreationYear)}-1-${project.invoiceTerm}`,
         );
       }
-      const invoiceDueDateToDisplay = `${invoiceDueDate.getDate()}.${
+      const invoiceDueDateToDisplay = `${invoiceDueDate.getDate()}/${
         Number(invoiceDueDate.getMonth()) + 1
-      }.${invoiceDueDate.getFullYear()}`;
+      }/${invoiceDueDate.getFullYear()}`;
       const internalCompany = await this.customerRepository.findOneBy({
         internal: true,
       });
@@ -92,7 +81,8 @@ export class PdfInvoiceService {
           const pdfBuffer: Buffer = await new Promise(async (resolve) => {
             const doc = new PDFDocument({
               size: 'A4',
-              bufferPages: true,
+              bufferPages: false,
+              compress: false,
             });
             doc.lineWidth(5);
             doc
@@ -140,10 +130,9 @@ export class PdfInvoiceService {
             const yyyy = today.getFullYear();
             const todayString = dd + '/' + mm + '/' + yyyy;
 
-            doc.fillColor('#000000').text(actualEmisionDate, 450, 145, {
-              width: 175,
-              align: 'justify',
-            });
+            doc
+              .fillColor('#000000')
+              .text(todayString, 450, 145, { width: 175, align: 'justify' });
 
             doc.fillColor('#000000').text('Data scadentei:', 325, 160, {
               width: 175,
@@ -161,6 +150,7 @@ export class PdfInvoiceService {
               .moveTo(40, 210)
               .lineTo(297.64, 210)
               .stroke('#2D508F');
+
             doc.fontSize(12);
             doc
               .fillColor('#ffffff')
@@ -208,42 +198,71 @@ export class PdfInvoiceService {
             doc.fontSize(14);
 
             doc.lineWidth(1);
+
             doc
-              .lineJoin('square')
-              .rect(45, 290, 505.28, 15)
-              .fillOpacity(1)
-              .fillAndStroke('#2D508F', '#000000');
-            doc.lineJoin('square').rect(45, 290, 505.28, 110).stroke('#000000');
+              .lineCap('butt')
+              .moveTo(45, 290)
+              .lineTo(550, 290)
+              .stroke('#000000');
+            doc
+              .lineCap('butt')
+              .moveTo(45, 400)
+              .lineTo(550, 400)
+              .stroke('#000000');
             doc
               .lineCap('butt')
               .moveTo(45, 305)
               .lineTo(550, 305)
+              .stroke('#000000');
+
+            doc.lineWidth(15);
+
+            doc
+              .lineCap('butt')
+              .moveTo(45, 298)
+              .lineTo(550, 298)
+              .stroke('#2D508F');
+
+            doc.lineWidth(1);
+            doc
+              .lineCap('butt')
+              .moveTo(45, 290)
+              .lineTo(45, 400)
               .stroke('#000000');
             doc
               .lineCap('butt')
               .moveTo(90, 290)
               .lineTo(90, 400)
               .stroke('#000000');
+
             doc
               .lineCap('butt')
               .moveTo(250, 290)
               .lineTo(250, 400)
               .stroke('#000000');
+
             doc
               .lineCap('butt')
               .moveTo(325, 290)
               .lineTo(325, 400)
               .stroke('#000000');
+
             doc
               .lineCap('butt')
               .moveTo(440, 290)
               .lineTo(440, 400)
+              .stroke('#000000');
+            doc
+              .lineCap('butt')
+              .moveTo(550, 290)
+              .lineTo(550, 400)
               .stroke('#000000');
             doc.fontSize(10);
             doc
               .font('Helvetica-Bold')
               .fillColor('#ffffff')
               .text('Nr. crt.', 20, 294, { width: 90, align: 'center' });
+            doc.fontSize(10);
             doc.font('Helvetica-Bold').fillColor('#000000').text('1', 38, 350, {
               width: 60,
               align: 'center',
@@ -271,6 +290,7 @@ export class PdfInvoiceService {
                 .font('Helvetica-Bold')
                 .fillColor('#ffffff')
                 .text('U.M(zile)', 250, 294, { width: 75, align: 'center' });
+
             doc
               .font('Helvetica-Bold')
               .fillColor('#ffffff')
@@ -284,17 +304,44 @@ export class PdfInvoiceService {
               .fillColor('#ffffff')
               .text('Valoare', 440, 294, { width: 110, align: 'center' });
 
-            doc.lineJoin('square').rect(375, 450, 100, 25).stroke('#000000');
-            doc.lineJoin('square').rect(375, 475, 100, 25).stroke('#000000');
-            doc
-              .lineJoin('square')
-              .rect(375, 500, 175, 20)
-              .fillOpacity(0.2)
-              .fillAndStroke('#2D508F', '#000000');
             doc
               .lineCap('butt')
-              .moveTo(475, 500)
-              .lineTo(475, 520)
+              .moveTo(475, 450)
+              .lineTo(475, 525)
+              .stroke('#000000');
+            doc
+              .lineCap('butt')
+              .moveTo(375, 450)
+              .lineTo(375, 525)
+              .stroke('#000000');
+
+            doc
+              .lineCap('butt')
+              .moveTo(555.28, 450)
+              .lineTo(555.28, 525)
+              .stroke('#000000');
+
+            doc
+              .lineCap('butt')
+              .moveTo(375, 450)
+              .lineTo(555.28, 450)
+              .stroke('#000000');
+
+            doc
+              .lineCap('butt')
+              .moveTo(375, 470)
+              .lineTo(555.28, 470)
+              .stroke('#000000');
+
+            doc
+              .lineCap('butt')
+              .moveTo(375, 500)
+              .lineTo(555.28, 500)
+              .stroke('#000000');
+            doc
+              .lineCap('butt')
+              .moveTo(375, 525)
+              .lineTo(555.28, 525)
               .stroke('#000000');
             doc.fillOpacity(1);
 
@@ -474,28 +521,10 @@ export class PdfInvoiceService {
                 align: 'justify',
               });
             }
-            doc.addPage();
-            doc.fontSize(14);
-            doc
-              .fillColor('#000000')
-              .text(
-                `ANEXA nr. 001 ${actualEmisionDate} la contractul ${project.contract} si factura ${invoiceNumber} din ${actualEmisionDate}`,
-              );
-            doc.fontSize(10);
-            doc
-              .fillColor('#2D508F')
-              .text(
-                'NUMELE ACTIVITATII - TIPUL ACTIVITATII - TIMP ALOCAT PE ACTIVITATE',
-              );
+            let invoiceHoursTime2 = 0;
+            let invoiceMinutesTime2 = 0;
 
-            let index = 1;
-            let invoiceHoursTime = 0;
-            let invoiceMinutesTime = 0;
-            if (rateForProject.rateType === RateType.PROJECT) {
-              this.activitiesOfProjectPerMonthYear =
-                await this.getAllActivitiesOnProject(id);
-            }
-            const activitiesOfProjectMonthYearSortedASC =
+            const activitiesOfProjectMonthYearSortedASC2 =
               this.activitiesOfProjectPerMonthYear.sort(
                 (activity1, activity2) =>
                   new Date(
@@ -509,7 +538,7 @@ export class PdfInvoiceService {
                     ),
                   ).getTime(),
               );
-            activitiesOfProjectMonthYearSortedASC.forEach((activity) => {
+            activitiesOfProjectMonthYearSortedASC2.forEach((activity) => {
               const startDateTime = this.dateFormatService.getNewDateWithTime(
                 activity.start,
               );
@@ -520,30 +549,18 @@ export class PdfInvoiceService {
                 this.dateFormatService.millisecondsToHoursAndMinutes(
                   endDateTime.getTime() - startDateTime.getTime(),
                 );
-              invoiceHoursTime =
-                invoiceHoursTime + timeForCurrentActivity.hours;
-              invoiceMinutesTime =
-                invoiceMinutesTime + timeForCurrentActivity.minutes;
-              doc
-                .fillColor('#000000')
-                .text(
-                  `${activity.date.replaceAll('/', '.')}. ${activity.name} - ${
-                    activity.activityType
-                  } - HOURS: ${timeForCurrentActivity.hours} MINUTES: ${
-                    timeForCurrentActivity.minutes
-                  }`,
-                );
-
-              index = index + 1;
+              invoiceHoursTime2 =
+                invoiceHoursTime2 + timeForCurrentActivity.hours;
+              invoiceMinutesTime2 =
+                invoiceMinutesTime2 + timeForCurrentActivity.minutes;
             });
-            const minutesToHours = invoiceMinutesTime / 60;
-            invoiceHoursTime = invoiceHoursTime + minutesToHours;
-            doc.switchToPage(0);
+            const minutesToHours2 = invoiceMinutesTime2 / 60;
+            invoiceHoursTime2 = invoiceHoursTime2 + minutesToHours2;
             if (rateForProject.rateType === RateType.HOURLY) {
               doc
                 .font('Helvetica-Bold')
                 .fillColor('#000000')
-                .text(invoiceHoursTime.toString(), 210, 350, {
+                .text(invoiceHoursTime2.toFixed(2).toString(), 210, 350, {
                   width: 160,
                   align: 'center',
                 });
@@ -564,7 +581,7 @@ export class PdfInvoiceService {
                 .font('Helvetica-Bold')
                 .fillColor('#000000')
                 .text(
-                  (invoiceHoursTime * rateForProject.rate * euroExchange)
+                  (invoiceHoursTime2 * rateForProject.rate * euroExchange)
                     .toFixed(2)
                     .toString() + ' RON',
                   420,
@@ -578,7 +595,7 @@ export class PdfInvoiceService {
                 .font('Helvetica-Bold')
                 .fillColor('#000000')
                 .text(
-                  (invoiceHoursTime * rateForProject.rate * euroExchange)
+                  (invoiceHoursTime2 * rateForProject.rate * euroExchange)
                     .toFixed(2)
                     .toString() + ' RON',
                   435,
@@ -754,7 +771,66 @@ export class PdfInvoiceService {
               .moveTo(40, 800)
               .lineTo(555.28, 800)
               .stroke('#2D508F');
+            doc.addPage();
+            doc.fontSize(14);
+            doc
+              .fillColor('#000000')
+              .text(
+                `ANEXA nr. 001 ${todayString} la contractul ${project.contract} si factura ${invoiceNumber} din ${todayString}`,
+              );
+            doc.fontSize(10);
+            doc
+              .fillColor('#2D508F')
+              .text(
+                'NUMELE ACTIVITATII - TIPUL ACTIVITATII - TIMP ALOCAT PE ACTIVITATE',
+              );
 
+            let index = 1;
+            let invoiceHoursTime = 0;
+            let invoiceMinutesTime = 0;
+            if (rateForProject.rateType === RateType.PROJECT) {
+              this.activitiesOfProjectPerMonthYear =
+                await this.getAllActivitiesOnProject(id);
+            }
+            const activitiesOfProjectMonthYearSortedASC =
+              this.activitiesOfProjectPerMonthYear.sort(
+                (activity1, activity2) =>
+                  new Date(
+                    this.dateFormatService.formatDBDateStringToISO(
+                      activity1.date,
+                    ),
+                  ).getTime() -
+                  new Date(
+                    this.dateFormatService.formatDBDateStringToISO(
+                      activity2.date,
+                    ),
+                  ).getTime(),
+              );
+            activitiesOfProjectMonthYearSortedASC.forEach((activity) => {
+              const startDateTime = this.dateFormatService.getNewDateWithTime(
+                activity.start,
+              );
+              const endDateTime = this.dateFormatService.getNewDateWithTime(
+                activity.end,
+              );
+              const timeForCurrentActivity =
+                this.dateFormatService.millisecondsToHoursAndMinutes(
+                  endDateTime.getTime() - startDateTime.getTime(),
+                );
+              invoiceHoursTime =
+                invoiceHoursTime + timeForCurrentActivity.hours;
+              invoiceMinutesTime =
+                invoiceMinutesTime + timeForCurrentActivity.minutes;
+              doc
+                .fillColor('#000000')
+                .text(
+                  `${activity.date}. ${activity.name} - ${activity.activityType} - HOURS: ${timeForCurrentActivity.hours} MINUTES: ${timeForCurrentActivity.minutes}`,
+                );
+
+              index = index + 1;
+            });
+
+            doc.save();
             doc.end();
 
             const buffer = [];

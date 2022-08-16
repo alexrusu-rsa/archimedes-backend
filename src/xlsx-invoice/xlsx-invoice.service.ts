@@ -40,7 +40,13 @@ export class XlsxInvoiceService {
     dateMillis: string,
   ) {
     const invoiceEmissionDate = new Date();
-    invoiceEmissionDate.setTime(parseInt(dateMillis) + 86400000);
+    const checkEmissionDate = new Date();
+    checkEmissionDate.setTime(parseInt(dateMillis));
+    if (
+      invoiceEmissionDate.toISOString().split('T')[0] !==
+      checkEmissionDate.toISOString().split('T')[0]
+    )
+      invoiceEmissionDate.setTime(parseInt(dateMillis) + 86400000);
     const emmisionDateString = invoiceEmissionDate.toISOString().split('T')[0];
     const actualEmisionDate = `${emmisionDateString.split('-')[2]}.${
       emmisionDateString.split('-')[1]
@@ -65,9 +71,16 @@ export class XlsxInvoiceService {
           `${parseInt(invoiceCreationYear)}-1-${project.invoiceTerm}`,
         );
       }
-      const invoiceDueDateToDisplay = `${invoiceDueDate.getDate()}.${
-        Number(invoiceDueDate.getMonth()) + 1
-      }.${invoiceDueDate.getFullYear()}`;
+      let invoiceDueDateToDisplay = '';
+      if (invoiceDueDate.getMonth() + 1 < 10) {
+        invoiceDueDateToDisplay = `${invoiceDueDate.getDate()}.0${
+          Number(invoiceDueDate.getMonth()) + 1
+        }.${invoiceDueDate.getFullYear()}`;
+      } else {
+        invoiceDueDateToDisplay = `${invoiceDueDate.getDate()}.${
+          Number(invoiceDueDate.getMonth()) + 1
+        }.${invoiceDueDate.getFullYear()}`;
+      }
       const internalCompany = await this.customerRepository.findOneBy({
         internal: true,
       });

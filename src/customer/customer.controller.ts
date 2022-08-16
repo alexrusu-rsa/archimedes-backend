@@ -30,7 +30,6 @@ export class CustomerController {
 
   @UseGuards(JwtAuthGuard)
   @Get()
-  @Roles(Role.Admin)
   getAllCustomers() {
     return this.customerService.getCustomers();
   }
