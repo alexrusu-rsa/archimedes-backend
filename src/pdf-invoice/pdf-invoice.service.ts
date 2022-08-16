@@ -7,6 +7,7 @@ import * as PDFDocument from 'pdfkit';
 import { DateFormatService } from 'src/date-format/date-format.service';
 import { Rate } from 'src/entity/rate.entity';
 import { RateType } from 'src/custom/rate-type.enum';
+import { fillAndStroke } from 'pdfkit';
 
 @Injectable()
 export class PdfInvoiceService {
@@ -80,7 +81,8 @@ export class PdfInvoiceService {
           const pdfBuffer: Buffer = await new Promise(async (resolve) => {
             const doc = new PDFDocument({
               size: 'A4',
-              bufferPages: true,
+              bufferPages: false,
+              compress: false,
             });
             doc.lineWidth(5);
             doc
@@ -148,6 +150,7 @@ export class PdfInvoiceService {
               .moveTo(40, 210)
               .lineTo(297.64, 210)
               .stroke('#2D508F');
+
             doc.fontSize(12);
             doc
               .fillColor('#ffffff')
@@ -195,42 +198,71 @@ export class PdfInvoiceService {
             doc.fontSize(14);
 
             doc.lineWidth(1);
+
             doc
-              .lineJoin('square')
-              .rect(45, 290, 505.28, 15)
-              .fillOpacity(1)
-              .fillAndStroke('#2D508F', '#000000');
-            doc.lineJoin('square').rect(45, 290, 505.28, 110).stroke('#000000');
+              .lineCap('butt')
+              .moveTo(45, 290)
+              .lineTo(550, 290)
+              .stroke('#000000');
+            doc
+              .lineCap('butt')
+              .moveTo(45, 400)
+              .lineTo(550, 400)
+              .stroke('#000000');
             doc
               .lineCap('butt')
               .moveTo(45, 305)
               .lineTo(550, 305)
+              .stroke('#000000');
+
+            doc.lineWidth(15);
+
+            doc
+              .lineCap('butt')
+              .moveTo(45, 298)
+              .lineTo(550, 298)
+              .stroke('#2D508F');
+
+            doc.lineWidth(1);
+            doc
+              .lineCap('butt')
+              .moveTo(45, 290)
+              .lineTo(45, 400)
               .stroke('#000000');
             doc
               .lineCap('butt')
               .moveTo(90, 290)
               .lineTo(90, 400)
               .stroke('#000000');
+
             doc
               .lineCap('butt')
               .moveTo(250, 290)
               .lineTo(250, 400)
               .stroke('#000000');
+
             doc
               .lineCap('butt')
               .moveTo(325, 290)
               .lineTo(325, 400)
               .stroke('#000000');
+
             doc
               .lineCap('butt')
               .moveTo(440, 290)
               .lineTo(440, 400)
+              .stroke('#000000');
+            doc
+              .lineCap('butt')
+              .moveTo(550, 290)
+              .lineTo(550, 400)
               .stroke('#000000');
             doc.fontSize(10);
             doc
               .font('Helvetica-Bold')
               .fillColor('#ffffff')
               .text('Nr. crt.', 20, 294, { width: 90, align: 'center' });
+            doc.fontSize(10);
             doc.font('Helvetica-Bold').fillColor('#000000').text('1', 38, 350, {
               width: 60,
               align: 'center',
@@ -258,6 +290,7 @@ export class PdfInvoiceService {
                 .font('Helvetica-Bold')
                 .fillColor('#ffffff')
                 .text('U.M(zile)', 250, 294, { width: 75, align: 'center' });
+
             doc
               .font('Helvetica-Bold')
               .fillColor('#ffffff')
@@ -271,17 +304,44 @@ export class PdfInvoiceService {
               .fillColor('#ffffff')
               .text('Valoare', 440, 294, { width: 110, align: 'center' });
 
-            doc.lineJoin('square').rect(375, 450, 100, 25).stroke('#000000');
-            doc.lineJoin('square').rect(375, 475, 100, 25).stroke('#000000');
-            doc
-              .lineJoin('square')
-              .rect(375, 500, 175, 20)
-              .fillOpacity(0.2)
-              .fillAndStroke('#2D508F', '#000000');
             doc
               .lineCap('butt')
-              .moveTo(475, 500)
-              .lineTo(475, 520)
+              .moveTo(475, 450)
+              .lineTo(475, 525)
+              .stroke('#000000');
+            doc
+              .lineCap('butt')
+              .moveTo(375, 450)
+              .lineTo(375, 525)
+              .stroke('#000000');
+
+            doc
+              .lineCap('butt')
+              .moveTo(555.28, 450)
+              .lineTo(555.28, 525)
+              .stroke('#000000');
+
+            doc
+              .lineCap('butt')
+              .moveTo(375, 450)
+              .lineTo(555.28, 450)
+              .stroke('#000000');
+
+            doc
+              .lineCap('butt')
+              .moveTo(375, 470)
+              .lineTo(555.28, 470)
+              .stroke('#000000');
+
+            doc
+              .lineCap('butt')
+              .moveTo(375, 500)
+              .lineTo(555.28, 500)
+              .stroke('#000000');
+            doc
+              .lineCap('butt')
+              .moveTo(375, 525)
+              .lineTo(555.28, 525)
               .stroke('#000000');
             doc.fillOpacity(1);
 
@@ -461,7 +521,6 @@ export class PdfInvoiceService {
                 align: 'justify',
               });
             }
-            //
             let invoiceHoursTime2 = 0;
             let invoiceMinutesTime2 = 0;
 
@@ -501,7 +560,7 @@ export class PdfInvoiceService {
               doc
                 .font('Helvetica-Bold')
                 .fillColor('#000000')
-                .text(invoiceHoursTime2.toString(), 210, 350, {
+                .text(invoiceHoursTime2.toFixed(2).toString(), 210, 350, {
                   width: 160,
                   align: 'center',
                 });
@@ -771,224 +830,8 @@ export class PdfInvoiceService {
 
               index = index + 1;
             });
-            // const minutesToHours = invoiceMinutesTime / 60;
-            // invoiceHoursTime = invoiceHoursTime + minutesToHours;
-            // if (rateForProject.rateType === RateType.HOURLY) {
-            //   doc
-            //     .font('Helvetica-Bold')
-            //     .fillColor('#000000')
-            //     .text(invoiceHoursTime.toString(), 210, 350, {
-            //       width: 160,
-            //       align: 'center',
-            //     });
-            //   doc
-            //     .font('Helvetica-Bold')
-            //     .fillColor('#000000')
-            //     .text(
-            //       (rateForProject.rate * euroExchange).toFixed(2).toString() +
-            //         ' RON',
-            //       300,
-            //       350,
-            //       {
-            //         width: 160,
-            //         align: 'center',
-            //       },
-            //     );
-            //   doc
-            //     .font('Helvetica-Bold')
-            //     .fillColor('#000000')
-            //     .text(
-            //       (invoiceHoursTime * rateForProject.rate * euroExchange)
-            //         .toFixed(2)
-            //         .toString() + ' RON',
-            //       420,
-            //       350,
-            //       {
-            //         width: 160,
-            //         align: 'center',
-            //       },
-            //     );
-            //   doc
-            //     .font('Helvetica-Bold')
-            //     .fillColor('#000000')
-            //     .text(
-            //       (invoiceHoursTime * rateForProject.rate * euroExchange)
-            //         .toFixed(2)
-            //         .toString() + ' RON',
-            //       435,
-            //       508,
-            //       {
-            //         width: 160,
-            //         align: 'center',
-            //       },
-            //     );
-            // }
-            // if (rateForProject.rateType === RateType.MONTHLY) {
-            //   doc
-            //     .font('Helvetica-Bold')
-            //     .fillColor('#000000')
-            //     .text('1', 205, 350, {
-            //       width: 160,
-            //       align: 'center',
-            //     });
-            //   doc
-            //     .font('Helvetica-Bold')
-            //     .fillColor('#000000')
-            //     .text(
-            //       (rateForProject.rate * euroExchange).toFixed(2).toString() +
-            //         ' RON',
-            //       300,
-            //       350,
-            //       {
-            //         width: 160,
-            //         align: 'center',
-            //       },
-            //     );
-            //   doc
-            //     .font('Helvetica-Bold')
-            //     .fillColor('#000000')
-            //     .text(
-            //       (rateForProject.rate * euroExchange).toFixed(2).toString() +
-            //         ' RON',
-            //       420,
-            //       350,
-            //       {
-            //         width: 160,
-            //         align: 'center',
-            //       },
-            //     );
-            //   doc
-            //     .font('Helvetica-Bold')
-            //     .fillColor('#000000')
-            //     .text(
-            //       (rateForProject.rate * euroExchange).toFixed(2).toString() +
-            //         ' RON',
-            //       435,
-            //       508,
-            //       {
-            //         width: 160,
-            //         align: 'center',
-            //       },
-            //     );
-            // }
 
-            // if (rateForProject.rateType === RateType.DAILY) {
-            //   doc
-            //     .font('Helvetica-Bold')
-            //     .fillColor('#000000')
-            //     .text(
-            //       this.numberOfDaysWorkedOnProjectDuringMonth.toString(),
-            //       205,
-            //       350,
-            //       {
-            //         width: 160,
-            //         align: 'center',
-            //       },
-            //     );
-            //   doc
-            //     .font('Helvetica-Bold')
-            //     .fillColor('#000000')
-            //     .text(
-            //       (rateForProject.rate * euroExchange).toFixed(2).toString() +
-            //         ' RON',
-            //       300,
-            //       350,
-            //       {
-            //         width: 160,
-            //         align: 'center',
-            //       },
-            //     );
-            //   doc
-            //     .font('Helvetica-Bold')
-            //     .fillColor('#000000')
-            //     .text(
-            //       (
-            //         rateForProject.rate *
-            //         euroExchange *
-            //         this.numberOfDaysWorkedOnProjectDuringMonth
-            //       )
-            //         .toFixed(2)
-            //         .toString() + ' RON',
-            //       420,
-            //       350,
-            //       {
-            //         width: 160,
-            //         align: 'center',
-            //       },
-            //     );
-            //   doc
-            //     .font('Helvetica-Bold')
-            //     .fillColor('#000000')
-            //     .text(
-            //       (
-            //         rateForProject.rate *
-            //         euroExchange *
-            //         this.numberOfDaysWorkedOnProjectDuringMonth
-            //       )
-            //         .toFixed(2)
-            //         .toString() + ' RON',
-            //       435,
-            //       508,
-            //       {
-            //         width: 160,
-            //         align: 'center',
-            //       },
-            //     );
-            // }
-            // if (rateForProject.rateType === RateType.PROJECT) {
-            //   doc
-            //     .font('Helvetica-Bold')
-            //     .fillColor('#000000')
-            //     .text('1', 205, 350, {
-            //       width: 160,
-            //       align: 'center',
-            //     });
-            //   doc
-            //     .font('Helvetica-Bold')
-            //     .fillColor('#000000')
-            //     .text(
-            //       (rateForProject.rate * euroExchange).toFixed(2).toString() +
-            //         ' RON',
-            //       300,
-            //       350,
-            //       {
-            //         width: 160,
-            //         align: 'center',
-            //       },
-            //     );
-            //   doc
-            //     .font('Helvetica-Bold')
-            //     .fillColor('#000000')
-            //     .text(
-            //       (rateForProject.rate * euroExchange).toFixed(2).toString() +
-            //         ' RON',
-            //       420,
-            //       350,
-            //       {
-            //         width: 160,
-            //         align: 'center',
-            //       },
-            //     );
-            //   doc
-            //     .font('Helvetica-Bold')
-            //     .fillColor('#000000')
-            //     .text(
-            //       (rateForProject.rate * euroExchange).toFixed(2).toString() +
-            //         ' RON',
-            //       435,
-            //       508,
-            //       {
-            //         width: 160,
-            //         align: 'center',
-            //       },
-            //     );
-            // }
-            // doc
-            //   .lineCap('butt')
-            //   .moveTo(40, 800)
-            //   .lineTo(555.28, 800)
-            //   .stroke('#2D508F');
-
+            doc.save();
             doc.end();
 
             const buffer = [];
