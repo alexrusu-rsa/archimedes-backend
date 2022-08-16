@@ -771,7 +771,6 @@ export class PdfInvoiceService {
               .moveTo(40, 800)
               .lineTo(555.28, 800)
               .stroke('#2D508F');
-            //
             doc.addPage();
             doc.fontSize(14);
             doc
