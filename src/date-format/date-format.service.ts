@@ -1,8 +1,4 @@
-import {
-  HostParam,
-  HttpModuleOptionsFactory,
-  Injectable,
-} from '@nestjs/common';
+import { HostParam, Injectable } from '@nestjs/common';
 import { HoursAndMinutes } from '../custom/hours_minutes';
 
 @Injectable()
