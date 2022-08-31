@@ -466,15 +466,11 @@ export class XlsxInvoiceService {
             isoDateToDisplayOnServicesColumn.split('-');
           const finalDateToDisplay = `${arrayDateMonthYear[2]}.${arrayDateMonthYear[1]}.${arrayDateMonthYear[0]}`;
 
-          const invoiceEndDateMonth = month;
-          const invoiceEndDate = new Date(
-            parseInt(year),
-            parseInt(invoiceEndDateMonth) + 1,
-            -1,
-          );
-          const endDateLastDay = invoiceEndDate.getDate();
+          const monthEndDate = parseInt(month) - 1;
+          const endDateFinalToFormat = new Date(2008, monthEndDate + 1, 0);
+          const endDayServices = endDateFinalToFormat.toString().split(' ')[2];
           const endDateToDisplayOnServicesColumn = new Date();
-          endDateToDisplayOnServicesColumn.setDate(endDateLastDay);
+          endDateToDisplayOnServicesColumn.setDate(parseInt(endDayServices));
           endDateToDisplayOnServicesColumn.setMonth(parseInt(month) - 1);
           endDateToDisplayOnServicesColumn.setFullYear(parseInt(year));
           const isoEndDateToDisplayOnServicesColumn =
