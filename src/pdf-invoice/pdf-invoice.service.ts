@@ -33,6 +33,18 @@ export class PdfInvoiceService {
     euroExchange: number,
     dateMillis: string,
   ): Promise<Buffer> {
+    const invoiceEmissionDate = new Date();
+    const checkEmissionDate = new Date();
+    checkEmissionDate.setTime(parseInt(dateMillis));
+    if (
+      invoiceEmissionDate.toISOString().split('T')[0] !==
+      checkEmissionDate.toISOString().split('T')[0]
+    )
+      invoiceEmissionDate.setTime(parseInt(dateMillis) + 86400000);
+    const emmisionDateString = invoiceEmissionDate.toISOString().split('T')[0];
+    const actualEmisionDate = `${emmisionDateString.split('-')[2]}.${
+      emmisionDateString.split('-')[1]
+    }.${emmisionDateString.split('-')[0]}`;
     try {
       const rateForProject = await this.rateRepository.findOneBy({
         projectId: id,
@@ -129,19 +141,28 @@ export class PdfInvoiceService {
             const mm = parseInt(String(today.getMonth() + 1).padStart(2, '0'));
             const yyyy = today.getFullYear();
             const todayString = dd + '/' + mm + '/' + yyyy;
-
-            doc
-              .fillColor('#000000')
-              .text(todayString, 450, 145, { width: 175, align: 'justify' });
-
+            if (actualEmisionDate) {
+              doc
+                .fillColor('#000000')
+                .text(actualEmisionDate.replaceAll('/', '.'), 450, 145, {
+                  width: 175,
+                  align: 'justify',
+                });
+            } else {
+              doc
+                .fillColor('#000000')
+                .text(todayString, 450, 145, { width: 175, align: 'justify' });
+            }
             doc.fillColor('#000000').text('Data scadentei:', 325, 160, {
               width: 175,
               align: 'justify',
             });
-            doc.fillColor('#000000').text(invoiceDueDateToDisplay, 450, 160, {
-              width: 175,
-              align: 'justify',
-            });
+            doc
+              .fillColor('#000000')
+              .text(invoiceDueDateToDisplay.replaceAll('/', '.'), 450, 160, {
+                width: 175,
+                align: 'justify',
+              });
 
             doc.lineWidth(20);
 
@@ -393,20 +414,12 @@ export class PdfInvoiceService {
               isoDateToDisplayOnServicesColumn.split('-');
             const finalDateToDisplay = `${arrayDateMonthYear[2]}.${arrayDateMonthYear[1]}.${arrayDateMonthYear[0]}`;
 
-            const monthEndDate = parseInt(month) - 1;
-            const endDateFinalToFormat = new Date(2008, monthEndDate + 1, 0);
-            const endDayServices = endDateFinalToFormat
-              .toString()
-              .split(' ')[2];
-            const endDateToDisplayOnServicesColumn = new Date();
-            endDateToDisplayOnServicesColumn.setDate(parseInt(endDayServices));
-            endDateToDisplayOnServicesColumn.setMonth(parseInt(month) - 1);
-            endDateToDisplayOnServicesColumn.setFullYear(parseInt(year));
-            const isoEndDateToDisplayOnServicesColumn =
-              endDateToDisplayOnServicesColumn.toISOString().split('T')[0];
-            const arrayEndDateMonthYear =
-              isoEndDateToDisplayOnServicesColumn.split('-');
-            const finalEndDateToDisplay = `${arrayEndDateMonthYear[2]}.${arrayEndDateMonthYear[1]}.${arrayEndDateMonthYear[0]}`;
+            const monthEndDate = parseInt(arrayDateMonthYear[1]);
+            const lastDayOfMonth = new Date(2008, monthEndDate, 0);
+
+            const finalEndDateToDisplay = `${
+              lastDayOfMonth.toString().split(' ')[2]
+            }.${arrayDateMonthYear[1]}.${arrayDateMonthYear[0]}`;
             const serviceToDisplay = `Prestare servicii IT, pe perioada \n ${finalDateToDisplay} - ${finalEndDateToDisplay} \n Consulting & Software development, \n Time & Material \n Conform Contract ${project.contract} `;
 
             doc.fontSize(8);

@@ -466,18 +466,12 @@ export class XlsxInvoiceService {
             isoDateToDisplayOnServicesColumn.split('-');
           const finalDateToDisplay = `${arrayDateMonthYear[2]}.${arrayDateMonthYear[1]}.${arrayDateMonthYear[0]}`;
 
-          const monthEndDate = parseInt(month) - 1;
-          const endDateFinalToFormat = new Date(2008, monthEndDate + 1, 0);
-          const endDayServices = endDateFinalToFormat.toString().split(' ')[2];
-          const endDateToDisplayOnServicesColumn = new Date();
-          endDateToDisplayOnServicesColumn.setDate(parseInt(endDayServices));
-          endDateToDisplayOnServicesColumn.setMonth(parseInt(month) - 1);
-          endDateToDisplayOnServicesColumn.setFullYear(parseInt(year));
-          const isoEndDateToDisplayOnServicesColumn =
-            endDateToDisplayOnServicesColumn.toISOString().split('T')[0];
-          const arrayEndDateMonthYear =
-            isoEndDateToDisplayOnServicesColumn.split('-');
-          const finalEndDateToDisplay = `${arrayEndDateMonthYear[2]}.${arrayEndDateMonthYear[1]}.${arrayEndDateMonthYear[0]}`;
+          const monthEndDate = parseInt(arrayDateMonthYear[1]);
+          const lastDayOfMonth = new Date(2008, monthEndDate, 0);
+
+          const finalEndDateToDisplay = `${
+            lastDayOfMonth.toString().split(' ')[2]
+          }.${arrayDateMonthYear[1]}.${arrayDateMonthYear[0]}`;
           worksheet.getCell(
             'B21',
           ).value = `Prestare servicii IT, pe perioada \n ${finalDateToDisplay.replaceAll(
