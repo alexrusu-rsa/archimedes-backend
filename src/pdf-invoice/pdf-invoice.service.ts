@@ -8,6 +8,7 @@ import { DateFormatService } from 'src/date-format/date-format.service';
 import { Rate } from 'src/entity/rate.entity';
 import { RateType } from 'src/custom/rate-type.enum';
 import { fillAndStroke } from 'pdfkit';
+import e from 'express';
 
 @Injectable()
 export class PdfInvoiceService {
@@ -784,11 +785,28 @@ export class PdfInvoiceService {
               .stroke('#2D508F');
             doc.addPage();
             doc.fontSize(14);
-            doc
-              .fillColor('#000000')
-              .text(
-                `ANEXA nr. 001 ${todayString} la contractul ${project.contract} si factura ${invoiceNumber} din ${todayString}`,
-              );
+            if (actualEmisionDate) {
+              doc
+                .fillColor('#000000')
+                .text(
+                  `ANEXA nr. 001 ${actualEmisionDate.replaceAll(
+                    '/',
+                    '.',
+                  )} la contractul ${
+                    project.contract
+                  } si factura ${invoiceNumber} din ${actualEmisionDate.replaceAll(
+                    '/',
+                    '.',
+                  )}`,
+                );
+            } else {
+              doc
+                .fillColor('#000000')
+                .text(
+                  `ANEXA nr. 001 ${todayString} la contractul ${project.contract} si factura ${invoiceNumber} din ${todayString}`,
+                );
+            }
+
             doc.fontSize(10);
             doc
               .fillColor('#2D508F')
