@@ -89,6 +89,7 @@ export class XlsxInvoiceService {
         const customerOfProject = await this.customerRepository.findOneBy({
           id: project.customerId,
         });
+        const VATvalue = 0.19;
         this.activitiesOfProjectPerMonthYear = await getRepository(Activity)
           .createQueryBuilder('activity')
           .where('activity.projectId like :currentprojectid', {
@@ -277,13 +278,15 @@ export class XlsxInvoiceService {
           worksheet.mergeCells('H27:J28');
           worksheet.mergeCells('H29:J30');
           worksheet.mergeCells('H31:J32');
+          worksheet.getCell('F29').alignment = { horizontal: 'center' };
 
           worksheet.getCell('F27').value = 'Curs BNR';
           worksheet.getCell('F27').alignment = { horizontal: 'center' };
-
-          worksheet.getCell('F29').value = 'Cota TVA 0%';
-          worksheet.getCell('F29').alignment = { horizontal: 'center' };
-
+          if (customerOfProject.VAT) {
+            worksheet.getCell('F29').value = 'Cota TVA 19%';
+          } else {
+            worksheet.getCell('F29').value = 'Cota TVA 0%';
+          }
           worksheet.getCell('F31').value = 'TOTAL DE PLATA:';
           worksheet.getCell('F31').alignment = { horizontal: 'center' };
 
@@ -562,19 +565,55 @@ export class XlsxInvoiceService {
                 (invoiceHoursTime * rateForProject.rate * euroExchange)
                   .toFixed(2)
                   .toString() + ' RON';
-              worksheet.getCell('H31').value =
-                (invoiceHoursTime * rateForProject.rate * euroExchange)
-                  .toFixed(2)
-                  .toString() + ' RON';
+              if (customerOfProject.VAT) {
+                worksheet.getCell('H29').value =
+                  (
+                    invoiceHoursTime *
+                    rateForProject.rate *
+                    euroExchange *
+                    VATvalue
+                  )
+                    .toFixed(2)
+                    .toString() + ' RON';
+                worksheet.getCell('H31').value =
+                  (
+                    invoiceHoursTime * rateForProject.rate * euroExchange +
+                    invoiceHoursTime *
+                      rateForProject.rate *
+                      euroExchange *
+                      VATvalue
+                  )
+                    .toFixed(2)
+                    .toString() + ' RON';
+              } else {
+                worksheet.getCell('H31').value =
+                  (invoiceHoursTime * rateForProject.rate * euroExchange)
+                    .toFixed(2)
+                    .toString() + ' RON';
+              }
             }
             if (rateForProject.rateType === RateType.MONTHLY) {
               worksheet.getCell('D21').value = 1;
               worksheet.getCell('H21').value =
                 (rateForProject.rate * euroExchange).toFixed(2).toString() +
                 ' RON';
-              worksheet.getCell('H31').value =
-                (rateForProject.rate * euroExchange).toFixed(2).toString() +
-                ' RON';
+              if (customerOfProject.VAT) {
+                worksheet.getCell('H29').value =
+                  (rateForProject.rate * euroExchange * VATvalue)
+                    .toFixed(2)
+                    .toString() + ' RON';
+                worksheet.getCell('H31').value =
+                  (
+                    rateForProject.rate * euroExchange +
+                    rateForProject.rate * euroExchange * VATvalue
+                  )
+                    .toFixed(2)
+                    .toString() + ' RON';
+              } else {
+                worksheet.getCell('H31').value =
+                  (rateForProject.rate * euroExchange).toFixed(2).toString() +
+                  ' RON';
+              }
             }
             if (rateForProject.rateType === RateType.DAILY) {
               worksheet.getCell('D21').value =
@@ -587,23 +626,61 @@ export class XlsxInvoiceService {
                 )
                   .toFixed(2)
                   .toString() + ' RON';
-              worksheet.getCell('H31').value =
-                (
-                  rateForProject.rate *
-                  euroExchange *
-                  this.numberOfDaysWorkedOnProjectDuringMonth
-                )
-                  .toFixed(2)
-                  .toString() + ' RON';
+              if (customerOfProject.VAT) {
+                worksheet.getCell('H29').value =
+                  (
+                    rateForProject.rate *
+                    euroExchange *
+                    this.numberOfDaysWorkedOnProjectDuringMonth *
+                    VATvalue
+                  )
+                    .toFixed(2)
+                    .toString() + ' RON';
+                worksheet.getCell('H31').value =
+                  (
+                    rateForProject.rate *
+                      euroExchange *
+                      this.numberOfDaysWorkedOnProjectDuringMonth +
+                    rateForProject.rate *
+                      euroExchange *
+                      this.numberOfDaysWorkedOnProjectDuringMonth *
+                      VATvalue
+                  )
+                    .toFixed(2)
+                    .toString() + ' RON';
+              } else {
+                worksheet.getCell('H31').value =
+                  (
+                    rateForProject.rate *
+                    euroExchange *
+                    this.numberOfDaysWorkedOnProjectDuringMonth
+                  )
+                    .toFixed(2)
+                    .toString() + ' RON';
+              }
             }
             if (rateForProject.rateType === RateType.PROJECT) {
               worksheet.getCell('D21').value = 1;
               worksheet.getCell('H21').value =
                 (rateForProject.rate * euroExchange).toFixed(2).toString() +
                 ' RON';
-              worksheet.getCell('H31').value =
-                (rateForProject.rate * euroExchange).toFixed(2).toString() +
-                ' RON';
+              if (customerOfProject.VAT) {
+                worksheet.getCell('H29').value =
+                  (rateForProject.rate * euroExchange * VATvalue)
+                    .toFixed(2)
+                    .toString() + ' RON';
+                worksheet.getCell('H31').value =
+                  (
+                    rateForProject.rate * euroExchange +
+                    rateForProject.rate * euroExchange * VATvalue
+                  )
+                    .toFixed(2)
+                    .toString() + ' RON';
+              } else {
+                worksheet.getCell('H31').value =
+                  (rateForProject.rate * euroExchange).toFixed(2).toString() +
+                  ' RON';
+              }
             }
             worksheet.getCell('F21').value =
               (rateForProject.rate * euroExchange).toFixed(2).toString() +
