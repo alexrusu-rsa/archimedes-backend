@@ -41,11 +41,11 @@ export class ActivityService {
     const startDateType = new Date(duplicateActivityRange.startDate);
     const endDateType = new Date(duplicateActivityRange.endDate);
     const date = new Date();
-    date.setDate(startDateType.getDate() + 1);
+    date.setDate(startDateType.getDate());
     date.setMonth(startDateType.getMonth());
     date.setFullYear(startDateType.getFullYear());
     const whileStop = new Date();
-    whileStop.setDate(endDateType.getDate() + 1);
+    whileStop.setDate(endDateType.getDate());
     whileStop.setMonth(endDateType.getMonth());
     whileStop.setFullYear(endDateType.getFullYear());
     const dates = [];
