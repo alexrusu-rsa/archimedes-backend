@@ -37,5 +37,8 @@ export class Customer {
   internal: boolean;
 
   @Column({ nullable: true })
+  VAT: boolean;
+
+  @Column({ nullable: true })
   shortName: string;
 }

@@ -73,10 +73,13 @@ export class PdfInvoiceService {
       });
 
       const formattedDate = month + '/' + year;
+
       if (project) {
         const customerOfProject = await this.customerRepository.findOneBy({
           id: project.customerId,
         });
+        const appliedVAT = customerOfProject.VAT;
+        const VATvalue = 0.19;
         this.activitiesOfProjectPerMonthYear = await getRepository(Activity)
           .createQueryBuilder('activity')
           .where('activity.projectId like :currentprojectid', {
@@ -378,9 +381,17 @@ export class PdfInvoiceService {
                 align: 'center',
               });
 
-            doc
-              .fillColor('#000000')
-              .text('COTA TVA 0%', 375, 483, { width: 100, align: 'center' });
+            if (customerOfProject.VAT) {
+              doc.fillColor('#000000').text('COTA TVA 19%', 375, 483, {
+                width: 100,
+                align: 'center',
+              });
+            } else {
+              doc.fillColor('#000000').text('COTA TVA 0%', 375, 483, {
+                width: 100,
+                align: 'center',
+              });
+            }
 
             doc.fillColor('#000000').text('TOTAL DE PLATA', 375, 508, {
               width: 100,
@@ -603,20 +614,62 @@ export class PdfInvoiceService {
                     align: 'center',
                   },
                 );
-              doc
-                .font('Helvetica-Bold')
-                .fillColor('#000000')
-                .text(
-                  (invoiceHoursTime2 * rateForProject.rate * euroExchange)
-                    .toFixed(2)
-                    .toString() + ' RON',
-                  435,
-                  508,
-                  {
-                    width: 160,
-                    align: 'center',
-                  },
-                );
+              if (customerOfProject.VAT) {
+                doc
+                  .font('Helvetica-Bold')
+                  .fillColor('#000000')
+                  .text(
+                    (
+                      invoiceHoursTime2 *
+                      rateForProject.rate *
+                      euroExchange *
+                      VATvalue
+                    )
+                      .toFixed(2)
+                      .toString() + ' RON',
+                    435,
+                    483,
+                    {
+                      width: 160,
+                      align: 'center',
+                    },
+                  );
+                doc
+                  .font('Helvetica-Bold')
+                  .fillColor('#000000')
+                  .text(
+                    (
+                      invoiceHoursTime2 *
+                        rateForProject.rate *
+                        euroExchange *
+                        VATvalue +
+                      invoiceHoursTime2 * rateForProject.rate * euroExchange
+                    )
+                      .toFixed(2)
+                      .toString() + ' RON',
+                    435,
+                    508,
+                    {
+                      width: 160,
+                      align: 'center',
+                    },
+                  );
+              } else {
+                doc
+                  .font('Helvetica-Bold')
+                  .fillColor('#000000')
+                  .text(
+                    (invoiceHoursTime2 * rateForProject.rate * euroExchange)
+                      .toFixed(2)
+                      .toString() + ' RON',
+                    435,
+                    508,
+                    {
+                      width: 160,
+                      align: 'center',
+                    },
+                  );
+              }
             }
             if (rateForProject.rateType === RateType.MONTHLY) {
               doc
@@ -652,19 +705,53 @@ export class PdfInvoiceService {
                     align: 'center',
                   },
                 );
-              doc
-                .font('Helvetica-Bold')
-                .fillColor('#000000')
-                .text(
-                  (rateForProject.rate * euroExchange).toFixed(2).toString() +
-                    ' RON',
-                  435,
-                  508,
-                  {
-                    width: 160,
-                    align: 'center',
-                  },
-                );
+              if (customerOfProject.VAT) {
+                doc
+                  .font('Helvetica-Bold')
+                  .fillColor('#000000')
+                  .text(
+                    (rateForProject.rate * euroExchange * VATvalue)
+                      .toFixed(2)
+                      .toString() + ' RON',
+                    435,
+                    483,
+                    {
+                      width: 160,
+                      align: 'center',
+                    },
+                  );
+                doc
+                  .font('Helvetica-Bold')
+                  .fillColor('#000000')
+                  .text(
+                    (
+                      rateForProject.rate * euroExchange * VATvalue +
+                      rateForProject.rate * euroExchange
+                    )
+                      .toFixed(2)
+                      .toString() + ' RON',
+                    435,
+                    508,
+                    {
+                      width: 160,
+                      align: 'center',
+                    },
+                  );
+              } else {
+                doc
+                  .font('Helvetica-Bold')
+                  .fillColor('#000000')
+                  .text(
+                    (rateForProject.rate * euroExchange).toFixed(2).toString() +
+                      ' RON',
+                    435,
+                    508,
+                    {
+                      width: 160,
+                      align: 'center',
+                    },
+                  );
+              }
             }
 
             if (rateForProject.rateType === RateType.DAILY) {
@@ -711,24 +798,68 @@ export class PdfInvoiceService {
                     align: 'center',
                   },
                 );
-              doc
-                .font('Helvetica-Bold')
-                .fillColor('#000000')
-                .text(
-                  (
-                    rateForProject.rate *
-                    euroExchange *
-                    this.numberOfDaysWorkedOnProjectDuringMonth
-                  )
-                    .toFixed(2)
-                    .toString() + ' RON',
-                  435,
-                  508,
-                  {
-                    width: 160,
-                    align: 'center',
-                  },
-                );
+              if (customerOfProject.VAT) {
+                doc
+                  .font('Helvetica-Bold')
+                  .fillColor('#000000')
+                  .text(
+                    (
+                      rateForProject.rate *
+                      euroExchange *
+                      this.numberOfDaysWorkedOnProjectDuringMonth *
+                      VATvalue
+                    )
+                      .toFixed(2)
+                      .toString() + ' RON',
+                    435,
+                    483,
+                    {
+                      width: 160,
+                      align: 'center',
+                    },
+                  );
+                doc
+                  .font('Helvetica-Bold')
+                  .fillColor('#000000')
+                  .text(
+                    (
+                      rateForProject.rate *
+                        euroExchange *
+                        this.numberOfDaysWorkedOnProjectDuringMonth *
+                        VATvalue +
+                      rateForProject.rate *
+                        euroExchange *
+                        this.numberOfDaysWorkedOnProjectDuringMonth
+                    )
+                      .toFixed(2)
+                      .toString() + ' RON',
+                    435,
+                    508,
+                    {
+                      width: 160,
+                      align: 'center',
+                    },
+                  );
+              } else {
+                doc
+                  .font('Helvetica-Bold')
+                  .fillColor('#000000')
+                  .text(
+                    (
+                      rateForProject.rate *
+                      euroExchange *
+                      this.numberOfDaysWorkedOnProjectDuringMonth
+                    )
+                      .toFixed(2)
+                      .toString() + ' RON',
+                    435,
+                    508,
+                    {
+                      width: 160,
+                      align: 'center',
+                    },
+                  );
+              }
             }
             if (rateForProject.rateType === RateType.PROJECT) {
               doc
@@ -764,19 +895,53 @@ export class PdfInvoiceService {
                     align: 'center',
                   },
                 );
-              doc
-                .font('Helvetica-Bold')
-                .fillColor('#000000')
-                .text(
-                  (rateForProject.rate * euroExchange).toFixed(2).toString() +
-                    ' RON',
-                  435,
-                  508,
-                  {
-                    width: 160,
-                    align: 'center',
-                  },
-                );
+              if (customerOfProject.VAT) {
+                doc
+                  .font('Helvetica-Bold')
+                  .fillColor('#000000')
+                  .text(
+                    (rateForProject.rate * euroExchange * VATvalue)
+                      .toFixed(2)
+                      .toString() + ' RON',
+                    435,
+                    483,
+                    {
+                      width: 160,
+                      align: 'center',
+                    },
+                  );
+                doc
+                  .font('Helvetica-Bold')
+                  .fillColor('#000000')
+                  .text(
+                    (
+                      rateForProject.rate * euroExchange * VATvalue +
+                      rateForProject.rate * euroExchange
+                    )
+                      .toFixed(2)
+                      .toString() + ' RON',
+                    435,
+                    508,
+                    {
+                      width: 160,
+                      align: 'center',
+                    },
+                  );
+              } else {
+                doc
+                  .font('Helvetica-Bold')
+                  .fillColor('#000000')
+                  .text(
+                    (rateForProject.rate * euroExchange).toFixed(2).toString() +
+                      ' RON',
+                    435,
+                    508,
+                    {
+                      width: 160,
+                      align: 'center',
+                    },
+                  );
+              }
             }
             doc
               .lineCap('butt')
