@@ -13,6 +13,7 @@ import { DateFormatService } from './date-format/date-format.service';
 import { RateController } from './rate/rate.controller';
 import { RateService } from './rate/rate.service';
 import { RateModule } from './rate/rate.module';
+import { AuthRecieveModule } from './auth-recieve/auth-recieve.module';
 
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import { RateModule } from './rate/rate.module';
         module: RateModule,
       },
     ]),
+    AuthRecieveModule,
   ],
   controllers: [AppController],
   providers: [
