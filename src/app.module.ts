@@ -14,10 +14,28 @@ import { RateController } from './rate/rate.controller';
 import { RateService } from './rate/rate.service';
 import { RateModule } from './rate/rate.module';
 import { AuthRecieveModule } from './auth-recieve/auth-recieve.module';
+import {
+  AcceptLanguageResolver,
+  I18nModule,
+  I18nService,
+  QueryResolver,
+} from 'nestjs-i18n';
+import * as path from 'path';
 
 @Module({
   imports: [
     ActivityModule,
+    I18nModule.forRoot({
+      fallbackLanguage: 'en',
+      loaderOptions: {
+        path: '../archimedes-backend/src/i18n/',
+        watch: true,
+      },
+      resolvers: [
+        { use: QueryResolver, options: ['lang'] },
+        AcceptLanguageResolver,
+      ],
+    }),
     UserModule,
     CustomerModule,
     ProjectModule,
