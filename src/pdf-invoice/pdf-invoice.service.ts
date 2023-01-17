@@ -9,6 +9,7 @@ import { Rate } from 'src/entity/rate.entity';
 import { RateType } from 'src/custom/rate-type.enum';
 import { fillAndStroke } from 'pdfkit';
 import e from 'express';
+import { I18nService } from 'nestjs-i18n';
 
 @Injectable()
 export class PdfInvoiceService {
@@ -25,6 +26,7 @@ export class PdfInvoiceService {
     private rateRepository: Repository<Rate>,
     @Inject('ACTIVITY_REPOSITORY')
     private activityRepository: Repository<Activity>,
+    private i18n: I18nService,
   ) {}
   async generatePDF(
     id: string,
@@ -78,6 +80,9 @@ export class PdfInvoiceService {
         const customerOfProject = await this.customerRepository.findOneBy({
           id: project.customerId,
         });
+        let lang = 'en';
+        const romanianCustomer = customerOfProject.romanianCompany;
+        if (romanianCustomer) lang = 'ro';
         const appliedVAT = customerOfProject.VAT;
         const VATvalue = 0.19;
         this.activitiesOfProjectPerMonthYear = await getRepository(Activity)
@@ -113,15 +118,25 @@ export class PdfInvoiceService {
             doc
               .font('Helvetica-Bold')
               .fillColor('#2D508F')
-              .text('FACTURA FISCALA', 310, 90, {
-                width: 225,
-                align: 'center',
-              });
+              .text(
+                this.i18n.t('strings.invoiceTitle', { lang: lang }),
+                310,
+                90,
+                {
+                  width: 225,
+                  align: 'center',
+                },
+              );
             doc.fontSize(10);
 
             doc
               .fillColor('#000000')
-              .text('Seria:', 325, 115, { width: 175, align: 'justify' });
+              .text(
+                this.i18n.t('strings.invoiceSeriesTitle', { lang: lang }),
+                325,
+                115,
+                { width: 175, align: 'justify' },
+              );
 
             doc
               .fillColor('#000000')
@@ -129,17 +144,29 @@ export class PdfInvoiceService {
 
             doc
               .fillColor('#000000')
-              .text('Numar:', 325, 130, { width: 175, align: 'justify' });
+              .text(
+                this.i18n.t('strings.invoiceNumberTitle', { lang: lang }),
+                325,
+                130,
+                { width: 175, align: 'justify' },
+              );
 
             doc.fillColor('#000000').text(invoiceNumber, 450, 130, {
               width: 175,
               align: 'justify',
             });
 
-            doc.fillColor('#000000').text('Data eliberarii:', 325, 145, {
-              width: 175,
-              align: 'justify',
-            });
+            doc
+              .fillColor('#000000')
+              .text(
+                this.i18n.t('strings.dateOfIssue', { lang: lang }),
+                325,
+                145,
+                {
+                  width: 175,
+                  align: 'justify',
+                },
+              );
             const today = new Date();
             const dd = parseInt(String(today.getDate()).padStart(2, '0'));
             const mm = parseInt(String(today.getMonth() + 1).padStart(2, '0'));
@@ -157,10 +184,12 @@ export class PdfInvoiceService {
                 .fillColor('#000000')
                 .text(todayString, 450, 145, { width: 175, align: 'justify' });
             }
-            doc.fillColor('#000000').text('Data scadentei:', 325, 160, {
-              width: 175,
-              align: 'justify',
-            });
+            doc
+              .fillColor('#000000')
+              .text(this.i18n.t('strings.dueDate', { lang: lang }), 325, 160, {
+                width: 175,
+                align: 'justify',
+              });
             doc
               .fillColor('#000000')
               .text(invoiceDueDateToDisplay.replaceAll('/', '.'), 450, 160, {
@@ -179,11 +208,21 @@ export class PdfInvoiceService {
             doc.fontSize(12);
             doc
               .fillColor('#ffffff')
-              .text('CLIENT', 110, 205, { width: 100, align: 'left' });
+              .text(
+                this.i18n.t('strings.customerTitle', { lang: lang }),
+                110,
+                205,
+                { width: 100, align: 'left' },
+              );
             doc.fontSize(10);
             doc
               .fillColor('#000000')
-              .text('Nume:', 45, 225, { width: 50, align: 'justify' });
+              .text(
+                this.i18n.t('strings.customerName', { lang: lang }),
+                45,
+                225,
+                { width: 50, align: 'justify' },
+              );
             doc
               .fillColor('#000000')
               .text(customerOfProject.customerName, 145, 225, {
@@ -193,7 +232,12 @@ export class PdfInvoiceService {
 
             doc
               .fillColor('#000000')
-              .text('CIF:', 45, 240, { width: 50, align: 'justify' });
+              .text(
+                this.i18n.t('strings.customerCIF', { lang: lang }),
+                45,
+                240,
+                { width: 50, align: 'justify' },
+              );
             doc
               .fillColor('#000000')
               .text(customerOfProject.customerCUI, 145, 240, {
@@ -203,7 +247,12 @@ export class PdfInvoiceService {
 
             doc
               .fillColor('#000000')
-              .text('Reg. Com:', 45, 255, { width: 50, align: 'justify' });
+              .text(
+                this.i18n.t('strings.customerReg', { lang: lang }),
+                45,
+                255,
+                { width: 50, align: 'justify' },
+              );
             doc
               .fillColor('#000000')
               .text(customerOfProject.customerReg, 145, 255, {
@@ -213,7 +262,12 @@ export class PdfInvoiceService {
 
             doc
               .fillColor('#000000')
-              .text('Sediu:', 45, 270, { width: 50, align: 'justify' });
+              .text(
+                this.i18n.t('strings.customerHQ', { lang: lang }),
+                45,
+                270,
+                { width: 80, align: 'justify' },
+              );
             doc
               .fillColor('#000000')
               .text(customerOfProject.customerAddress, 145, 270, {
@@ -286,7 +340,12 @@ export class PdfInvoiceService {
             doc
               .font('Helvetica-Bold')
               .fillColor('#ffffff')
-              .text('Nr. crt.', 20, 294, { width: 90, align: 'center' });
+              .text(
+                this.i18n.t('strings.currentIndex', { lang: lang }),
+                20,
+                294,
+                { width: 90, align: 'center' },
+              );
             doc.fontSize(10);
             doc.font('Helvetica-Bold').fillColor('#000000').text('1', 38, 350, {
               width: 60,
@@ -295,39 +354,79 @@ export class PdfInvoiceService {
             doc
               .font('Helvetica-Bold')
               .fillColor('#ffffff')
-              .text('Descriere servicii', 90, 294, {
-                width: 160,
-                align: 'center',
-              });
+              .text(
+                this.i18n.t('strings.servicesDescription', { lang: lang }),
+                90,
+                294,
+                {
+                  width: 160,
+                  align: 'center',
+                },
+              );
 
             if (rateForProject.rateType === RateType.HOURLY)
               doc
                 .font('Helvetica-Bold')
                 .fillColor('#ffffff')
-                .text('U.M(ore)', 250, 294, { width: 75, align: 'center' });
+                .text(
+                  this.i18n.t('strings.serviceMeasurementUnitsHours', {
+                    lang: lang,
+                  }),
+                  250,
+                  294,
+                  { width: 75, align: 'center' },
+                );
             if (rateForProject.rateType === RateType.MONTHLY)
               doc
                 .font('Helvetica-Bold')
                 .fillColor('#ffffff')
-                .text('U.M(luni)', 250, 294, { width: 75, align: 'center' });
+                .text(
+                  this.i18n.t('strings.serviceMeasurementUnitsMonths', {
+                    lang: lang,
+                  }),
+                  250,
+                  294,
+                  { width: 75, align: 'center' },
+                );
             if (rateForProject.rateType === RateType.DAILY)
               doc
                 .font('Helvetica-Bold')
                 .fillColor('#ffffff')
-                .text('U.M(zile)', 250, 294, { width: 75, align: 'center' });
+                .text(
+                  this.i18n.t('strings.serviceMeasurementUnitsDays', {
+                    lang: lang,
+                  }),
+                  250,
+                  294,
+                  { width: 75, align: 'center' },
+                );
 
             doc
               .font('Helvetica-Bold')
               .fillColor('#ffffff')
-              .text('Valoare unitara', 325, 294, {
-                width: 115,
-                align: 'center',
-              });
+              .text(
+                this.i18n.t('strings.unitPrice', {
+                  lang: lang,
+                }),
+                325,
+                294,
+                {
+                  width: 115,
+                  align: 'center',
+                },
+              );
 
             doc
               .font('Helvetica-Bold')
               .fillColor('#ffffff')
-              .text('Valoare', 440, 294, { width: 110, align: 'center' });
+              .text(
+                this.i18n.t('strings.value', {
+                  lang: lang,
+                }),
+                440,
+                294,
+                { width: 110, align: 'center' },
+              );
 
             doc
               .lineCap('butt')
@@ -370,9 +469,14 @@ export class PdfInvoiceService {
               .stroke('#000000');
             doc.fillOpacity(1);
 
-            doc
-              .fillColor('#000000')
-              .text('Curs BNR:', 375, 458, { width: 100, align: 'center' });
+            doc.fillColor('#000000').text(
+              this.i18n.t('strings.currencyExchange', {
+                lang: lang,
+              }),
+              375,
+              458,
+              { width: 100, align: 'center' },
+            );
 
             doc
               .fillColor('#000000')
@@ -382,21 +486,42 @@ export class PdfInvoiceService {
               });
 
             if (customerOfProject.VAT) {
-              doc.fillColor('#000000').text('COTA TVA 19%', 375, 483, {
-                width: 100,
-                align: 'center',
-              });
+              doc.fillColor('#000000').text(
+                this.i18n.t('strings.VAT19', {
+                  lang: lang,
+                }),
+                375,
+                483,
+                {
+                  width: 100,
+                  align: 'center',
+                },
+              );
             } else {
-              doc.fillColor('#000000').text('COTA TVA 0%', 375, 483, {
-                width: 100,
-                align: 'center',
-              });
+              doc.fillColor('#000000').text(
+                this.i18n.t('strings.VAT0', {
+                  lang: lang,
+                }),
+                375,
+                483,
+                {
+                  width: 100,
+                  align: 'center',
+                },
+              );
             }
 
-            doc.fillColor('#000000').text('TOTAL DE PLATA', 375, 508, {
-              width: 100,
-              align: 'center',
-            });
+            doc.fillColor('#000000').text(
+              this.i18n.t('strings.total', {
+                lang: lang,
+              }),
+              375,
+              508,
+              {
+                width: 100,
+                align: 'center',
+              },
+            );
 
             doc
               .font('Helvetica-Bold')
@@ -432,7 +557,21 @@ export class PdfInvoiceService {
             const finalEndDateToDisplay = `${
               lastDayOfMonth.toString().split(' ')[2]
             }.${arrayDateMonthYear[1]}.${arrayDateMonthYear[0]}`;
-            const serviceToDisplay = `Prestare servicii IT, pe perioada \n ${finalDateToDisplay} - ${finalEndDateToDisplay} \n Consulting & Software development, \n Time & Material \n Conform Contract ${project.contract} `;
+            const serviceToDisplay = `${this.i18n.t(
+              'strings.serviceToDisplay1',
+              {
+                lang: lang,
+              },
+            )} \n ${finalDateToDisplay} - ${finalEndDateToDisplay} \n ${this.i18n.t(
+              'strings.serviceToDisplay2',
+              {
+                lang: lang,
+              },
+            )} \n ${this.i18n.t('strings.serviceToDisplay3', {
+              lang: lang,
+            })} \n ${this.i18n.t('strings.serviceToDisplay4', {
+              lang: lang,
+            })} ${project.contract} `;
 
             doc.fontSize(8);
             doc
@@ -445,12 +584,17 @@ export class PdfInvoiceService {
 
             doc.fontSize(10);
             if (internalCompany) {
-              doc
-                .fillColor('#000000')
-                .text(`CUI ${internalCompany.customerCUI}`, 45, 660, {
+              doc.fillColor('#000000').text(
+                `${this.i18n.t('strings.CUI', {
+                  lang: lang,
+                })} ${internalCompany.customerCUI}`,
+                45,
+                660,
+                {
                   width: 225,
                   align: 'justify',
-                });
+                },
+              );
 
               doc
                 .fillColor('#000000')
@@ -459,12 +603,17 @@ export class PdfInvoiceService {
                   align: 'justify',
                 });
 
-              doc
-                .fillColor('#000000')
-                .text(`Sediu: ${internalCompany.customerAddress}`, 45, 690, {
+              doc.fillColor('#000000').text(
+                `${this.i18n.t('strings.headquarters', {
+                  lang: lang,
+                })} ${internalCompany.customerAddress}`,
+                45,
+                690,
+                {
                   width: 225,
                   align: 'justify',
-                });
+                },
+              );
 
               doc
                 .fillColor('#000000')
@@ -478,17 +627,17 @@ export class PdfInvoiceService {
                   },
                 );
 
-              doc
-                .fillColor('#000000')
-                .text(
-                  `Reprezentant: ${internalCompany.customerDirectorName} , Administrator`,
-                  45,
-                  720,
-                  {
-                    width: 350,
-                    align: 'justify',
-                  },
-                );
+              doc.fillColor('#000000').text(
+                `${this.i18n.t('strings.representative', {
+                  lang: lang,
+                })} ${internalCompany.customerDirectorName} , Administrator`,
+                45,
+                720,
+                {
+                  width: 350,
+                  align: 'justify',
+                },
+              );
 
               doc.fillColor('#000000').text('Banca Transilvania', 400, 705, {
                 width: 150,
@@ -501,48 +650,88 @@ export class PdfInvoiceService {
                   align: 'justify',
                 });
             } else {
-              doc.fillColor('#000000').text(`CUI COMPANY_CUI`, 45, 660, {
-                width: 225,
-                align: 'justify',
-              });
-
-              doc.fillColor('#000000').text(`COMPANY_REG`, 45, 675, {
-                width: 225,
-                align: 'justify',
-              });
-
-              doc.fillColor('#000000').text(`Sediu: COMPANY_ADDRESS`, 45, 690, {
-                width: 225,
-                align: 'justify',
-              });
-
-              doc
-                .fillColor('#000000')
-                .text(`COMPANY_CITY, COMPANY COUNTRY`, 45, 705, {
+              doc.fillColor('#000000').text(
+                this.i18n.t('strings.CUIPlaceholder', {
+                  lang: lang,
+                }),
+                45,
+                660,
+                {
                   width: 225,
                   align: 'justify',
-                });
+                },
+              );
 
-              doc
-                .fillColor('#000000')
-                .text(
-                  `Reprezentant: COMPANY_DIRECTOR_NAME , Administrator`,
-                  45,
-                  720,
-                  {
-                    width: 350,
-                    align: 'justify',
-                  },
-                );
+              doc.fillColor('#000000').text(
+                this.i18n.t('strings.companyRegPlaceholder', {
+                  lang: lang,
+                }),
+                45,
+                675,
+                {
+                  width: 225,
+                  align: 'justify',
+                },
+              );
 
-              doc.fillColor('#000000').text('COMPANY_BANK', 400, 705, {
-                width: 150,
-                align: 'justify',
-              });
-              doc.fillColor('#000000').text('COMPANY_IBAN', 400, 720, {
-                width: 165,
-                align: 'justify',
-              });
+              doc.fillColor('#000000').text(
+                this.i18n.t('strings.companyHeadquartersPlaceholder', {
+                  lang: lang,
+                }),
+                45,
+                690,
+                {
+                  width: 225,
+                  align: 'justify',
+                },
+              );
+
+              doc.fillColor('#000000').text(
+                this.i18n.t('strings.companyCityCountryPlaceholder', {
+                  lang: lang,
+                }),
+                45,
+                705,
+                {
+                  width: 225,
+                  align: 'justify',
+                },
+              );
+
+              doc.fillColor('#000000').text(
+                this.i18n.t('strings.companyRepresentativePlaceholder', {
+                  lang: lang,
+                }),
+                45,
+                720,
+                {
+                  width: 350,
+                  align: 'justify',
+                },
+              );
+
+              doc.fillColor('#000000').text(
+                this.i18n.t('strings.companyBankPlaceholder', {
+                  lang: lang,
+                }),
+                400,
+                705,
+                {
+                  width: 150,
+                  align: 'justify',
+                },
+              );
+              doc.fillColor('#000000').text(
+                this.i18n.t('strings.companyIBANPlaceholder', {
+                  lang: lang,
+                }),
+                400,
+                720,
+                {
+                  width: 165,
+                  align: 'justify',
+                },
+              );
             }
             let invoiceHoursTime2 = 0;
             let invoiceMinutesTime2 = 0;
@@ -592,7 +781,9 @@ export class PdfInvoiceService {
                 .fillColor('#000000')
                 .text(
                   (rateForProject.rate * euroExchange).toFixed(2).toString() +
-                    ' RON',
+                    this.i18n.t('strings.currency', {
+                      lang: lang,
+                    }),
                   300,
                   350,
                   {
@@ -606,7 +797,10 @@ export class PdfInvoiceService {
                 .text(
                   (invoiceHoursTime2 * rateForProject.rate * euroExchange)
                     .toFixed(2)
-                    .toString() + ' RON',
+                    .toString() +
+                    this.i18n.t('strings.currency', {
+                      lang: lang,
+                    }),
                   420,
                   350,
                   {
@@ -626,7 +820,10 @@ export class PdfInvoiceService {
                       VATvalue
                     )
                       .toFixed(2)
-                      .toString() + ' RON',
+                      .toString() +
+                      this.i18n.t('strings.currency', {
+                        lang: lang,
+                      }),
                     435,
                     483,
                     {
@@ -646,7 +843,10 @@ export class PdfInvoiceService {
                       invoiceHoursTime2 * rateForProject.rate * euroExchange
                     )
                       .toFixed(2)
-                      .toString() + ' RON',
+                      .toString() +
+                      this.i18n.t('strings.currency', {
+                        lang: lang,
+                      }),
                     435,
                     508,
                     {
@@ -661,7 +861,10 @@ export class PdfInvoiceService {
                   .text(
                     (invoiceHoursTime2 * rateForProject.rate * euroExchange)
                       .toFixed(2)
-                      .toString() + ' RON',
+                      .toString() +
+                      this.i18n.t('strings.currency', {
+                        lang: lang,
+                      }),
                     435,
                     508,
                     {
@@ -684,7 +887,9 @@ export class PdfInvoiceService {
                 .fillColor('#000000')
                 .text(
                   (rateForProject.rate * euroExchange).toFixed(2).toString() +
-                    ' RON',
+                    this.i18n.t('strings.currency', {
+                      lang: lang,
+                    }),
                   300,
                   350,
                   {
@@ -697,7 +902,9 @@ export class PdfInvoiceService {
                 .fillColor('#000000')
                 .text(
                   (rateForProject.rate * euroExchange).toFixed(2).toString() +
-                    ' RON',
+                    this.i18n.t('strings.currency', {
+                      lang: lang,
+                    }),
                   420,
                   350,
                   {
@@ -712,7 +919,10 @@ export class PdfInvoiceService {
                   .text(
                     (rateForProject.rate * euroExchange * VATvalue)
                       .toFixed(2)
-                      .toString() + ' RON',
+                      .toString() +
+                      this.i18n.t('strings.currency', {
+                        lang: lang,
+                      }),
                     435,
                     483,
                     {
@@ -729,7 +939,10 @@ export class PdfInvoiceService {
                       rateForProject.rate * euroExchange
                     )
                       .toFixed(2)
-                      .toString() + ' RON',
+                      .toString() +
+                      this.i18n.t('strings.currency', {
+                        lang: lang,
+                      }),
                     435,
                     508,
                     {
@@ -743,7 +956,9 @@ export class PdfInvoiceService {
                   .fillColor('#000000')
                   .text(
                     (rateForProject.rate * euroExchange).toFixed(2).toString() +
-                      ' RON',
+                      this.i18n.t('strings.currency', {
+                        lang: lang,
+                      }),
                     435,
                     508,
                     {
@@ -772,7 +987,9 @@ export class PdfInvoiceService {
                 .fillColor('#000000')
                 .text(
                   (rateForProject.rate * euroExchange).toFixed(2).toString() +
-                    ' RON',
+                    this.i18n.t('strings.currency', {
+                      lang: lang,
+                    }),
                   300,
                   350,
                   {
@@ -790,7 +1007,10 @@ export class PdfInvoiceService {
                     this.numberOfDaysWorkedOnProjectDuringMonth
                   )
                     .toFixed(2)
-                    .toString() + ' RON',
+                    .toString() +
+                    this.i18n.t('strings.currency', {
+                      lang: lang,
+                    }),
                   420,
                   350,
                   {
@@ -810,7 +1030,10 @@ export class PdfInvoiceService {
                       VATvalue
                     )
                       .toFixed(2)
-                      .toString() + ' RON',
+                      .toString() +
+                      this.i18n.t('strings.currency', {
+                        lang: lang,
+                      }),
                     435,
                     483,
                     {
@@ -832,7 +1055,10 @@ export class PdfInvoiceService {
                         this.numberOfDaysWorkedOnProjectDuringMonth
                     )
                       .toFixed(2)
-                      .toString() + ' RON',
+                      .toString() +
+                      this.i18n.t('strings.currency', {
+                        lang: lang,
+                      }),
                     435,
                     508,
                     {
@@ -851,7 +1077,10 @@ export class PdfInvoiceService {
                       this.numberOfDaysWorkedOnProjectDuringMonth
                     )
                       .toFixed(2)
-                      .toString() + ' RON',
+                      .toString() +
+                      this.i18n.t('strings.currency', {
+                        lang: lang,
+                      }),
                     435,
                     508,
                     {
@@ -874,7 +1103,9 @@ export class PdfInvoiceService {
                 .fillColor('#000000')
                 .text(
                   (rateForProject.rate * euroExchange).toFixed(2).toString() +
-                    ' RON',
+                    this.i18n.t('strings.currency', {
+                      lang: lang,
+                    }),
                   300,
                   350,
                   {
@@ -887,7 +1118,9 @@ export class PdfInvoiceService {
                 .fillColor('#000000')
                 .text(
                   (rateForProject.rate * euroExchange).toFixed(2).toString() +
-                    ' RON',
+                    this.i18n.t('strings.currency', {
+                      lang: lang,
+                    }),
                   420,
                   350,
                   {
@@ -902,7 +1135,10 @@ export class PdfInvoiceService {
                   .text(
                     (rateForProject.rate * euroExchange * VATvalue)
                       .toFixed(2)
-                      .toString() + ' RON',
+                      .toString() +
+                      this.i18n.t('strings.currency', {
+                        lang: lang,
+                      }),
                     435,
                     483,
                     {
@@ -919,7 +1155,10 @@ export class PdfInvoiceService {
                       rateForProject.rate * euroExchange
                     )
                       .toFixed(2)
-                      .toString() + ' RON',
+                      .toString() +
+                      this.i18n.t('strings.currency', {
+                        lang: lang,
+                      }),
                     435,
                     508,
                     {
@@ -933,7 +1172,9 @@ export class PdfInvoiceService {
                   .fillColor('#000000')
                   .text(
                     (rateForProject.rate * euroExchange).toFixed(2).toString() +
-                      ' RON',
+                      this.i18n.t('strings.currency', {
+                        lang: lang,
+                      }),
                     435,
                     508,
                     {
@@ -951,33 +1192,40 @@ export class PdfInvoiceService {
             doc.addPage();
             doc.fontSize(14);
             if (actualEmisionDate) {
-              doc
-                .fillColor('#000000')
-                .text(
-                  `ANEXA nr. 001 ${actualEmisionDate.replaceAll(
-                    '/',
-                    '.',
-                  )} la contractul ${
-                    project.contract
-                  } si factura ${invoiceNumber} din ${actualEmisionDate.replaceAll(
-                    '/',
-                    '.',
-                  )}`,
-                );
+              doc.fillColor('#000000').text(
+                `${this.i18n.t('strings.annex1', {
+                  lang: lang,
+                })} ${actualEmisionDate.replaceAll('/', '.')} ${this.i18n.t(
+                  'strings.annex2',
+                  {
+                    lang: lang,
+                  },
+                )} ${project.contract} ${this.i18n.t('strings.annex3', {
+                  lang: lang,
+                })} ${invoiceNumber} ${this.i18n.t('strings.annex4', {
+                  lang: lang,
+                })} ${actualEmisionDate.replaceAll('/', '.')}`,
+              );
             } else {
-              doc
-                .fillColor('#000000')
-                .text(
-                  `ANEXA nr. 001 ${todayString} la contractul ${project.contract} si factura ${invoiceNumber} din ${todayString}`,
-                );
+              doc.fillColor('#000000').text(
+                `${this.i18n.t('strings.annex1', {
+                  lang: lang,
+                })} ${todayString} ${this.i18n.t('strings.annex2', {
+                  lang: lang,
+                })} ${project.contract} ${this.i18n.t('strings.annex3', {
+                  lang: lang,
+                })} ${invoiceNumber} ${this.i18n.t('strings.annex4', {
+                  lang: lang,
+                })} ${todayString}`,
+              );
             }
 
             doc.fontSize(10);
-            doc
-              .fillColor('#2D508F')
-              .text(
-                'NUMELE ACTIVITATII - TIPUL ACTIVITATII - TIMP ALOCAT PE ACTIVITATE',
-              );
+            doc.fillColor('#2D508F').text(
+              this.i18n.t('strings.annexTableHeader', {
+                lang: lang,
+              }),
+            );
 
             let index = 1;
             let invoiceHoursTime = 0;
@@ -1015,11 +1263,18 @@ export class PdfInvoiceService {
                 invoiceHoursTime + timeForCurrentActivity.hours;
               invoiceMinutesTime =
                 invoiceMinutesTime + timeForCurrentActivity.minutes;
-              doc
-                .fillColor('#000000')
-                .text(
-                  `${activity.date}. ${activity.name} - ${activity.activityType} - HOURS: ${timeForCurrentActivity.hours} MINUTES: ${timeForCurrentActivity.minutes}`,
-                );
+              doc.fillColor('#000000').text(
+                `${activity.date}. ${activity.name} - ${
+                  activity.activityType
+                } - ${this.i18n.t('strings.annexActivityTimeHours', {
+                  lang: lang,
+                })} ${timeForCurrentActivity.hours} ${this.i18n.t(
+                  'strings.annexActivityTimeMinutes',
+                  {
+                    lang: lang,
+                  },
+                )} ${timeForCurrentActivity.minutes}`,
+              );
 
               index = index + 1;
             });

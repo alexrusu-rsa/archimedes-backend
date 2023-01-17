@@ -41,4 +41,7 @@ export class Customer {
 
   @Column({ nullable: true })
   shortName: string;
+
+  @Column({ nullable: true })
+  romanianCompany: boolean;
 }
