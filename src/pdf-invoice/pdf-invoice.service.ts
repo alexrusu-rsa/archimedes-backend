@@ -427,63 +427,97 @@ export class PdfInvoiceService {
                 294,
                 { width: 110, align: 'center' },
               );
+            if (!romanianCustomer) {
+              doc
+                .lineCap('butt')
+                .moveTo(475, 470)
+                .lineTo(475, 525)
+                .stroke('#000000');
+              doc
+                .lineCap('butt')
+                .moveTo(375, 470)
+                .lineTo(375, 525)
+                .stroke('#000000');
+              doc
+                .lineCap('butt')
+                .moveTo(555.28, 470)
+                .lineTo(555.28, 525)
+                .stroke('#000000');
+              doc
+                .lineCap('butt')
+                .moveTo(375, 470)
+                .lineTo(555.28, 470)
+                .stroke('#000000');
+              doc
+                .lineCap('butt')
+                .moveTo(375, 500)
+                .lineTo(555.28, 500)
+                .stroke('#000000');
+              doc
+                .lineCap('butt')
+                .moveTo(375, 525)
+                .lineTo(555.28, 525)
+                .stroke('#000000');
+            } else {
+              doc
+                .lineCap('butt')
+                .moveTo(475, 450)
+                .lineTo(475, 525)
+                .stroke('#000000');
+              doc
+                .lineCap('butt')
+                .moveTo(375, 450)
+                .lineTo(375, 525)
+                .stroke('#000000');
 
-            doc
-              .lineCap('butt')
-              .moveTo(475, 450)
-              .lineTo(475, 525)
-              .stroke('#000000');
-            doc
-              .lineCap('butt')
-              .moveTo(375, 450)
-              .lineTo(375, 525)
-              .stroke('#000000');
+              doc
+                .lineCap('butt')
+                .moveTo(555.28, 450)
+                .lineTo(555.28, 525)
+                .stroke('#000000');
 
-            doc
-              .lineCap('butt')
-              .moveTo(555.28, 450)
-              .lineTo(555.28, 525)
-              .stroke('#000000');
+              doc
+                .lineCap('butt')
+                .moveTo(375, 450)
+                .lineTo(555.28, 450)
+                .stroke('#000000');
 
-            doc
-              .lineCap('butt')
-              .moveTo(375, 450)
-              .lineTo(555.28, 450)
-              .stroke('#000000');
+              doc
+                .lineCap('butt')
+                .moveTo(375, 470)
+                .lineTo(555.28, 470)
+                .stroke('#000000');
 
-            doc
-              .lineCap('butt')
-              .moveTo(375, 470)
-              .lineTo(555.28, 470)
-              .stroke('#000000');
-
-            doc
-              .lineCap('butt')
-              .moveTo(375, 500)
-              .lineTo(555.28, 500)
-              .stroke('#000000');
-            doc
-              .lineCap('butt')
-              .moveTo(375, 525)
-              .lineTo(555.28, 525)
-              .stroke('#000000');
+              doc
+                .lineCap('butt')
+                .moveTo(375, 500)
+                .lineTo(555.28, 500)
+                .stroke('#000000');
+              doc
+                .lineCap('butt')
+                .moveTo(375, 525)
+                .lineTo(555.28, 525)
+                .stroke('#000000');
+            }
             doc.fillOpacity(1);
 
-            doc.fillColor('#000000').text(
-              this.i18n.t('strings.currencyExchange', {
-                lang: lang,
-              }),
-              375,
-              458,
-              { width: 100, align: 'center' },
-            );
+            if (romanianCustomer) {
+              doc.fillColor('#000000').text(
+                this.i18n.t('strings.currencyExchange', {
+                  lang: lang,
+                }),
+                375,
+                458,
+                { width: 100, align: 'center' },
+              );
 
-            doc
-              .fillColor('#000000')
-              .text(`${euroExchange.toString()}`, 465, 458, {
-                width: 100,
-                align: 'center',
-              });
+              doc
+                .fillColor('#000000')
+                .text(`${euroExchange.toString()}`, 465, 458, {
+                  width: 100,
+                  align: 'center',
+                });
+            }
 
             if (customerOfProject.VAT) {
               doc.fillColor('#000000').text(
