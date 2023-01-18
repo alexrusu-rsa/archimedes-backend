@@ -468,7 +468,6 @@ export class PdfInvoiceService {
               .lineTo(555.28, 525)
               .stroke('#000000');
             doc.fillOpacity(1);
-
             doc.fillColor('#000000').text(
               this.i18n.t('strings.currencyExchange', {
                 lang: lang,
@@ -477,7 +476,6 @@ export class PdfInvoiceService {
               458,
               { width: 100, align: 'center' },
             );
-
             doc
               .fillColor('#000000')
               .text(`${euroExchange.toString()}`, 465, 458, {
