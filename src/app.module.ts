@@ -28,7 +28,7 @@ import * as path from 'path';
     I18nModule.forRoot({
       fallbackLanguage: 'en',
       loaderOptions: {
-        path: '../archimedes-backend/src/i18n/',
+        path: 'src/i18n/',
         watch: true,
       },
       resolvers: [
