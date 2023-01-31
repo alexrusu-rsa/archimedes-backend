@@ -40,6 +40,12 @@ export class Customer {
   VAT: boolean;
 
   @Column({ nullable: true })
+  IBANRO: string;
+
+  @Column({ nullable: true })
+  IBANEUR: string;
+
+  @Column({ nullable: true })
   shortName: string;
 
   @Column({ nullable: true })
