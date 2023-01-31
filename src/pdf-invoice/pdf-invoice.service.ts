@@ -677,12 +677,20 @@ export class PdfInvoiceService {
                 width: 150,
                 align: 'justify',
               });
-              doc
-                .fillColor('#000000')
-                .text('RO43BTRLRONCRT0593347301', 400, 720, {
-                  width: 165,
-                  align: 'justify',
-                });
+              if (romanianCustomer)
+                doc
+                  .fillColor('#000000')
+                  .text(internalCompany.IBANRO, 400, 720, {
+                    width: 165,
+                    align: 'justify',
+                  });
+              else
+                doc
+                  .fillColor('#000000')
+                  .text(internalCompany.IBANEUR, 400, 720, {
+                    width: 165,
+                    align: 'justify',
+                  });
             } else {
               doc.fillColor('#000000').text(
                 this.i18n.t('strings.CUIPlaceholder', {
@@ -755,17 +763,18 @@ export class PdfInvoiceService {
                   align: 'justify',
                 },
               );
-              doc.fillColor('#000000').text(
-                this.i18n.t('strings.companyIBANPlaceholder', {
-                  lang: lang,
-                }),
-                400,
-                720,
-                {
+              doc
+                .fillColor('#000000')
+                .text('strings.companyIBANPlaceholder', 400, 720, {
                   width: 165,
                   align: 'justify',
-                },
-              );
+                });
+              doc
+                .fillColor('#000000')
+                .text('strings.companyIBANEURPlaceholder', 400, 735, {
+                  width: 165,
+                  align: 'justify',
+                });
             }
             let invoiceHoursTime2 = 0;
             let invoiceMinutesTime2 = 0;

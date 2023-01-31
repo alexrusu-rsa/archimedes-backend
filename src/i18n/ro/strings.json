@@ -34,6 +34,7 @@
   "companyRepresentativePlaceholder": "Reprezentant: COMPANY_DIRECTOR_NAME, Administrator",
   "companyBankPlaceholder": "COMPANY_BANK",
   "companyIBANPlaceholder": "COMPANY_IBAN",
+  "companyIBANEURPlaceholder": "COMPANY_IBAN",
   "currency": " RON",
   "annex1": "ANEXA nr. 001",
   "annex2": "la contractul",
