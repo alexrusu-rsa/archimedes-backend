@@ -11,11 +11,12 @@ export const databaseProvider = [
     useFactory: async () =>
       await createConnection({
         type: 'postgres',
-        host: process.env.DATABASE_HOST,
-        port: process.env.DATABASE_PORT as unknown as number,
-        username: process.env.DATABASE_USERNAME,
-        password: process.env.DATABASE_P,
-        database: process.env.DATABASE_NAME,
+        host: 'ec2-52-215-12-242.eu-west-1.compute.amazonaws.com',
+        port: 5432,
+        username: 'lvqmazddjsuwmt',
+        password:
+          '3c40d5e2d6827a5a925fbf96e284634b7fb12f96a5e13d4ca2d69b1c20abcbc3',
+        database: 'db5amp9i28kj3q',
         entities: [Activity, User, Customer, Project, Rate],
         ssl: { rejectUnauthorized: false },
         synchronize: false,

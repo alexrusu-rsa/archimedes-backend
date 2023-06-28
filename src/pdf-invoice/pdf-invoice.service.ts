@@ -82,6 +82,7 @@ export class PdfInvoiceService {
         });
         let lang = 'en';
         const romanianCustomer = customerOfProject.romanianCompany;
+        const customerSWIFT = customerOfProject.SWIFT;
         if (romanianCustomer) lang = 'ro';
         const appliedVAT = customerOfProject.VAT;
         const VATvalue = 0.19;
@@ -673,24 +674,30 @@ export class PdfInvoiceService {
                 },
               );
 
-              doc.fillColor('#000000').text('Banca Transilvania', 400, 705, {
+              doc.fillColor('#000000').text('Banca Transilvania', 400, 690, {
                 width: 150,
                 align: 'justify',
               });
               if (romanianCustomer)
                 doc
                   .fillColor('#000000')
-                  .text(internalCompany.IBANRO, 400, 720, {
+                  .text(internalCompany.IBANRO, 400, 705, {
                     width: 165,
                     align: 'justify',
                   });
               else
                 doc
                   .fillColor('#000000')
-                  .text(internalCompany.IBANEUR, 400, 720, {
+                  .text(internalCompany.IBANEUR, 400, 705, {
                     width: 165,
                     align: 'justify',
                   });
+              if (internalCompany.SWIFT) {
+                doc.fillColor('#000000').text(internalCompany.SWIFT, 400, 720, {
+                  width: 165,
+                  align: 'justify',
+                });
+              }
             } else {
               doc.fillColor('#000000').text(
                 this.i18n.t('strings.CUIPlaceholder', {
