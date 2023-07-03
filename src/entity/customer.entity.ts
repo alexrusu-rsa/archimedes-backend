@@ -52,5 +52,5 @@ export class Customer {
   romanianCompany: boolean;
 
   @Column({ nullable: true })
-  SWIFT: string;
+  swift: string;
 }

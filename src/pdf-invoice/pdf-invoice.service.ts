@@ -82,7 +82,7 @@ export class PdfInvoiceService {
         });
         let lang = 'en';
         const romanianCustomer = customerOfProject.romanianCompany;
-        const customerSWIFT = customerOfProject.SWIFT;
+        const customerSWIFT = customerOfProject.swift;
         if (romanianCustomer) lang = 'ro';
         const appliedVAT = customerOfProject.VAT;
         const VATvalue = 0.19;
@@ -692,8 +692,8 @@ export class PdfInvoiceService {
                     width: 165,
                     align: 'justify',
                   });
-              if (internalCompany.SWIFT) {
-                doc.fillColor('#000000').text(internalCompany.SWIFT, 400, 720, {
+              if (internalCompany.swift) {
+                doc.fillColor('#000000').text(internalCompany.swift, 400, 720, {
                   width: 165,
                   align: 'justify',
                 });
