@@ -101,4 +101,14 @@ export class ActivityController {
   deleteActivity(@Param('id') id: string): Promise<any> {
     return this.activityService.deleteActivity(id);
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('/monthYear')
+  getActivitiesOfUser(@Body() body: any): Promise<Activity[]> {
+    return this.activityService.getActivitiesOfMonthYearOfUser(
+      body.month,
+      body.year,
+      body.userId,
+    );
+  }
 }

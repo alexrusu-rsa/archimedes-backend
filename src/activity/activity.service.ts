@@ -3,6 +3,7 @@ import { DateFormatService } from 'src/date-format/date-format.service';
 import { ActivityType } from 'src/custom/activity-type.enum';
 import { Activity } from 'src/entity/activity.entity';
 import {
+  And,
   DeleteResult,
   getConnection,
   getRepository,
@@ -246,6 +247,25 @@ export class ActivityService {
         },
       });
       if (activitiesOfTheMonthYear) return activitiesOfTheMonthYear;
+    } catch (err) {
+      throw err;
+    }
+  }
+
+  async getActivitiesOfMonthYearOfUser(
+    month: string,
+    year: string,
+    userId: string,
+  ) {
+    try {
+      const monthYear = month + '/' + year;
+      const activitiesOfMonthYearForUser = await getRepository(Activity).find({
+        where: {
+          date: Like(`%${monthYear}`),
+          employeeId: Like(`${userId}`),
+        },
+      });
+      if (activitiesOfMonthYearForUser) return activitiesOfMonthYearForUser;
     } catch (err) {
       throw err;
     }
