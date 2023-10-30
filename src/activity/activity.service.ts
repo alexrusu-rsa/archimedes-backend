@@ -37,6 +37,15 @@ export class ActivityService {
     return ActivityType;
   }
 
+  async isWeekend(date: Date): Promise<boolean> {
+    const dayOfTheWeek = date.getDay();
+    console.log(date);
+    if (dayOfTheWeek === 6 || dayOfTheWeek === 0) {
+      return true;
+    }
+    return false;
+  }
+
   async addActivitiesInRange(duplicateActivityRange: ActivityDuplicateRange) {
     const startDateType = new Date(duplicateActivityRange.startDate);
     const endDateType = new Date(duplicateActivityRange.endDate);
@@ -50,11 +59,13 @@ export class ActivityService {
     whileStop.setFullYear(endDateType.getFullYear());
     const dates = [];
     while (date <= whileStop) {
-      dates.push(
-        this.dateFormatService.formatISOToDB(
-          new Date(date).toISOString().split('T')[0],
-        ),
-      );
+      if (!(await this.isWeekend(date))) {
+        dates.push(
+          this.dateFormatService.formatISOToDB(
+            new Date(date).toISOString().split('T')[0],
+          ),
+        );
+      }
       date.setDate(date.getDate() + 1);
     }
     try {
