@@ -39,7 +39,6 @@ export class ActivityService {
 
   async isWeekend(date: Date): Promise<boolean> {
     const dayOfTheWeek = date.getDay();
-    console.log(date);
     if (dayOfTheWeek === 6 || dayOfTheWeek === 0) {
       return true;
     }
@@ -191,6 +190,29 @@ export class ActivityService {
         'Activity could not be found!',
         HttpStatus.NOT_FOUND,
       );
+    } catch (err) {
+      throw err;
+    }
+  }
+
+  async deleteActivitiesOfUserDay(userId: string, date: string) {
+    const splitDate = date.split('-');
+    const formattedDate = `${splitDate[2]}/${splitDate[1]}/${splitDate[0]}`;
+    try {
+      const activitiesByEmployeeIdAndDate = await getConnection()
+        .createQueryBuilder()
+        .select('activity')
+        .from(Activity, 'activity')
+        .where('activity.employeeId = :id', { id: userId })
+        .andWhere('activity.date = :formattedDate', {
+          formattedDate: formattedDate,
+        })
+        .getMany();
+      if (activitiesByEmployeeIdAndDate) {
+        activitiesByEmployeeIdAndDate.forEach((activity) => {
+          this.deleteActivity(activity.id);
+        });
+      }
     } catch (err) {
       throw err;
     }
