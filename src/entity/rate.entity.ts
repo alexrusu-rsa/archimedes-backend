@@ -12,7 +12,7 @@ export class Rate {
   @Column()
   employeeId: string;
 
-  @Column({ nullable: true })
+  @Column('varchar', { nullable: true })
   rate: number;
 
   @Column({ nullable: true })
