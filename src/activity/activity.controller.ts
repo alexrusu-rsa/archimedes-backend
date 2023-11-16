@@ -111,4 +111,12 @@ export class ActivityController {
       body.userId,
     );
   }
+  
+  @Delete(':userId/:date')
+  deleteActivitiesOfUserDay(
+    @Param('userId') userId: string,
+    @Param('date') date: string,
+  ): Promise<any> {
+    return this.activityService.deleteActivitiesOfUserDay(userId, date);
+  }
 }
