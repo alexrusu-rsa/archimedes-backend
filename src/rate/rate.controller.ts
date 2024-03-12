@@ -14,7 +14,8 @@ import { Roles } from 'src/auth/roles.decorator';
 import { RateType } from 'src/custom/rate-type.enum';
 import { Rate } from 'src/entity/rate.entity';
 import { RateService } from './rate.service';
-
+import { ApiTags } from '@nestjs/swagger';
+@ApiTags('Rate')
 @Controller()
 export class RateController {
   constructor(private rateService: RateService) {}

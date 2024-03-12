@@ -17,7 +17,8 @@ import { RequestWrapper } from 'src/custom/requestwrapper';
 import { RequestWrapperWithUserRole } from 'src/custom/requestWrapperWithUserRole';
 import { User } from 'src/entity/user.entity';
 import { UserService } from './user.service';
-
+import { ApiTags } from '@nestjs/swagger';
+@ApiTags('User')
 @Controller()
 export class UserController {
   constructor(private userService: UserService) {}

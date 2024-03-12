@@ -13,7 +13,9 @@ import { Role } from 'src/auth/role.enum';
 import { Roles } from 'src/auth/roles.decorator';
 import { Project } from 'src/entity/project.entity';
 import { ProjectService } from './project.service';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Project')
 @Controller()
 export class ProjectController {
   constructor(private projectService: ProjectService) {}

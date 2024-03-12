@@ -16,7 +16,8 @@ import { ActivityDuplicateRange } from 'src/custom/activity-duplicate-range';
 import { RequestWrapper } from 'src/custom/requestwrapper';
 import { Activity } from 'src/entity/activity.entity';
 import { ActivityService } from './activity.service';
-
+import { ApiTags } from '@nestjs/swagger';
+@ApiTags('Activity')
 @Controller()
 export class ActivityController {
   constructor(private activityService: ActivityService) {}

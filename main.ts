@@ -19,7 +19,7 @@ async function bootstrap() {
 
   // Swagger Configuration
   const config = new DocumentBuilder()
-    .setTitle('Your API Title')
+    .setTitle('Archimedes API')
     .setDescription('Your API Description')
     .setVersion('1.0')
     .addTag('nestjs')

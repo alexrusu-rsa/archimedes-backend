@@ -19,7 +19,9 @@ import { CustomerService } from './customer.service';
 import * as fs from 'fs';
 import { PdfInvoiceService } from 'src/pdf-invoice/pdf-invoice.service';
 import { XlsxInvoiceService } from 'src/xlsx-invoice/xlsx-invoice.service';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Customer')
 @Controller()
 export class CustomerController {
   constructor(
