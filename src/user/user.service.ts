@@ -275,4 +275,17 @@ export class UserService {
       throw err;
     }
   }
+
+  async getUserTimePerDay(userId: string): Promise<number> {
+    try {
+      const foundUser = await this.userRepository.findOneBy({ id: userId });
+      if (foundUser) return parseInt(foundUser.timePerDay);
+      throw new HttpException(
+        'We could not find the user in the database.',
+        HttpStatus.NOT_FOUND,
+      );
+    } catch (err) {
+      throw err;
+    }
+  }
 }
