@@ -7,8 +7,6 @@ import * as PDFDocument from 'pdfkit';
 import { DateFormatService } from 'src/date-format/date-format.service';
 import { Rate } from 'src/entity/rate.entity';
 import { RateType } from 'src/custom/rate-type.enum';
-import { fillAndStroke } from 'pdfkit';
-import e from 'express';
 import { I18nService } from 'nestjs-i18n';
 
 @Injectable()
@@ -28,6 +26,22 @@ export class PdfInvoiceService {
     private activityRepository: Repository<Activity>,
     private i18n: I18nService,
   ) {}
+
+  addDays(date: Date, days: number): Date {
+    const resultDate = new Date(date);
+    const dateOfTheMonth = parseInt(date.getDate().toString());
+    resultDate.setDate(dateOfTheMonth + days);
+
+    return resultDate;
+  }
+  formatDateToString(date: Date): string {
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0'); // Months are zero-based
+    const year = date.getFullYear().toString();
+
+    return `${day}.${month}.${year}`;
+  }
+
   async generatePDF(
     id: string,
     invoiceNumber: string,
@@ -35,6 +49,7 @@ export class PdfInvoiceService {
     year: string,
     euroExchange: number,
     dateMillis: string,
+    invoiceTerm: number,
   ): Promise<Buffer> {
     const invoiceEmissionDate = new Date();
     const checkEmissionDate = new Date();
@@ -55,6 +70,7 @@ export class PdfInvoiceService {
       const project = await this.projectRepository.findOneBy({ id });
       const invoiceCreationMonth = month;
       const invoiceCreationYear = year;
+      let actualInvoiceDueDate;
       let invoiceDueDate = new Date();
       if (parseInt(invoiceCreationMonth) < 12) {
         invoiceDueDate = new Date(
@@ -67,9 +83,23 @@ export class PdfInvoiceService {
           `${parseInt(invoiceCreationYear)}-1-${project.invoiceTerm}`,
         );
       }
-      const invoiceDueDateToDisplay = `${invoiceDueDate.getDate()}/${
+      let invoiceDueDateToDisplay = `${invoiceDueDate.getDate()}/${
         Number(invoiceDueDate.getMonth()) + 1
       }/${invoiceDueDate.getFullYear()}`;
+
+      if (actualEmisionDate && invoiceTerm) {
+        const dateArray = emmisionDateString.split('-');
+        const day = parseInt(dateArray[2]);
+        const month = parseInt(dateArray[1]) - 1;
+        const year = parseInt(dateArray[0]);
+        const dateObject = new Date(year, month, day);
+        const checkValue = this.addDays(
+          dateObject,
+          parseInt(invoiceTerm.toString()),
+        );
+        actualInvoiceDueDate = this.formatDateToString(checkValue);
+        console.log(actualInvoiceDueDate);
+      }
       const internalCompany = await this.customerRepository.findOneBy({
         internal: true,
       });
@@ -193,7 +223,7 @@ export class PdfInvoiceService {
               });
             doc
               .fillColor('#000000')
-              .text(invoiceDueDateToDisplay.replaceAll('/', '.'), 450, 160, {
+              .text(actualInvoiceDueDate.replaceAll('/', '.'), 450, 160, {
                 width: 175,
                 align: 'justify',
               });
