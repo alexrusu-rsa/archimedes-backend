@@ -3,7 +3,6 @@ import {
   Controller,
   Delete,
   Get,
-  Header,
   Param,
   Post,
   Put,
@@ -16,7 +15,6 @@ import { Role } from 'src/auth/role.enum';
 import { Roles } from 'src/auth/roles.decorator';
 import { Customer } from 'src/entity/customer.entity';
 import { CustomerService } from './customer.service';
-import * as fs from 'fs';
 import { PdfInvoiceService } from 'src/pdf-invoice/pdf-invoice.service';
 import { XlsxInvoiceService } from 'src/xlsx-invoice/xlsx-invoice.service';
 import { ApiBody, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
@@ -72,7 +70,9 @@ export class CustomerController {
     name: 'dateMillis',
     description: 'The date when the invoice is generated in milliseconds.',
   })
-  @Get('/invoice/pdf/:id/:invoiceNumber/:month/:year/:euroExchange/:dateMillis/:invoiceTerm')
+  @Get(
+    '/invoice/pdf/:id/:invoiceNumber/:month/:year/:euroExchange/:dateMillis/:invoiceTerm',
+  )
   async getInvoice(
     @Res() res: Response,
     @Param('id') id: string,
@@ -90,7 +90,7 @@ export class CustomerController {
       year,
       euroExchange,
       dateMillis,
-      invoiceTerm
+      invoiceTerm,
     );
     res.set({
       'Content-Type': 'application/pdf',
