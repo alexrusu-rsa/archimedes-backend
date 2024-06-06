@@ -182,6 +182,15 @@ export class ActivityController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Post('/monthYear')
+  getActivitiesOfUser(@Body() body: any): Promise<Activity[]> {
+    return this.activityService.getActivitiesOfMonthYearOfUser(
+      body.month,
+      body.year,
+      body.userId,
+    );
+  }
+  
   @Delete(':userId/:date')
   @ApiOperation({
     summary: 'Delete all activities of a certain day',

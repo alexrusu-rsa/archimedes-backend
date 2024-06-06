@@ -72,7 +72,7 @@ export class CustomerController {
     name: 'dateMillis',
     description: 'The date when the invoice is generated in milliseconds.',
   })
-  @Get('/invoice/pdf/:id/:invoiceNumber/:month/:year/:euroExchange/:dateMillis')
+  @Get('/invoice/pdf/:id/:invoiceNumber/:month/:year/:euroExchange/:dateMillis/:invoiceTerm')
   async getInvoice(
     @Res() res: Response,
     @Param('id') id: string,
@@ -81,6 +81,7 @@ export class CustomerController {
     @Param('year') year: string,
     @Param('euroExchange') euroExchange: number,
     @Param('dateMillis') dateMillis: string,
+    @Param('invoiceTerm') invoiceTerm: number,
   ): Promise<any> {
     const buffer = await this.pdfInvoiceService.generatePDF(
       id,
@@ -89,6 +90,7 @@ export class CustomerController {
       year,
       euroExchange,
       dateMillis,
+      invoiceTerm
     );
     res.set({
       'Content-Type': 'application/pdf',

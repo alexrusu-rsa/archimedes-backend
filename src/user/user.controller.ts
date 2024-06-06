@@ -143,4 +143,10 @@ export class UserController {
   updateUser(@Body() user: User, @Param('id') id: string): Promise<User> {
     return this.userService.updateUserById(id, user);
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('/time/:id')
+  getUserTimePerDay(@Param('id') userId: string): Promise<number> {
+    return this.userService.getUserTimePerDay(userId);
+  }
 }
