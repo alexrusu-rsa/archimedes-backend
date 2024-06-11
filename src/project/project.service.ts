@@ -26,6 +26,19 @@ export class ProjectService {
     }
   }
 
+  async getProjectById(id: string): Promise<Project> {
+    try {
+      const project = await this.projectRepository.findOneBy({ id });
+      if (project) return project;
+      throw new HttpException(
+        'We could not find the project with id: ' + id,
+        HttpStatus.NOT_FOUND,
+      );
+    } catch (err) {
+      throw err;
+    }
+  }
+
   async addProject(project: Project): Promise<Project> {
     try {
       const newProjectId = (await this.projectRepository.insert(project))
