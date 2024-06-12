@@ -115,8 +115,17 @@ export class ActivityService {
         await this.activityRepository.insert(activity)
       ).identifiers[0]?.id;
 
-      if (newActivityId)
-        return await this.activityRepository.findOneBy({ id: newActivityId });
+      if (newActivityId) {
+        const project = await this.projectService.getProjectById(
+          activity.projectId,
+        );
+        const { projectId, ...activityWithoutProjectId } =
+          await this.activityRepository.findOneBy({ id: newActivityId });
+        return {
+          ...activityWithoutProjectId,
+          project: activity?.projectId ? project : null,
+        };
+      }
       throw new HttpException(
         'Activity insertion failed!',
         HttpStatus.NOT_ACCEPTABLE,
@@ -158,7 +167,18 @@ export class ActivityService {
           id,
           activity,
         );
-        if (updatedActivity) return this.activityRepository.findOneBy({ id });
+
+        if (updatedActivity) {
+          const project = await this.projectService.getProjectById(
+            activity.projectId,
+          );
+          const { projectId, ...activityWithoutProjectId } =
+            await this.activityRepository.findOneBy({ id });
+          return {
+            ...activityWithoutProjectId,
+            project: activity?.projectId ? project : null,
+          };
+        }
         throw new HttpException(
           'We could not update the activity!',
           HttpStatus.BAD_REQUEST,
@@ -253,7 +273,7 @@ export class ActivityService {
             activity.projectId,
           );
           const { projectId, ...activityWithoutProjectId } = activity;
-          return { ...activityWithoutProjectId, project: project };
+          return { ...activity, project: projectId ? project : null };
         }),
       );
       if (activityWithProject) return activityWithProject;
