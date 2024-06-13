@@ -35,4 +35,5 @@ export class Activity {
 
   @Column({ nullable: true })
   workedTime: string;
+  project?: unknown;
 }
