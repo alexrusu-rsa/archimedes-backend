@@ -98,7 +98,6 @@ export class PdfInvoiceService {
           parseInt(invoiceTerm.toString()),
         );
         actualInvoiceDueDate = this.formatDateToString(checkValue);
-        console.log(actualInvoiceDueDate);
       }
       const internalCompany = await this.customerRepository.findOneBy({
         internal: true,
