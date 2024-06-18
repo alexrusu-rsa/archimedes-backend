@@ -1,7 +1,8 @@
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
+import { Customer } from 'src/entity/customer.entity';
 import { Project } from 'src/entity/project.entity';
 import { Rate } from 'src/entity/rate.entity';
-import { Any, DeleteResult, Repository } from 'typeorm';
+import { DeleteResult, Repository } from 'typeorm';
 
 @Injectable()
 export class ProjectService {
@@ -10,13 +11,23 @@ export class ProjectService {
     private projectRepository: Repository<Project>,
     @Inject('RATE_REPOSITORY')
     private rateRepository: Repository<Rate>,
+    @Inject('CUSTOMER_REPOSITORY')
+    private customerRepository: Repository<Customer>,
   ) {}
 
   projectsToReturn: Project[] = [];
   async getProjects(): Promise<Project[]> {
     try {
-      const projects = this.projectRepository.find();
-      if (projects) return projects;
+      const projects = await this.projectRepository.find();
+      const projectsWithCustomer = await Promise.all(
+        projects.map(async (project) => {
+          const customer = await this.customerRepository.findOneBy({
+            id: project?.customerId,
+          });
+          return { ...project, customer };
+        }),
+      );
+      if (projectsWithCustomer) return projectsWithCustomer;
       throw new HttpException(
         'We could not find the projects!',
         HttpStatus.NOT_FOUND,
