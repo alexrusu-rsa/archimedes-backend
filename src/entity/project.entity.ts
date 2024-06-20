@@ -1,4 +1,5 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Customer } from './customer.entity';
 
 @Entity()
 export class Project {
@@ -22,4 +23,6 @@ export class Project {
 
   @Column({ nullable: true })
   contractSignDate: string;
+
+  customer?: Customer;
 }

@@ -10,7 +10,7 @@ import {
   Repository,
 } from 'typeorm';
 import { ActivityDuplicateRange } from 'src/custom/activity-duplicate-range';
-import { of } from 'rxjs';
+import { ProjectService } from 'src/project/project.service';
 
 @Injectable()
 export class ActivityService {
@@ -18,6 +18,7 @@ export class ActivityService {
     @Inject('ACTIVITY_REPOSITORY')
     private activityRepository: Repository<Activity>,
     private dateFormatService: DateFormatService,
+    private projectService: ProjectService,
   ) {}
 
   async getActivities(): Promise<Activity[]> {
@@ -114,8 +115,17 @@ export class ActivityService {
         await this.activityRepository.insert(activity)
       ).identifiers[0]?.id;
 
-      if (newActivityId)
-        return await this.activityRepository.findOneBy({ id: newActivityId });
+      if (newActivityId) {
+        const project = await this.projectService.getProjectById(
+          activity.projectId,
+        );
+        const { projectId, ...activityWithoutProjectId } =
+          await this.activityRepository.findOneBy({ id: newActivityId });
+        return {
+          ...activityWithoutProjectId,
+          project: activity?.projectId ? project : null,
+        };
+      }
       throw new HttpException(
         'Activity insertion failed!',
         HttpStatus.NOT_ACCEPTABLE,
@@ -157,7 +167,18 @@ export class ActivityService {
           id,
           activity,
         );
-        if (updatedActivity) return this.activityRepository.findOneBy({ id });
+
+        if (updatedActivity) {
+          const project = await this.projectService.getProjectById(
+            activity.projectId,
+          );
+          const { projectId, ...activityWithoutProjectId } =
+            await this.activityRepository.findOneBy({ id });
+          return {
+            ...activityWithoutProjectId,
+            project: activity?.projectId ? project : null,
+          };
+        }
         throw new HttpException(
           'We could not update the activity!',
           HttpStatus.BAD_REQUEST,
@@ -238,14 +259,24 @@ export class ActivityService {
     id: string,
   ): Promise<Activity[]> {
     try {
-      const activitiesEmployeeDate = await getConnection()
+      const activities = await getConnection()
         .createQueryBuilder()
         .select('activity')
         .from(Activity, 'activity')
         .where('activity.date = :date', { date: date })
         .andWhere('activity.employeeId = :employeeId', { employeeId: id })
         .getMany();
-      if (activitiesEmployeeDate) return activitiesEmployeeDate;
+
+      const activityWithProject = await Promise.all(
+        activities.map(async (activity) => {
+          const project = await this.projectService.getProjectById(
+            activity.projectId,
+          );
+          const { projectId, ...activityWithoutProjectId } = activity;
+          return { ...activity, project: projectId ? project : null };
+        }),
+      );
+      if (activityWithProject) return activityWithProject;
       throw new HttpException('No activities were found', HttpStatus.NOT_FOUND);
     } catch (err) {
       throw err;
@@ -279,6 +310,25 @@ export class ActivityService {
         },
       });
       if (activitiesOfTheMonthYear) return activitiesOfTheMonthYear;
+    } catch (err) {
+      throw err;
+    }
+  }
+
+  async getActivitiesOfMonthYearOfUser(
+    month: string,
+    year: string,
+    userId: string,
+  ) {
+    try {
+      const monthYear = month + '/' + year;
+      const activitiesOfMonthYearForUser = await getRepository(Activity).find({
+        where: {
+          date: Like(`%${monthYear}`),
+          employeeId: Like(`${userId}`),
+        },
+      });
+      if (activitiesOfMonthYearForUser) return activitiesOfMonthYearForUser;
     } catch (err) {
       throw err;
     }
