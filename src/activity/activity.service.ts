@@ -11,6 +11,7 @@ import {
 } from 'typeorm';
 import { ActivityDuplicateRange } from 'src/custom/activity-duplicate-range';
 import { ProjectService } from 'src/project/project.service';
+import { use } from 'passport';
 
 @Injectable()
 export class ActivityService {
@@ -309,6 +310,7 @@ export class ActivityService {
           date: Like(`%${monthYear}`),
         },
       });
+
       if (activitiesOfTheMonthYear) return activitiesOfTheMonthYear;
     } catch (err) {
       throw err;
@@ -321,16 +323,88 @@ export class ActivityService {
     userId: string,
   ) {
     try {
-      const monthYear = month + '/' + year;
-      const activitiesOfMonthYearForUser = await getRepository(Activity).find({
+      const activities = await this.activityRepository.find({
         where: {
-          date: Like(`%${monthYear}`),
-          employeeId: Like(`${userId}`),
+          employeeId: userId,
         },
       });
-      if (activitiesOfMonthYearForUser) return activitiesOfMonthYearForUser;
+
+      const filteredActivities = activities.filter((activity) => {
+        const [day, activityMonth, activityYear] = activity?.date.split('/');
+
+        if (activityMonth[0] !== '0')
+          return activityMonth === month && activityYear === year;
+        return activityMonth[1] === month && activityYear === year;
+      });
+
+      if (filteredActivities) return filteredActivities;
+      throw new HttpException(
+        'We could not find the activites!',
+        HttpStatus.NOT_FOUND,
+      );
     } catch (err) {
       throw err;
     }
+  }
+
+  async getBookedTimePerDayOfMonthYear(
+    month: number,
+    year: number,
+    userId: string,
+  ): Promise<Record<string, number>> {
+    try {
+      const activities = await this.activityRepository.find({
+        where: {
+          employeeId: userId,
+        },
+      });
+
+      const daysInMonth = Array.from(
+        {
+          length: new Date(year, month, 0).getDate(),
+        },
+        (_, i) => new Date(Date.UTC(year, month - 1, i + 1)),
+      );
+
+      const bookedTimePerDay: Record<string, number> = {};
+
+      // Initialize bookedTimePerDay with 0 minutes for each day in the month
+      daysInMonth.forEach((dayDate) => {
+        const dateString = this.formatDate(dayDate);
+        bookedTimePerDay[dateString] = 0;
+      });
+
+      // Calculate the total booked time for each day
+      activities.forEach((activity) => {
+        const activityDate = this.parseDate(activity.date);
+        if (
+          activityDate.getUTCFullYear() === year &&
+          activityDate.getUTCMonth() === month - 1
+        ) {
+          const dateString = this.formatDate(activityDate);
+          const [hours, minutes] = activity.workedTime.split(':').map(Number);
+          const totalMinutes = hours * 60 + minutes;
+          bookedTimePerDay[dateString] += totalMinutes;
+        }
+      });
+
+      return bookedTimePerDay;
+    } catch (err) {
+      throw err;
+    }
+  }
+
+  // Helper method to format Date object to 'dd/MM/yyyy' string
+  private formatDate(date: Date): string {
+    const day = String(date.getUTCDate()).padStart(2, '0');
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const year = date.getUTCFullYear();
+    return `${day}/${month}/${year}`;
+  }
+
+  // Helper method to parse 'dd/MM/yyyy' string to Date object
+  private parseDate(dateString: string): Date {
+    const [day, month, year] = dateString.split('/').map(Number);
+    return new Date(Date.UTC(year, month - 1, day));
   }
 }
