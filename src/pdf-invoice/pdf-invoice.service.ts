@@ -83,7 +83,7 @@ export class PdfInvoiceService {
           `${parseInt(invoiceCreationYear)}-1-${project.invoiceTerm}`,
         );
       }
-      let invoiceDueDateToDisplay = `${invoiceDueDate.getDate()}/${
+      const invoiceDueDateToDisplay = `${invoiceDueDate.getDate()}/${
         Number(invoiceDueDate.getMonth()) + 1
       }/${invoiceDueDate.getFullYear()}`;
 

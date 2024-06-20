@@ -56,7 +56,7 @@ export class CustomerController {
       year,
       euroExchange,
       dateMillis,
-      invoiceTerm
+      invoiceTerm,
     );
     res.set({
       'Content-Type': 'application/pdf',

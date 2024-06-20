@@ -111,7 +111,7 @@ export class ActivityController {
       body.userId,
     );
   }
-  
+
   @Delete(':userId/:date')
   deleteActivitiesOfUserDay(
     @Param('userId') userId: string,
