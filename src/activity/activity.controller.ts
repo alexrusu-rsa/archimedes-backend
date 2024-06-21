@@ -104,11 +104,27 @@ export class ActivityController {
 
   @UseGuards(JwtAuthGuard)
   @Post('/monthYear')
-  getActivitiesOfUser(@Body() body: any): Promise<Activity[]> {
+  getActivitiesOfUser(
+    @Body() body: any,
+    @Query('userId') userId: string,
+  ): Promise<Activity[]> {
     return this.activityService.getActivitiesOfMonthYearOfUser(
       body.month,
       body.year,
-      body.userId,
+      userId,
+    );
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('/monthYear/bookedTimePerDay')
+  getBookedTimePerDayOfMonthYear(
+    @Body() body: any,
+    @Query('userId') userId: string,
+  ): Promise<Record<string, number>> {
+    return this.activityService.getBookedTimePerDayOfMonthYear(
+      body.month,
+      body.year,
+      userId,
     );
   }
 
