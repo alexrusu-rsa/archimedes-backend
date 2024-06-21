@@ -52,10 +52,17 @@ export class ProjectService {
 
   async addProject(project: Project): Promise<Project> {
     try {
+      const customer = await this.customerRepository.findOneBy({
+        id: project.customerId,
+      });
       const newProjectId = (await this.projectRepository.insert(project))
         .identifiers[0]?.id;
-      if (newProjectId)
-        return await this.projectRepository.findOneBy({ id: newProjectId });
+      if (newProjectId) {
+        const projectWithoutCustomer = await this.projectRepository.findOneBy({
+          id: newProjectId,
+        });
+        return { ...projectWithoutCustomer, customer: customer };
+      }
       throw new HttpException(
         'Project insertion failed!',
         HttpStatus.NOT_ACCEPTABLE,
@@ -89,10 +96,20 @@ export class ProjectService {
 
   async updateProjectById(id: string, project: Project): Promise<Project> {
     try {
+      const customer = await this.customerRepository.findOneBy({
+        id: project.customerId,
+      });
       const toUpdateProject = await this.projectRepository.findOneBy({ id });
       if (toUpdateProject) {
         const updatedProject = await this.projectRepository.update(id, project);
-        if (updatedProject) return this.projectRepository.findOneBy({ id });
+        if (updatedProject) {
+          const projectWithoutCustomer = await this.projectRepository.findOneBy(
+            {
+              id,
+            },
+          );
+          return { ...projectWithoutCustomer, customer: customer };
+        }
         throw new HttpException(
           'We could not update the project!',
           HttpStatus.BAD_REQUEST,
