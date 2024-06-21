@@ -83,9 +83,6 @@ export class PdfInvoiceService {
           `${parseInt(invoiceCreationYear)}-1-${project.invoiceTerm}`,
         );
       }
-      const invoiceDueDateToDisplay = `${invoiceDueDate.getDate()}/${
-        Number(invoiceDueDate.getMonth()) + 1
-      }/${invoiceDueDate.getFullYear()}`;
 
       if (actualEmisionDate && invoiceTerm) {
         const dateArray = emmisionDateString.split('-');
@@ -111,9 +108,7 @@ export class PdfInvoiceService {
         });
         let lang = 'en';
         const romanianCustomer = customerOfProject.romanianCompany;
-        const customerSWIFT = customerOfProject.swift;
         if (romanianCustomer) lang = 'ro';
-        const appliedVAT = customerOfProject.VAT;
         const VATvalue = 0.19;
         this.activitiesOfProjectPerMonthYear = await getRepository(Activity)
           .createQueryBuilder('activity')

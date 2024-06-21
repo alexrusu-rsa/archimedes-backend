@@ -1,5 +1,4 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
-import { User } from 'src/entity/user.entity';
+import { Body, Controller, Post } from '@nestjs/common';
 import { AuthRecieveService } from './auth-recieve.service';
 
 @Controller('auth-recieve')
