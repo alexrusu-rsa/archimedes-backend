@@ -1,5 +1,4 @@
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
-import { RateType } from 'src/custom/rate-type.enum';
 import { Rate } from 'src/entity/rate.entity';
 import { DeleteResult, Repository } from 'typeorm';
 

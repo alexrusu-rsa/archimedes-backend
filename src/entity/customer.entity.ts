@@ -1,5 +1,4 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
-import { ColumnMetadata } from 'typeorm/metadata/ColumnMetadata';
 
 @Entity()
 export class Customer {

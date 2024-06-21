@@ -1,5 +1,4 @@
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
-import e from 'express';
 import { Activity } from 'src/entity/activity.entity';
 import { Customer } from 'src/entity/customer.entity';
 import { Project } from 'src/entity/project.entity';
@@ -7,10 +6,8 @@ import { Response } from 'express';
 import { getRepository, Repository } from 'typeorm';
 import * as exceljs from 'exceljs';
 import { DateFormatService } from 'src/date-format/date-format.service';
-import { time } from 'console';
 import { Rate } from 'src/entity/rate.entity';
 import { RateType } from 'src/custom/rate-type.enum';
-import { databaseProvider } from 'src/providers/database.provider';
 
 @Injectable()
 export class XlsxInvoiceService {
