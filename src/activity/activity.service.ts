@@ -36,7 +36,7 @@ export class ActivityService {
   }
 
   async getActivityTypes() {
-    return ActivityType;
+    return Object.values(ActivityType);
   }
 
   async isWeekend(date: Date): Promise<boolean> {
