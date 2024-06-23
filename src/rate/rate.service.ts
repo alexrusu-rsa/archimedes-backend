@@ -31,9 +31,22 @@ export class RateService {
   async getAllRates(): Promise<Rate[]> {
     try {
       const rates = this.rateRepository.find();
-      const ratesWithProjectAndEmployee = [];
-      if (rates) {
-        (await rates).forEach((rate) => {});
+      const ratesWithProjectAndUser = await Promise.all(
+        (
+          await rates
+        ).map(async (rate) => {
+          const project = await this.projectRepository.findOneBy({
+            id: rate.projectId,
+          });
+          const user = await this.userRepository.findOneBy({
+            id: rate.employeeId,
+          });
+          const { password, ...userWithoutPassword } = user;
+          return { ...rate, project, user: userWithoutPassword };
+        }),
+      );
+      if (ratesWithProjectAndUser) {
+        return ratesWithProjectAndUser;
       }
       throw new HttpException(
         'We could not find any rates in the database.',
@@ -59,10 +72,17 @@ export class RateService {
 
   async addRate(rate: Rate): Promise<Rate> {
     try {
-      const newRateId = (await this.rateRepository.insert(rate)).identifiers[0]
-        ?.id;
-      if (newRateId)
-        return await this.rateRepository.findOneBy({ id: newRateId });
+      const { user, project, ...rateWithoutProjectAndUser } = rate;
+
+      const newRateId = (
+        await this.rateRepository.insert(rateWithoutProjectAndUser)
+      ).identifiers[0]?.id;
+      if (newRateId) {
+        const rateWithoutProjectAndUser = await this.rateRepository.findOneBy({
+          id: newRateId,
+        });
+        return { ...rateWithoutProjectAndUser, user, project };
+      }
       throw new HttpException(
         'Rate insertion failed!',
         HttpStatus.NOT_ACCEPTABLE,
@@ -88,10 +108,28 @@ export class RateService {
 
   async updateRate(id: string, rate: Rate): Promise<Rate> {
     try {
+      const user = await this.userRepository.findOneBy({
+        id: rate.employeeId,
+      });
+      const { password, ...userWithoutPassword } = user;
+      const project = await this.projectRepository.findOneBy({
+        id: rate.projectId,
+      });
       const toUpdateRate = await this.rateRepository.findOneBy({ id });
       if (toUpdateRate) {
         const updatedRate = await this.rateRepository.update(id, rate);
-        if (updatedRate) return this.rateRepository.findOneBy({ id });
+        if (updatedRate) {
+          const rateWithoutProjectAndEmployee =
+            await this.rateRepository.findOneBy({
+              id,
+            });
+          return {
+            ...rateWithoutProjectAndEmployee,
+            user: userWithoutPassword,
+            project,
+          };
+        }
+
         throw new HttpException(
           'We could not update the rate!',
           HttpStatus.BAD_REQUEST,
