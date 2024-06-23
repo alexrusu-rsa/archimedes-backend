@@ -1,5 +1,7 @@
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
+import { Project } from 'src/entity/project.entity';
 import { Rate } from 'src/entity/rate.entity';
+import { User } from 'src/entity/user.entity';
 import { DeleteResult, Repository } from 'typeorm';
 
 @Injectable()
@@ -7,6 +9,10 @@ export class RateService {
   constructor(
     @Inject('RATE_REPOSITORY')
     private rateRepository: Repository<Rate>,
+    @Inject('PROJECT_REPOSITORY')
+    private projectRepository: Repository<Project>,
+    @Inject('USER_REPOSITORY')
+    private userRepository: Repository<User>,
   ) {}
 
   async getRateForEmployeeId(id: string): Promise<Rate[]> {
@@ -25,7 +31,10 @@ export class RateService {
   async getAllRates(): Promise<Rate[]> {
     try {
       const rates = this.rateRepository.find();
-      if (rates) return rates;
+      const ratesWithProjectAndEmployee = [];
+      if (rates) {
+        (await rates).forEach((rate) => {});
+      }
       throw new HttpException(
         'We could not find any rates in the database.',
         HttpStatus.NOT_FOUND,
