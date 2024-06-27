@@ -6,6 +6,7 @@ import {
   Param,
   Post,
   Put,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
@@ -14,6 +15,7 @@ import { Roles } from 'src/auth/roles.decorator';
 import { PasswordChangeData } from 'src/custom/password-change-data';
 import { User } from 'src/entity/user.entity';
 import { UserService } from './user.service';
+import { Request } from 'express';
 
 @Controller()
 export class UserController {
@@ -37,9 +39,10 @@ export class UserController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get(':id')
-  getUser(@Param('id') id: string): Promise<User> {
-    return this.userService.getUser(id);
+  @Get('currentUser')
+  getUser(@Req() request: Request): Promise<User> {
+    const user = request.user as { userId: string; username: string };
+    return this.userService.getUser(user.userId);
   }
 
   @Put('/password')
