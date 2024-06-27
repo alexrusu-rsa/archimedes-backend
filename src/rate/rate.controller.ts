@@ -23,7 +23,7 @@ export class RateController {
   @UseGuards(JwtAuthGuard)
   @Get('/types')
   getAvailableActivityTypes() {
-    return RateType;
+    return Object.values(RateType);
   }
 
   @Roles(Role.Admin)
