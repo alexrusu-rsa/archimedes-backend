@@ -7,6 +7,7 @@ import {
   Post,
   Put,
   Query,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
@@ -16,7 +17,7 @@ import { ActivityDuplicateRange } from 'src/custom/activity-duplicate-range';
 import { RequestWrapper } from 'src/custom/requestwrapper';
 import { Activity } from 'src/entity/activity.entity';
 import { ActivityService } from './activity.service';
-
+import { Request } from 'express';
 @Controller()
 export class ActivityController {
   constructor(private activityService: ActivityService) {}
@@ -103,36 +104,26 @@ export class ActivityController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Post('/monthYear')
-  getActivitiesOfUser(
+  @Post('/monthYear/bookedTimePerDay')
+  getBookedTimePerDayOfMonthYear(
     @Body() body: any,
-    @Query('userId') userId: string,
-  ): Promise<Activity[]> {
-    return this.activityService.getActivitiesOfMonthYearOfUser(
+    @Req() request: Request,
+  ): Promise<Record<string, number>> {
+    const user = request.user as { userId: string; username: string };
+    return this.activityService.getBookedTimePerDayOfMonthYear(
       body.month,
       body.year,
-      userId,
+      user.userId,
     );
   }
 
   @UseGuards(JwtAuthGuard)
-  @Post('/monthYear/bookedTimePerDay')
-  getBookedTimePerDayOfMonthYear(
-    @Body() body: any,
-    @Query('userId') userId: string,
-  ): Promise<Record<string, number>> {
-    return this.activityService.getBookedTimePerDayOfMonthYear(
-      body.month,
-      body.year,
-      userId,
-    );
-  }
-
-  @Delete(':userId/:date')
+  @Delete('/deleteAll/:date')
   deleteActivitiesOfUserDay(
-    @Param('userId') userId: string,
     @Param('date') date: string,
+    @Req() request: Request,
   ): Promise<any> {
-    return this.activityService.deleteActivitiesOfUserDay(userId, date);
+    const user = request.user as { userId: string; username: string };
+    return this.activityService.deleteActivitiesOfUserDay(user.userId, date);
   }
 }

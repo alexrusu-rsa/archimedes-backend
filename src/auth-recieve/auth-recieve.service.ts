@@ -11,6 +11,7 @@ export class AuthRecieveService {
     const user = Object.values(tokenContent)[0];
     const id = tokenContent.sub;
     const payload = { username: user, sub: id };
+    console.log(id);
     return this.jwtService.sign(payload, {
       secret: jwtConstants.secret,
       expiresIn: '8600s',
