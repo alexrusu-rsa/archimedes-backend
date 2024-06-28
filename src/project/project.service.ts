@@ -125,7 +125,7 @@ export class ProjectService {
     }
   }
 
-  async getProjectsMe(userId: string): Promise<Project[]> {
+  async getProjectsByUserId(userId: string): Promise<Project[]> {
     try {
       const foundRatesForUser = await this.rateRepository.findBy({
         employeeId: userId,

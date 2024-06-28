@@ -22,9 +22,9 @@ export class ProjectController {
 
   @UseGuards(JwtAuthGuard)
   @Get('/user')
-  getAllProjectsUser(@Req() request: Request) {
+  getProjectsMe(@Req() request: Request) {
     const user = request.user as { userId: string; username: string };
-    return this.projectService.getProjectsMe(user.userId);
+    return this.projectService.getProjectsByUserId(user.userId);
   }
 
   @UseGuards(JwtAuthGuard)

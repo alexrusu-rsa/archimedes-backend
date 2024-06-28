@@ -29,7 +29,7 @@ export class UserService {
       throw err;
     }
   }
-  async getUserMe(id: string): Promise<User> {
+  async getUser(id: string): Promise<User> {
     try {
       const userFound = await this.userRepository.findOneBy({ id });
       const { password, ...userFoundNoPassword } = userFound;

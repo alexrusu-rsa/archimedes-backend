@@ -42,7 +42,7 @@ export class UserController {
   @Get('me')
   getUserMe(@Req() request: Request): Promise<User> {
     const user = request.user as { userId: string; username: string };
-    return this.userService.getUserMe(user.userId);
+    return this.userService.getUser(user.userId);
   }
 
   @Put('/password')
