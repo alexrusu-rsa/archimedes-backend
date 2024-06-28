@@ -24,7 +24,7 @@ export class ProjectController {
   @Get('/user')
   getAllProjectsUser(@Req() request: Request) {
     const user = request.user as { userId: string; username: string };
-    return this.projectService.getProjectsUser(user.userId);
+    return this.projectService.getProjectsMe(user.userId);
   }
 
   @UseGuards(JwtAuthGuard)

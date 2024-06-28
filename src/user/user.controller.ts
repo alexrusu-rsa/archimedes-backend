@@ -39,10 +39,10 @@ export class UserController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get('currentUser')
-  getUser(@Req() request: Request): Promise<User> {
+  @Get('me')
+  getUserMe(@Req() request: Request): Promise<User> {
     const user = request.user as { userId: string; username: string };
-    return this.userService.getUser(user.userId);
+    return this.userService.getUserMe(user.userId);
   }
 
   @Put('/password')
