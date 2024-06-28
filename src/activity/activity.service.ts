@@ -11,7 +11,6 @@ import {
 } from 'typeorm';
 import { ActivityDuplicateRange } from 'src/custom/activity-duplicate-range';
 import { ProjectService } from 'src/project/project.service';
-import { use } from 'passport';
 
 @Injectable()
 export class ActivityService {
