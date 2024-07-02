@@ -13,6 +13,7 @@ import { DateFormatService } from './date-format/date-format.service';
 import { RateModule } from './rate/rate.module';
 import { AuthRecieveModule } from './auth-recieve/auth-recieve.module';
 import { AcceptLanguageResolver, I18nModule, QueryResolver } from 'nestjs-i18n';
+import { JwtService } from '@nestjs/jwt';
 
 @Module({
   imports: [
@@ -65,6 +66,7 @@ import { AcceptLanguageResolver, I18nModule, QueryResolver } from 'nestjs-i18n';
       provide: APP_GUARD,
       useClass: RolesGuard,
     },
+    JwtService,
     DateFormatService,
   ],
 })
