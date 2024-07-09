@@ -9,6 +9,7 @@ import { ProjectProvider } from 'src/providers/project.provider';
 import { RateProvider } from 'src/providers/rate.provider';
 import { CustomerProvider } from 'src/providers/customer.provider';
 import { CustomerService } from 'src/customer/customer.service';
+import { UserProvider } from 'src/providers/user.provider';
 
 @Module({
   imports: [DatabaseModule],
@@ -18,6 +19,7 @@ import { CustomerService } from 'src/customer/customer.service';
     ...ProjectProvider,
     ...RateProvider,
     ...CustomerProvider,
+    ...UserProvider,
     ActivityService,
     DateFormatService,
     ProjectService,

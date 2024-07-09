@@ -11,12 +11,18 @@ import {
 } from 'typeorm';
 import { ActivityDuplicateRange } from 'src/custom/activity-duplicate-range';
 import { ProjectService } from 'src/project/project.service';
+import { User } from 'src/entity/user.entity';
+import { UserWithActivities } from 'src/custom/user-with-activities';
+import { BookedDay } from 'src/custom/booked-day';
+import { UserDateTimeBooked } from 'src/custom/user-date-timebooked';
 
 @Injectable()
 export class ActivityService {
   constructor(
     @Inject('ACTIVITY_REPOSITORY')
     private activityRepository: Repository<Activity>,
+    @Inject('USER_REPOSITORY')
+    private userRepository: Repository<User>,
     private dateFormatService: DateFormatService,
     private projectService: ProjectService,
   ) {}
@@ -315,6 +321,143 @@ export class ActivityService {
       throw err;
     }
   }
+
+  async getActivitiesOfMonthYearAllUsers(
+    month: number,
+    year: number,
+  ): Promise<BookedDay[]> {
+    try {
+      const users = await this.userRepository.find();
+
+      if (users) {
+        const usersWithoutPasswords = users.map(
+          ({ password, ...user }) => user,
+        );
+        const monthYear = month + '/' + year;
+
+        const usersWithActivities = await Promise.all(
+          usersWithoutPasswords.map(async (user) => {
+            const activitiesOfUserInMonthYear =
+              await this.activityRepository.find({
+                where: {
+                  date: Like(`%${monthYear}`),
+                  employeeId: Like(`${user.id}`),
+                },
+              });
+            return {
+              user,
+              activities: activitiesOfUserInMonthYear,
+            };
+          }),
+        );
+
+        const currentDate = new Date();
+        const currentYear = currentDate.getUTCFullYear();
+        const currentMonth = currentDate.getUTCMonth();
+
+        const firstDay = new Date(Date.UTC(currentYear, currentMonth, 1));
+        const nextMonth = new Date(Date.UTC(currentYear, currentMonth + 1, 1));
+
+        const numberOfDays =
+          (nextMonth.getTime() - firstDay.getTime()) / (1000 * 60 * 60 * 24);
+
+        const daysArray: string[] = [];
+        for (let i = 1; i <= numberOfDays; i++) {
+          const dateToAdd = new Date(Date.UTC(currentYear, currentMonth, i))
+            .toISOString()
+            .split('T')[0];
+          const dateParts = dateToAdd.split('-');
+          const formattedDate = `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`;
+          daysArray.push(formattedDate);
+        }
+
+        const calendarDays = daysArray.map((day) => {
+          return {
+            bookedUsers: [] as UserDateTimeBooked[],
+            date: day,
+            timeBooked: '',
+            expectedHours: 0,
+          };
+        });
+
+        calendarDays.forEach((day: BookedDay) => {
+          let allEmployeesHours = 0;
+          let allEmployeesMinutes = 0;
+          let expectedHoursForDay = 0;
+          usersWithActivities.forEach((user: UserWithActivities) => {
+            const dayActivities = user.activities.filter(
+              (activity) => activity.date === day.date,
+            );
+
+            let userHoursBooked = 0;
+            let userMinutesBooked = 0;
+
+            dayActivities.forEach((activity) => {
+              const timeBookedString = activity.workedTime;
+              const hours = parseInt(timeBookedString.split(':')[0]);
+              const minutes = parseInt(timeBookedString.split(':')[1]);
+              userHoursBooked += hours;
+              userMinutesBooked += minutes;
+            });
+            const bookedHoursAllActivitiesOfDay =
+              Math.floor(userMinutesBooked / 60) + userHoursBooked;
+            const bookedMinutesAllActivitiesOfDay = userMinutesBooked % 60;
+            day.bookedUsers.push({
+              user: user,
+              timeBooked: `${bookedHoursAllActivitiesOfDay}:${bookedMinutesAllActivitiesOfDay}`,
+            });
+            allEmployeesHours += bookedHoursAllActivitiesOfDay;
+            allEmployeesMinutes += bookedMinutesAllActivitiesOfDay;
+            expectedHoursForDay += parseInt(user.user.timePerDay);
+          });
+          const bookedHoursAllEmployeesOfDay =
+            Math.floor(allEmployeesMinutes / 60) + allEmployeesHours;
+          const bookedMinutesAllEmployeesOfDay = allEmployeesMinutes % 60;
+          day.timeBooked = `${bookedHoursAllEmployeesOfDay}:${bookedMinutesAllEmployeesOfDay}`;
+          day.expectedHours = expectedHoursForDay;
+        });
+
+        return calendarDays;
+      }
+    } catch (err) {
+      throw err;
+    }
+  }
+
+  // async getActivitiesOfMonthYearAllUsers(
+  //   month: number,
+  //   year: number,
+  // ): Promise<User[]> {
+  //   try {
+  //     const userRepository = getRepository(User);
+  //     const monthYear = `${month}/${year}`;
+
+  //     const usersWithActivities = await userRepository
+  //       .createQueryBuilder('user')
+  //       .leftJoinAndSelect('user', 'activity')
+  //       .where('activity.date LIKE :monthYear', { monthYear: `%${monthYear}%` })
+  //       .getMany();
+
+  //     const usersWithoutPasswords = usersWithActivities.map(
+  //       ({ password, ...user }) => user,
+  //     );
+
+  //     usersWithoutPasswords.forEach((user) => {
+  //       if (user.activities.length > 0) {
+  //         console.log('Added user with multiple activities', {
+  //           user,
+  //           activities: user.activities,
+  //         });
+  //       } else {
+  //         console.log('Added user with 0 activities', { user, activities: [] });
+  //       }
+  //     });
+
+  //     return usersWithoutPasswords;
+  //   } catch (err) {
+  //     throw err;
+  //   }
+  // }
 
   async getActivitiesOfMonthYearOfUser(
     month: string,

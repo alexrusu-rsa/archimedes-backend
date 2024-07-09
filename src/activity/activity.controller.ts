@@ -20,6 +20,9 @@ import { ActivityService } from './activity.service';
 import { Request } from 'express';
 import { MonthYear } from 'src/custom/month-year';
 import { DeleteResult } from 'typeorm';
+import { UserWithActivities } from 'src/custom/user-with-activities';
+import { User } from 'src/entity/user.entity';
+import { BookedDay } from 'src/custom/booked-day';
 @Controller()
 export class ActivityController {
   constructor(private activityService: ActivityService) {}
@@ -127,5 +130,17 @@ export class ActivityController {
   ) {
     const user = request.user as { userId: string; username: string };
     return this.activityService.deleteActivitiesOfUserDay(user.userId, date);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('/monthYear/users')
+  @Roles(Role.Admin)
+  async getUsersWithBookedActivitiesOfMonth(
+    @Body() body: MonthYear,
+  ): Promise<BookedDay[]> {
+    return this.activityService.getActivitiesOfMonthYearAllUsers(
+      body.month,
+      body.year,
+    );
   }
 }
