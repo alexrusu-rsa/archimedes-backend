@@ -813,24 +813,12 @@ export class PdfInvoiceService {
             const activitiesOfProjectMonthYearSortedASC2 =
               this.activitiesOfProjectPerMonthYear.sort(
                 (activity1, activity2) =>
-                  new Date(
-                    this.dateFormatService.formatDBDateStringToISO(
-                      activity1.date,
-                    ),
-                  ).getTime() -
-                  new Date(
-                    this.dateFormatService.formatDBDateStringToISO(
-                      activity2.date,
-                    ),
-                  ).getTime(),
+                  new Date(activity1.date).getTime() -
+                  new Date(activity2.date).getTime(),
               );
             activitiesOfProjectMonthYearSortedASC2.forEach((activity) => {
-              const startDateTime = this.dateFormatService.getNewDateWithTime(
-                activity.start,
-              );
-              const endDateTime = this.dateFormatService.getNewDateWithTime(
-                activity.end,
-              );
+              const startDateTime = activity.start;
+              const endDateTime = activity.end;
               const timeForCurrentActivity =
                 this.dateFormatService.millisecondsToHoursAndMinutes(
                   endDateTime.getTime() - startDateTime.getTime(),
@@ -1311,24 +1299,12 @@ export class PdfInvoiceService {
             const activitiesOfProjectMonthYearSortedASC =
               this.activitiesOfProjectPerMonthYear.sort(
                 (activity1, activity2) =>
-                  new Date(
-                    this.dateFormatService.formatDBDateStringToISO(
-                      activity1.date,
-                    ),
-                  ).getTime() -
-                  new Date(
-                    this.dateFormatService.formatDBDateStringToISO(
-                      activity2.date,
-                    ),
-                  ).getTime(),
+                  new Date(activity1.date).getTime() -
+                  new Date(activity2.date).getTime(),
               );
             activitiesOfProjectMonthYearSortedASC.forEach((activity) => {
-              const startDateTime = this.dateFormatService.getNewDateWithTime(
-                activity.start,
-              );
-              const endDateTime = this.dateFormatService.getNewDateWithTime(
-                activity.end,
-              );
+              const startDateTime = activity.start;
+              const endDateTime = activity.end;
               const timeForCurrentActivity =
                 this.dateFormatService.millisecondsToHoursAndMinutes(
                   endDateTime.getTime() - startDateTime.getTime(),

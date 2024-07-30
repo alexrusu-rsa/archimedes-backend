@@ -101,10 +101,9 @@ export class ActivityService {
           'Make sure you add required information about the activity!',
           HttpStatus.NOT_ACCEPTABLE,
         );
-      const startTime = this.dateFormatService.getNewDateWithTime(
-        activity.start,
-      );
-      const endTime = this.dateFormatService.getNewDateWithTime(activity.end);
+      const startTime = activity.start;
+
+      const endTime = activity.end;
       const hoursAndMinutesObj =
         this.dateFormatService.millisecondsToHoursAndMinutes(
           endTime.getTime() - startTime.getTime(),
@@ -151,10 +150,9 @@ export class ActivityService {
   async updateById(id: string, activity: Activity): Promise<Activity> {
     try {
       const toUpdateActivity = await this.activityRepository.findOneBy({ id });
-      const startTime = this.dateFormatService.getNewDateWithTime(
-        activity.start,
-      );
-      const endTime = this.dateFormatService.getNewDateWithTime(activity.end);
+      const startTime = activity.start;
+
+      const endTime = activity.end;
       const hoursAndMinutesObj =
         this.dateFormatService.millisecondsToHoursAndMinutes(
           endTime.getTime() - startTime.getTime(),
@@ -375,7 +373,7 @@ export class ActivityService {
 
       // Calculate the total booked time for each day
       activities.forEach((activity) => {
-        const activityDate = this.parseDate(activity.date);
+        const activityDate = activity.date;
         if (
           activityDate.getUTCFullYear() === year &&
           activityDate.getUTCMonth() === month - 1
