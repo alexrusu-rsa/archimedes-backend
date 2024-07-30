@@ -16,13 +16,13 @@ export class Project {
   contract: string;
 
   @Column({ nullable: true })
-  dueDate: string;
+  dueDate: Date;
 
   @Column({ nullable: true })
   invoiceTerm: number;
 
   @Column({ nullable: true })
-  contractSignDate: string;
+  contractSignDate: Date;
 
   customer?: Customer;
 }
