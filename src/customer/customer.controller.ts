@@ -61,30 +61,6 @@ export class CustomerController {
     });
     res.end(buffer);
   }
-  // @UseGuards(JwtAuthGuard)
-  // @Roles(Role.Admin)
-  // @Get(
-  //   '/invoice/xlsx/:id/:invoiceNumber/:month/:year/:euroExchange/:dateMillis',
-  // )
-  // getCustomerXlsx(
-  //   @Res() res: Response,
-  //   @Param('id') id: string,
-  //   @Param('invoiceNumber') invoiceNumber: string,
-  //   @Param('month') month: string,
-  //   @Param('year') year: string,
-  //   @Param('euroExchange') euroExchange: number,
-  //   @Param('dateMillis') dateMillis: string,
-  // ) {
-  //   return this.xlsxInvoiceService.getCustomerExcel(
-  //     res,
-  //     id,
-  //     invoiceNumber,
-  //     month,
-  //     year,
-  //     euroExchange,
-  //     dateMillis,
-  //   );
-  // }
 
   @UseGuards(JwtAuthGuard)
   @Post()
