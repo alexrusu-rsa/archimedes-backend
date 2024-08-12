@@ -50,8 +50,8 @@ export class activitiesUpdateAddData1655455194330
   public async up(queryRunner: QueryRunner): Promise<void> {
     const activities = await queryRunner.manager.find(Activity);
     const updatedActivities = activities.map((activity) => {
-      const startTime = this.getNewDateWithTime(activity.start);
-      const endTime = this.getNewDateWithTime(activity.end);
+      const startTime = activity.start;
+      const endTime = activity.end;
 
       const workedTime = this.millisecondsToHoursAndMinutes(
         endTime.getTime() - startTime.getTime(),

@@ -2,7 +2,7 @@ import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { Activity } from 'src/entity/activity.entity';
 import { Customer } from 'src/entity/customer.entity';
 import { Project } from 'src/entity/project.entity';
-import { getRepository, Repository } from 'typeorm';
+import { Between, getRepository, Like, Repository } from 'typeorm';
 import * as PDFDocument from 'pdfkit';
 import { DateFormatService } from 'src/date-format/date-format.service';
 import { Rate } from 'src/entity/rate.entity';
@@ -110,15 +110,22 @@ export class PdfInvoiceService {
         const romanianCustomer = customerOfProject.romanianCompany;
         if (romanianCustomer) lang = 'ro';
         const VATvalue = 0.19;
-        this.activitiesOfProjectPerMonthYear = await getRepository(Activity)
-          .createQueryBuilder('activity')
-          .where('activity.projectId like :currentprojectid', {
-            currentprojectid: project.id,
-          })
-          .andWhere('activity.date like :date', {
-            date: `%${formattedDate}`,
-          })
-          .getMany();
+
+        const searchYear = parseInt(year, 10);
+        const searchMonth = parseInt(month, 10);
+
+        const startDate = new Date(searchYear, searchMonth - 1, 1);
+        const endDate = new Date(searchYear, searchMonth, 0);
+
+        this.activitiesOfProjectPerMonthYear = await getRepository(
+          Activity,
+        ).find({
+          where: {
+            date: Between(new Date(startDate), new Date(endDate)),
+            projectId: Like(project.id),
+          },
+        });
+
         if (this.activitiesOfProjectPerMonthYear) {
           this.numberOfDaysWorkedOnProjectDuringMonth =
             this.getNumberOfDayWithActivitiesOfProjectFromMonth(
@@ -813,24 +820,11 @@ export class PdfInvoiceService {
             const activitiesOfProjectMonthYearSortedASC2 =
               this.activitiesOfProjectPerMonthYear.sort(
                 (activity1, activity2) =>
-                  new Date(
-                    this.dateFormatService.formatDBDateStringToISO(
-                      activity1.date,
-                    ),
-                  ).getTime() -
-                  new Date(
-                    this.dateFormatService.formatDBDateStringToISO(
-                      activity2.date,
-                    ),
-                  ).getTime(),
+                  activity1.date.getTime() - activity2.date.getTime(),
               );
             activitiesOfProjectMonthYearSortedASC2.forEach((activity) => {
-              const startDateTime = this.dateFormatService.getNewDateWithTime(
-                activity.start,
-              );
-              const endDateTime = this.dateFormatService.getNewDateWithTime(
-                activity.end,
-              );
+              const startDateTime = activity.start;
+              const endDateTime = activity.end;
               const timeForCurrentActivity =
                 this.dateFormatService.millisecondsToHoursAndMinutes(
                   endDateTime.getTime() - startDateTime.getTime(),
@@ -865,6 +859,7 @@ export class PdfInvoiceService {
                     align: 'center',
                   },
                 );
+
               doc
                 .font('Helvetica-Bold')
                 .fillColor('#000000')
@@ -1302,43 +1297,32 @@ export class PdfInvoiceService {
             );
 
             let index = 1;
-            let invoiceHoursTime = 0;
-            let invoiceMinutesTime = 0;
             if (rateForProject.rateType === RateType.PROJECT) {
               this.activitiesOfProjectPerMonthYear =
                 await this.getAllActivitiesOnProject(id);
             }
+
             const activitiesOfProjectMonthYearSortedASC =
               this.activitiesOfProjectPerMonthYear.sort(
                 (activity1, activity2) =>
-                  new Date(
-                    this.dateFormatService.formatDBDateStringToISO(
-                      activity1.date,
-                    ),
-                  ).getTime() -
-                  new Date(
-                    this.dateFormatService.formatDBDateStringToISO(
-                      activity2.date,
-                    ),
-                  ).getTime(),
+                  activity1.date.getTime() - activity2.date.getTime(),
               );
+
             activitiesOfProjectMonthYearSortedASC.forEach((activity) => {
-              const startDateTime = this.dateFormatService.getNewDateWithTime(
-                activity.start,
-              );
-              const endDateTime = this.dateFormatService.getNewDateWithTime(
-                activity.end,
-              );
+              const startDateTime = activity.start;
+              const endDateTime = activity.end;
               const timeForCurrentActivity =
                 this.dateFormatService.millisecondsToHoursAndMinutes(
                   endDateTime.getTime() - startDateTime.getTime(),
                 );
-              invoiceHoursTime =
-                invoiceHoursTime + timeForCurrentActivity.hours;
-              invoiceMinutesTime =
-                invoiceMinutesTime + timeForCurrentActivity.minutes;
+
               doc.fillColor('#000000').text(
-                `${activity.date}. ${activity.name} - ${
+                `${activity.date.getFullYear()}-${(activity.date.getMonth() + 1)
+                  .toString()
+                  .padStart(2, '0')}-${activity.date
+                  .getDate()
+                  .toString()
+                  .padStart(2, '0')} ${activity.name} - ${
                   activity.activityType
                 } - ${this.i18n.t('strings.annexActivityTimeHours', {
                   lang: lang,

@@ -55,32 +55,61 @@ export class ActivityService {
   async addActivitiesInRange(duplicateActivityRange: ActivityDuplicateRange) {
     const startDateType = new Date(duplicateActivityRange.startDate);
     const endDateType = new Date(duplicateActivityRange.endDate);
+
     const date = new Date();
-    date.setDate(startDateType.getDate() + 1);
+    date.setDate(startDateType.getDate());
     date.setMonth(startDateType.getMonth());
     date.setFullYear(startDateType.getFullYear());
+
     const whileStop = new Date();
-    whileStop.setDate(endDateType.getDate() + 1);
+    whileStop.setDate(endDateType.getDate());
     whileStop.setMonth(endDateType.getMonth());
     whileStop.setFullYear(endDateType.getFullYear());
+
     const dates = [];
+
+    const startDate = new Date(duplicateActivityRange.activity.start);
+    const endDate = new Date(duplicateActivityRange.activity.end);
+
+    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+      throw new Error('Invalid date format in duplicateActivityRange.activity');
+    }
+    const startHours = startDate.getHours();
+    const startMinutes = startDate.getMinutes();
+    const endHours = endDate.getHours();
+    const endMinutes = endDate.getMinutes();
+
     while (date <= whileStop) {
       if (!(await this.isWeekend(date))) {
-        dates.push(
-          this.dateFormatService.formatISOToDB(
-            new Date(date).toISOString().split('T')[0],
-          ),
-        );
+        dates.push(new Date(date));
       }
       date.setDate(date.getDate() + 1);
     }
     try {
-      dates.forEach(async (date) => {
+      dates.forEach(async (date: Date) => {
+        const combinedStartDate = new Date(
+          date.getFullYear(),
+          date.getMonth(),
+          date.getDate(),
+          startHours,
+          startMinutes,
+          0,
+          0,
+        );
+        const combinedEndDate = new Date(
+          date.getFullYear(),
+          date.getMonth(),
+          date.getDate(),
+          endHours,
+          endMinutes,
+          0,
+          0,
+        );
         const activity = <Activity>{
           name: duplicateActivityRange.activity.name,
           date: date,
-          start: duplicateActivityRange.activity.start,
-          end: duplicateActivityRange.activity.end,
+          start: combinedStartDate,
+          end: combinedEndDate,
           projectId: duplicateActivityRange.activity.projectId,
           activityType: duplicateActivityRange.activity.activityType,
           description: duplicateActivityRange.activity.description,
@@ -102,21 +131,33 @@ export class ActivityService {
         !activity.employeeId ||
         !activity.end ||
         !activity.name
-      )
+      ) {
         throw new HttpException(
           'Make sure you add required information about the activity!',
           HttpStatus.NOT_ACCEPTABLE,
         );
-      const startTime = this.dateFormatService.getNewDateWithTime(
-        activity.start,
-      );
-      const endTime = this.dateFormatService.getNewDateWithTime(activity.end);
-      const hoursAndMinutesObj =
-        this.dateFormatService.millisecondsToHoursAndMinutes(
-          endTime.getTime() - startTime.getTime(),
+      }
+
+      const startTime = new Date(activity.start);
+      const endTime = new Date(activity.end);
+
+      if (isNaN(startTime.getTime()) || isNaN(endTime.getTime())) {
+        throw new HttpException(
+          'Invalid date format provided!',
+          HttpStatus.BAD_REQUEST,
         );
-      activity.workedTime =
-        hoursAndMinutesObj.hours + ':' + hoursAndMinutesObj.minutes;
+      }
+
+      const differenceInMilliseconds = endTime.getTime() - startTime.getTime();
+
+      const totalMinutes = Math.floor(differenceInMilliseconds / 60000);
+      const hours = Math.floor(totalMinutes / 60);
+      const minutes = totalMinutes % 60;
+
+      const formattedHours = String(hours).padStart(2, '0');
+      const formattedMinutes = String(minutes).padStart(2, '0');
+
+      activity.workedTime = `${formattedHours}:${formattedMinutes}`;
       const newActivityId: string = (
         await this.activityRepository.insert(activity)
       ).identifiers[0]?.id;
@@ -132,6 +173,7 @@ export class ActivityService {
           project: activity?.projectId ? project : null,
         };
       }
+
       throw new HttpException(
         'Activity insertion failed!',
         HttpStatus.NOT_ACCEPTABLE,
@@ -157,16 +199,26 @@ export class ActivityService {
   async updateById(id: string, activity: Activity): Promise<Activity> {
     try {
       const toUpdateActivity = await this.activityRepository.findOneBy({ id });
-      const startTime = this.dateFormatService.getNewDateWithTime(
-        activity.start,
-      );
-      const endTime = this.dateFormatService.getNewDateWithTime(activity.end);
-      const hoursAndMinutesObj =
-        this.dateFormatService.millisecondsToHoursAndMinutes(
-          endTime.getTime() - startTime.getTime(),
+      const startTime = new Date(activity.start);
+      const endTime = new Date(activity.end);
+
+      if (isNaN(startTime.getTime()) || isNaN(endTime.getTime())) {
+        throw new HttpException(
+          'Invalid date format provided!',
+          HttpStatus.BAD_REQUEST,
         );
-      activity.workedTime =
-        hoursAndMinutesObj.hours + ':' + hoursAndMinutesObj.minutes;
+      }
+
+      const differenceInMilliseconds = endTime.getTime() - startTime.getTime();
+
+      const totalMinutes = Math.floor(differenceInMilliseconds / 60000);
+      const hours = Math.floor(totalMinutes / 60);
+      const minutes = totalMinutes % 60;
+
+      const formattedHours = String(hours).padStart(2, '0');
+      const formattedMinutes = String(minutes).padStart(2, '0');
+
+      activity.workedTime = `${formattedHours}:${formattedMinutes}`;
 
       if (toUpdateActivity) {
         const updatedActivity = await this.activityRepository.update(
@@ -261,15 +313,27 @@ export class ActivityService {
   }
 
   async getActivitiesByDateEmployeeId(
-    date: string,
+    date: Date,
     id: string,
   ): Promise<Activity[]> {
     try {
+      // Convert to Date object if it's not already
+      const parsedDate = date instanceof Date ? date : new Date(date);
+
+      // Check if the conversion resulted in a valid date
+      if (isNaN(parsedDate.getTime())) {
+        throw new Error('Invalid Date');
+      }
+
+      const searchDate = `${parsedDate.getFullYear()}-${String(
+        parsedDate.getMonth() + 1,
+      ).padStart(2, '0')}-${String(parsedDate.getDate()).padStart(2, '0')}`;
+
       const activities = await getConnection()
         .createQueryBuilder()
         .select('activity')
         .from(Activity, 'activity')
-        .where('activity.date = :date', { date: date })
+        .where('activity.date = :date', { date: searchDate })
         .andWhere('activity.employeeId = :employeeId', { employeeId: id })
         .getMany();
 
@@ -279,11 +343,14 @@ export class ActivityService {
             activity.projectId,
           );
           const { projectId, ...activityWithoutProjectId } = activity;
-          return { ...activity, project: projectId ? project : null };
+          return {
+            ...activityWithoutProjectId,
+            project: projectId ? project : null,
+          };
         }),
       );
+
       if (activityWithProject) return activityWithProject;
-      throw new HttpException('No activities were found', HttpStatus.NOT_FOUND);
     } catch (err) {
       throw err;
     }
@@ -309,12 +376,14 @@ export class ActivityService {
 
   async getActivitiesMonthYear(year: string, month: string) {
     try {
-      const monthYear = month + '/' + year;
-      const activitiesOfTheMonthYear = await getRepository(Activity).find({
-        where: {
-          date: Like(`%${monthYear}`),
-        },
-      });
+      const searchMonth = parseInt(month, 10);
+      const searchYear = parseInt(year, 10);
+
+      const activitiesOfTheMonthYear = await getRepository(Activity)
+        .createQueryBuilder('activity')
+        .where('EXTRACT(MONTH FROM activity.date) = :month', { searchMonth })
+        .andWhere('EXTRACT(YEAR FROM activity.date) = :year', { searchYear })
+        .getMany();
 
       if (activitiesOfTheMonthYear) return activitiesOfTheMonthYear;
     } catch (err) {
@@ -472,11 +541,15 @@ export class ActivityService {
       });
 
       const filteredActivities = activities.filter((activity) => {
-        const [day, activityMonth, activityYear] = activity?.date.split('/');
+        const [day, activityMonth, activityYear] = [
+          activity.date.getUTCDate(),
+          activity.date.getUTCMonth(),
+          activity.date.getUTCFullYear(),
+        ];
 
-        if (activityMonth[0] !== '0')
-          return activityMonth === month && activityYear === year;
-        return activityMonth[1] === month && activityYear === year;
+        return (
+          activityMonth.toString() === month && activityYear.toString() === year
+        );
       });
 
       if (filteredActivities) return filteredActivities;
@@ -518,7 +591,7 @@ export class ActivityService {
 
       // Calculate the total booked time for each day
       activities.forEach((activity) => {
-        const activityDate = this.parseDate(activity.date);
+        const activityDate = activity.date;
         if (
           activityDate.getUTCFullYear() === year &&
           activityDate.getUTCMonth() === month - 1
