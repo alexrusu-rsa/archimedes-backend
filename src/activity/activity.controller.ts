@@ -19,7 +19,6 @@ import { Activity } from 'src/entity/activity.entity';
 import { ActivityService } from './activity.service';
 import { Request } from 'express';
 import { MonthYear } from 'src/custom/month-year';
-import { DeleteResult } from 'typeorm';
 @Controller()
 export class ActivityController {
   constructor(private activityService: ActivityService) {}
