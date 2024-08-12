@@ -307,7 +307,7 @@ export class ActivityService {
   }
 
   async getActivitiesByDateEmployeeId(
-    date: any,
+    date: Date,
     id: string,
   ): Promise<Activity[]> {
     try {
@@ -344,7 +344,7 @@ export class ActivityService {
         }),
       );
 
-      return activityWithProject;
+      if (activityWithProject) return activityWithProject;
     } catch (err) {
       throw err;
     }
@@ -370,12 +370,6 @@ export class ActivityService {
 
   async getActivitiesMonthYear(year: string, month: string) {
     try {
-      // const activitiesOfTheMonthYear = await getRepository(Activity).find({
-      //   where: {
-      //     date: Like(`%${dateObj}`),
-      //   },
-      // });
-
       const searchMonth = parseInt(month, 10);
       const searchYear = parseInt(year, 10);
 
