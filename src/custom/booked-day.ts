@@ -1,8 +1,8 @@
-import { UserDateTimeBooked } from './user-date-time-booked';
+import { UserTimeBooked } from './user-date-timebooked';
 
 export interface BookedDay {
   timeBooked: string;
   expectedHours: number;
-  bookedUsers: UserDateTimeBooked[];
-  date: string;
+  usersTimeBooked: UserTimeBooked[];
+  date: Date;
 }

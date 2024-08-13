@@ -16,14 +16,13 @@ import { Roles } from 'src/auth/roles.decorator';
 import { Customer } from 'src/entity/customer.entity';
 import { CustomerService } from './customer.service';
 import { PdfInvoiceService } from 'src/pdf-invoice/pdf-invoice.service';
-import { XlsxInvoiceService } from 'src/xlsx-invoice/xlsx-invoice.service';
+import { ConfigService } from '@nestjs/config';
 
 @Controller()
 export class CustomerController {
   constructor(
     private customerService: CustomerService,
     private pdfInvoiceService: PdfInvoiceService,
-    private xlsxInvoiceService: XlsxInvoiceService,
   ) {}
 
   @UseGuards(JwtAuthGuard)
@@ -62,30 +61,6 @@ export class CustomerController {
       'Content-Length': buffer.length,
     });
     res.end(buffer);
-  }
-  @UseGuards(JwtAuthGuard)
-  @Roles(Role.Admin)
-  @Get(
-    '/invoice/xlsx/:id/:invoiceNumber/:month/:year/:euroExchange/:dateMillis',
-  )
-  getCustomerXlsx(
-    @Res() res: Response,
-    @Param('id') id: string,
-    @Param('invoiceNumber') invoiceNumber: string,
-    @Param('month') month: string,
-    @Param('year') year: string,
-    @Param('euroExchange') euroExchange: number,
-    @Param('dateMillis') dateMillis: string,
-  ) {
-    return this.xlsxInvoiceService.getCustomerExcel(
-      res,
-      id,
-      invoiceNumber,
-      month,
-      year,
-      euroExchange,
-      dateMillis,
-    );
   }
 
   @UseGuards(JwtAuthGuard)
