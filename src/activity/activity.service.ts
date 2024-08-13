@@ -3,18 +3,18 @@ import { DateFormatService } from 'src/date-format/date-format.service';
 import { ActivityType } from 'src/custom/activity-type.enum';
 import { Activity } from 'src/entity/activity.entity';
 import {
+  Between,
   DeleteResult,
   getConnection,
   getRepository,
-  Like,
   Repository,
 } from 'typeorm';
 import { ActivityDuplicateRange } from 'src/custom/activity-duplicate-range';
 import { ProjectService } from 'src/project/project.service';
-import { User } from 'src/entity/user.entity';
-import { UserWithActivities } from 'src/custom/user-with-activities';
 import { BookedDay } from 'src/custom/booked-day';
-import { UserDateTimeBooked } from 'src/custom/user-date-timebooked';
+import { UserWithActivities } from 'src/custom/user-with-activities';
+import { User } from 'src/entity/user.entity';
+import { UserTimeBooked } from 'src/custom/user-date-timebooked';
 
 @Injectable()
 export class ActivityService {
@@ -23,7 +23,6 @@ export class ActivityService {
     private activityRepository: Repository<Activity>,
     @Inject('USER_REPOSITORY')
     private userRepository: Repository<User>,
-    private dateFormatService: DateFormatService,
     private projectService: ProjectService,
   ) {}
 
@@ -312,6 +311,134 @@ export class ActivityService {
     }
   }
 
+  async getActivitiesOfMonthYearAllUsers(
+    month: number,
+    year: number,
+  ): Promise<BookedDay[]> {
+    try {
+      const users = await this.userRepository.find();
+
+      if (users) {
+        const { firstDay, lastDay } = this.getFirstAndLastDayOfMonth(
+          year,
+          month,
+        );
+        const usersWithoutPasswords = users.map(
+          ({ password, ...user }) => user,
+        );
+
+        const usersWithActivities = await Promise.all(
+          usersWithoutPasswords.map(async (user) => {
+            const activitiesOfUserInMonthYear =
+              await this.activityRepository.find({
+                where: {
+                  date: Between(firstDay, lastDay),
+                  employeeId: user.id,
+                },
+              });
+
+            return {
+              user,
+              activities: activitiesOfUserInMonthYear,
+            };
+          }),
+        );
+
+        const numberOfDays =
+          (lastDay.getTime() - firstDay.getTime()) / (1000 * 60 * 60 * 24) + 1;
+        const daysArray: Date[] = [];
+        for (let i = 0; i < numberOfDays; i++) {
+          const dateToAdd = new Date(Date.UTC(year, month - 1, i + 1));
+          daysArray.push(dateToAdd);
+        }
+
+        const calendarDays: BookedDay[] = daysArray.map((day) => {
+          return {
+            usersTimeBooked: [] as UserTimeBooked[],
+            date: day,
+            timeBooked: '',
+            expectedHours: 0,
+          };
+        });
+
+        calendarDays.forEach((day: BookedDay) => {
+          let allEmployeesHours = 0;
+          let allEmployeesMinutes = 0;
+          let expectedHoursForDay = 0;
+
+          usersWithActivities.forEach(
+            (userWithActivities: UserWithActivities) => {
+              const dayActivities = userWithActivities.activities.filter(
+                (activity: Activity) => {
+                  const activityDate = new Date(activity.date);
+                  activityDate.setDate(activityDate.getDate() + 1);
+                  return (
+                    activityDate.toISOString().split('T')[0] ===
+                    day.date.toISOString().split('T')[0]
+                  );
+                },
+              );
+
+              let userHoursBooked = 0;
+              let userMinutesBooked = 0;
+
+              dayActivities.forEach((activity) => {
+                const [hours, minutes] = activity.workedTime
+                  .split(':')
+                  .map(Number);
+                userHoursBooked += hours;
+                userMinutesBooked += minutes;
+              });
+
+              const bookedHoursAllActivitiesOfDay =
+                Math.floor(userMinutesBooked / 60) + userHoursBooked;
+              const bookedMinutesAllActivitiesOfDay = userMinutesBooked % 60;
+
+              day.usersTimeBooked.push({
+                user: {
+                  user: userWithActivities.user,
+                  activities: dayActivities,
+                } as UserWithActivities,
+                timeBooked: `${bookedHoursAllActivitiesOfDay}:${bookedMinutesAllActivitiesOfDay}`,
+              });
+
+              allEmployeesHours += bookedHoursAllActivitiesOfDay;
+              allEmployeesMinutes += bookedMinutesAllActivitiesOfDay;
+
+              const timePerDay = userWithActivities.user.timePerDay;
+              if (
+                typeof timePerDay !== 'string' &&
+                typeof timePerDay !== 'number'
+              ) {
+                throw new Error(`Invalid timePerDay value: ${timePerDay}`);
+              }
+
+              const parsedTimePerDay = parseInt(timePerDay.toString(), 10);
+              if (isNaN(parsedTimePerDay)) {
+                throw new Error(
+                  `Unable to parse timePerDay value: ${timePerDay}`,
+                );
+              }
+
+              expectedHoursForDay += parsedTimePerDay;
+            },
+          );
+
+          const bookedHoursAllEmployeesOfDay =
+            Math.floor(allEmployeesMinutes / 60) + allEmployeesHours;
+          const bookedMinutesAllEmployeesOfDay = allEmployeesMinutes % 60;
+
+          day.timeBooked = `${bookedHoursAllEmployeesOfDay}:${bookedMinutesAllEmployeesOfDay}`;
+          day.expectedHours = expectedHoursForDay;
+        });
+
+        return calendarDays;
+      }
+    } catch (err) {
+      throw err;
+    }
+  }
+
   async getActivitiesByDateEmployeeId(
     date: Date,
     id: string,
@@ -391,165 +518,21 @@ export class ActivityService {
     }
   }
 
-  async getActivitiesOfMonthYearAllUsers(
-    month: number,
-    year: number,
-  ): Promise<BookedDay[]> {
-    try {
-      const users = await this.userRepository.find();
-
-      if (users) {
-        const usersWithoutPasswords = users.map(
-          ({ password, ...user }) => user,
-        );
-        const monthYear = month + '/' + year;
-
-        const usersWithActivities = await Promise.all(
-          usersWithoutPasswords.map(async (user) => {
-            const activitiesOfUserInMonthYear =
-              await this.activityRepository.find({
-                where: {
-                  date: Like(`%${monthYear}`),
-                  employeeId: Like(`${user.id}`),
-                },
-              });
-            return {
-              user,
-              activities: activitiesOfUserInMonthYear,
-            };
-          }),
-        );
-
-        const currentDate = new Date();
-        const currentYear = currentDate.getUTCFullYear();
-        const currentMonth = currentDate.getUTCMonth();
-
-        const firstDay = new Date(Date.UTC(currentYear, currentMonth, 1));
-        const nextMonth = new Date(Date.UTC(currentYear, currentMonth + 1, 1));
-
-        const numberOfDays =
-          (nextMonth.getTime() - firstDay.getTime()) / (1000 * 60 * 60 * 24);
-
-        const daysArray: string[] = [];
-        for (let i = 1; i <= numberOfDays; i++) {
-          const dateToAdd = new Date(Date.UTC(currentYear, currentMonth, i))
-            .toISOString()
-            .split('T')[0];
-          const dateParts = dateToAdd.split('-');
-          const formattedDate = `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`;
-          daysArray.push(formattedDate);
-        }
-
-        const calendarDays = daysArray.map((day) => {
-          return {
-            bookedUsers: [] as UserDateTimeBooked[],
-            date: day,
-            timeBooked: '',
-            expectedHours: 0,
-          };
-        });
-
-        calendarDays.forEach((day: BookedDay) => {
-          let allEmployeesHours = 0;
-          let allEmployeesMinutes = 0;
-          let expectedHoursForDay = 0;
-          usersWithActivities.forEach((user: UserWithActivities) => {
-            const dayActivities = user.activities.filter(
-              (activity) => activity.date === day.date,
-            );
-
-            let userHoursBooked = 0;
-            let userMinutesBooked = 0;
-
-            dayActivities.forEach((activity) => {
-              const timeBookedString = activity.workedTime;
-              const hours = parseInt(timeBookedString.split(':')[0]);
-              const minutes = parseInt(timeBookedString.split(':')[1]);
-              userHoursBooked += hours;
-              userMinutesBooked += minutes;
-            });
-            const bookedHoursAllActivitiesOfDay =
-              Math.floor(userMinutesBooked / 60) + userHoursBooked;
-            const bookedMinutesAllActivitiesOfDay = userMinutesBooked % 60;
-            day.bookedUsers.push({
-              user: user,
-              timeBooked: `${bookedHoursAllActivitiesOfDay}:${bookedMinutesAllActivitiesOfDay}`,
-            });
-            allEmployeesHours += bookedHoursAllActivitiesOfDay;
-            allEmployeesMinutes += bookedMinutesAllActivitiesOfDay;
-            expectedHoursForDay += parseInt(user.user.timePerDay);
-          });
-          const bookedHoursAllEmployeesOfDay =
-            Math.floor(allEmployeesMinutes / 60) + allEmployeesHours;
-          const bookedMinutesAllEmployeesOfDay = allEmployeesMinutes % 60;
-          day.timeBooked = `${bookedHoursAllEmployeesOfDay}:${bookedMinutesAllEmployeesOfDay}`;
-          day.expectedHours = expectedHoursForDay;
-        });
-
-        return calendarDays;
-      }
-    } catch (err) {
-      throw err;
-    }
-  }
-
-  // async getActivitiesOfMonthYearAllUsers(
-  //   month: number,
-  //   year: number,
-  // ): Promise<User[]> {
-  //   try {
-  //     const userRepository = getRepository(User);
-  //     const monthYear = `${month}/${year}`;
-
-  //     const usersWithActivities = await userRepository
-  //       .createQueryBuilder('user')
-  //       .leftJoinAndSelect('user', 'activity')
-  //       .where('activity.date LIKE :monthYear', { monthYear: `%${monthYear}%` })
-  //       .getMany();
-
-  //     const usersWithoutPasswords = usersWithActivities.map(
-  //       ({ password, ...user }) => user,
-  //     );
-
-  //     usersWithoutPasswords.forEach((user) => {
-  //       if (user.activities.length > 0) {
-  //         console.log('Added user with multiple activities', {
-  //           user,
-  //           activities: user.activities,
-  //         });
-  //       } else {
-  //         console.log('Added user with 0 activities', { user, activities: [] });
-  //       }
-  //     });
-
-  //     return usersWithoutPasswords;
-  //   } catch (err) {
-  //     throw err;
-  //   }
-  // }
-
-  async getActivitiesOfMonthYearOfUser(
-    month: string,
-    year: string,
-    userId: string,
-  ) {
+  async getActivitiesOfMonthYearOfUser(month: number, year: number) {
     try {
       const activities = await this.activityRepository.find({
         where: {
-          employeeId: userId,
+          employeeId: '',
         },
       });
 
       const filteredActivities = activities.filter((activity) => {
-        const [day, activityMonth, activityYear] = [
-          activity.date.getUTCDate(),
+        const [activityMonth, activityYear] = [
           activity.date.getUTCMonth(),
           activity.date.getUTCFullYear(),
         ];
 
-        return (
-          activityMonth.toString() === month && activityYear.toString() === year
-        );
+        return activityMonth === month && activityYear === year;
       });
 
       if (filteredActivities) return filteredActivities;
@@ -609,17 +592,22 @@ export class ActivityService {
     }
   }
 
+  getFirstAndLastDayOfMonth(
+    year: number,
+    month: number,
+  ): { firstDay: Date; lastDay: Date } {
+    const firstDay = new Date(year, month - 1, 1);
+
+    const lastDay = new Date(year, month, 0);
+
+    return { firstDay, lastDay };
+  }
+
   // Helper method to format Date object to 'dd/MM/yyyy' string
   private formatDate(date: Date): string {
     const day = String(date.getUTCDate()).padStart(2, '0');
     const month = String(date.getUTCMonth() + 1).padStart(2, '0');
     const year = date.getUTCFullYear();
     return `${day}/${month}/${year}`;
-  }
-
-  // Helper method to parse 'dd/MM/yyyy' string to Date object
-  private parseDate(dateString: string): Date {
-    const [day, month, year] = dateString.split('/').map(Number);
-    return new Date(Date.UTC(year, month - 1, day));
   }
 }

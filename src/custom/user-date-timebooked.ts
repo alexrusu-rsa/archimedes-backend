@@ -1,6 +1,6 @@
 import { UserWithActivities } from './user-with-activities';
 
-export interface UserDateTimeBooked {
+export interface UserTimeBooked {
   user: UserWithActivities;
   timeBooked: string;
 }
