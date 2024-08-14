@@ -108,7 +108,7 @@ export class ActivityService {
           date: date,
           start: combinedStartDate,
           end: combinedEndDate,
-          projectId: duplicateActivityRange.activity.projectId,
+          projectId: duplicateActivityRange.activity.project.id,
           activityType: duplicateActivityRange.activity.activityType,
           description: duplicateActivityRange.activity.description,
           extras: duplicateActivityRange.activity.extras,
