@@ -14,9 +14,14 @@ import { RateModule } from './rate/rate.module';
 import { AuthRecieveModule } from './auth-recieve/auth-recieve.module';
 import { AcceptLanguageResolver, I18nModule, QueryResolver } from 'nestjs-i18n';
 import { JwtService } from '@nestjs/jwt';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '.env',
+    }),
     ActivityModule,
     I18nModule.forRoot({
       fallbackLanguage: 'en',
