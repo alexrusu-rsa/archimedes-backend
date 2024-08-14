@@ -315,124 +315,101 @@ export class ActivityService {
     year: number,
   ): Promise<BookedDay[]> {
     try {
+      //find all users which activities are to be counted for reporting page
       const users = await this.userRepository.find();
 
-      if (users) {
-        const { firstDay, lastDay } = this.getFirstAndLastDayOfMonth(
-          year,
-          month,
-        );
-        const usersWithoutPasswords = users.map(
-          ({ password, ...user }) => user,
-        );
+      if (!users || users.length === 0) return [];
 
-        const usersWithActivities = await Promise.all(
-          usersWithoutPasswords.map(async (user) => {
-            const activitiesOfUserInMonthYear =
-              await this.activityRepository.find({
-                where: {
-                  date: Between(firstDay, lastDay),
-                  employeeId: user.id,
-                },
-              });
+      //find first and last day of the month for searching for activities in this interval
+      const { firstDay, lastDay } = this.getFirstAndLastDayOfMonth(year, month);
 
-            return {
-              user,
-              activities: activitiesOfUserInMonthYear,
-            };
-          }),
-        );
+      //get an array of users, with all their activities between firstDay and lastDay of the month selected
+      const usersWithActivities = await Promise.all(
+        users.map(async ({ password, ...user }) => {
+          const activities = await this.activityRepository.find({
+            where: {
+              date: Between(firstDay, lastDay),
+              employeeId: user.id,
+            },
+          });
+          return { user, activities };
+        }),
+      );
 
-        const numberOfDays =
-          (lastDay.getTime() - firstDay.getTime()) / (1000 * 60 * 60 * 24) + 1;
-        const daysArray: Date[] = [];
-        for (let i = 0; i < numberOfDays; i++) {
-          const dateToAdd = new Date(Date.UTC(year, month - 1, i + 1));
-          daysArray.push(dateToAdd);
-        }
+      //count the days of the selected month
+      const numberOfDays =
+        (lastDay.getTime() - firstDay.getTime()) / (1000 * 60 * 60 * 24) + 1;
 
-        const calendarDays: BookedDay[] = daysArray.map((day) => {
+      //initialize an array of BookedDay objects, containing reporting data about each day of the month
+      const calendarDays: BookedDay[] = Array.from(
+        { length: numberOfDays },
+        (_, i) => {
+          const date = new Date(Date.UTC(year, month - 1, i + 1));
           return {
-            usersTimeBooked: [] as UserTimeBooked[],
-            date: day,
+            date,
+            usersTimeBooked: [],
             timeBooked: '',
             expectedHours: 0,
           };
-        });
+        },
+      );
 
-        calendarDays.forEach((day: BookedDay) => {
-          let allEmployeesHours = 0;
-          let allEmployeesMinutes = 0;
-          let expectedHoursForDay = 0;
-
-          usersWithActivities.forEach(
-            (userWithActivities: UserWithActivities) => {
-              const dayActivities = userWithActivities.activities.filter(
-                (activity: Activity) => {
-                  const activityDate = new Date(activity.date);
-                  activityDate.setDate(activityDate.getDate() + 1);
-                  return (
-                    activityDate.toISOString().split('T')[0] ===
-                    day.date.toISOString().split('T')[0]
-                  );
-                },
+      // for each day in the selected month add data about each individual user reported activities in terms of time and expected time
+      // also data for workedTime VS expectedTime is calculated for each individual user as well as totals
+      calendarDays.forEach((day) => {
+        const { totalHours, totalMinutes, expectedHours } =
+          usersWithActivities.reduce(
+            (acc, { user, activities }) => {
+              const dayActivities = activities.filter(
+                (activity) =>
+                  new Date(activity.date).toISOString().split('T')[0] ===
+                  day.date.toISOString().split('T')[0],
               );
 
-              let userHoursBooked = 0;
-              let userMinutesBooked = 0;
+              const { hours, minutes } = dayActivities.reduce(
+                (timeAcc, activity) => {
+                  const [activityHours, activityMinutes] = activity.workedTime
+                    .split(':')
+                    .map(Number);
+                  return {
+                    hours: timeAcc.hours + activityHours,
+                    minutes: timeAcc.minutes + activityMinutes,
+                  };
+                },
+                { hours: 0, minutes: 0 },
+              );
 
-              dayActivities.forEach((activity) => {
-                const [hours, minutes] = activity.workedTime
-                  .split(':')
-                  .map(Number);
-                userHoursBooked += hours;
-                userMinutesBooked += minutes;
-              });
-
-              const bookedHoursAllActivitiesOfDay =
-                Math.floor(userMinutesBooked / 60) + userHoursBooked;
-              const bookedMinutesAllActivitiesOfDay = userMinutesBooked % 60;
+              const totalActivityHours = hours + Math.floor(minutes / 60);
+              const totalActivityMinutes = minutes % 60;
 
               day.usersTimeBooked.push({
-                user: {
-                  user: userWithActivities.user,
-                  activities: dayActivities,
-                } as UserWithActivities,
-                timeBooked: `${bookedHoursAllActivitiesOfDay}:${bookedMinutesAllActivitiesOfDay}`,
+                user: { user, activities: dayActivities },
+                timeBooked: `${totalActivityHours}:${totalActivityMinutes}`,
               });
 
-              allEmployeesHours += bookedHoursAllActivitiesOfDay;
-              allEmployeesMinutes += bookedMinutesAllActivitiesOfDay;
+              acc.totalHours += totalActivityHours;
+              acc.totalMinutes += totalActivityMinutes;
 
-              const timePerDay = userWithActivities.user.timePerDay;
-              if (
-                typeof timePerDay !== 'string' &&
-                typeof timePerDay !== 'number'
-              ) {
-                throw new Error(`Invalid timePerDay value: ${timePerDay}`);
-              }
-
-              const parsedTimePerDay = parseInt(timePerDay.toString(), 10);
-              if (isNaN(parsedTimePerDay)) {
+              const timePerDay = parseInt(user.timePerDay as string, 10);
+              if (isNaN(timePerDay)) {
                 throw new Error(
-                  `Unable to parse timePerDay value: ${timePerDay}`,
+                  `Unable to parse timePerDay value: ${user.timePerDay}`,
                 );
               }
+              acc.expectedHours += timePerDay;
 
-              expectedHoursForDay += parsedTimePerDay;
+              return acc;
             },
+            { totalHours: 0, totalMinutes: 0, expectedHours: 0 },
           );
 
-          const bookedHoursAllEmployeesOfDay =
-            Math.floor(allEmployeesMinutes / 60) + allEmployeesHours;
-          const bookedMinutesAllEmployeesOfDay = allEmployeesMinutes % 60;
+        day.timeBooked = `${totalHours + Math.floor(totalMinutes / 60)}:${
+          totalMinutes % 60
+        }`;
+        day.expectedHours = expectedHours;
+      });
 
-          day.timeBooked = `${bookedHoursAllEmployeesOfDay}:${bookedMinutesAllEmployeesOfDay}`;
-          day.expectedHours = expectedHoursForDay;
-        });
-
-        return calendarDays;
-      }
+      return calendarDays;
     } catch (err) {
       throw err;
     }
