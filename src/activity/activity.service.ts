@@ -477,7 +477,7 @@ export class ActivityService {
             (acc, { user, activities }) => {
               const dayActivities = activities.filter((activity) => {
                 const activityDate = new Date(activity.date);
-                activityDate.setDate(activityDate.getDate());
+                activityDate.setDate(activityDate.getDate() + 1);
                 return (
                   activityDate.toISOString().split('T')[0] ===
                   day.date.toISOString().split('T')[0]
@@ -556,7 +556,7 @@ export class ActivityService {
 
       // Initialize bookedTimePerDay with 0 minutes for each day in the month
       daysInMonth.forEach((dayDate) => {
-        console.log(dayDate);
+        dayDate.setDate(dayDate.getDate() + 1);
         const dateString = this.formatDate(dayDate);
         bookedTimePerDay[dateString] = 0;
       });
