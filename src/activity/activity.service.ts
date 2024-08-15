@@ -108,7 +108,9 @@ export class ActivityService {
           date: date,
           start: combinedStartDate,
           end: combinedEndDate,
-          projectId: duplicateActivityRange.activity.project.id,
+          projectId: duplicateActivityRange.activity.project?.id
+            ? duplicateActivityRange.activity.project.id
+            : null,
           activityType: duplicateActivityRange.activity.activityType,
           description: duplicateActivityRange.activity.description,
           extras: duplicateActivityRange.activity.extras,
@@ -156,6 +158,13 @@ export class ActivityService {
       const formattedMinutes = String(minutes).padStart(2, '0');
 
       activity.workedTime = `${formattedHours}:${formattedMinutes}`;
+      if (!(activity.date instanceof Date)) {
+        activity.date = new Date(activity.date);
+      }
+
+      activity.date.setDate(activity.date.getDate());
+      activity.date.setHours(0, 0, 0, 0);
+
       const newActivityId: string = (
         await this.activityRepository.insert(activity)
       ).identifiers[0]?.id;
@@ -360,11 +369,14 @@ export class ActivityService {
         const { totalHours, totalMinutes, expectedHours } =
           usersWithActivities.reduce(
             (acc, { user, activities }) => {
-              const dayActivities = activities.filter(
-                (activity) =>
-                  new Date(activity.date).toISOString().split('T')[0] ===
-                  day.date.toISOString().split('T')[0],
-              );
+              const dayActivities = activities.filter((activity) => {
+                const activityDate = new Date(activity.date);
+                activityDate.setDate(activityDate.getDate() + 1);
+                return (
+                  activityDate.toISOString().split('T')[0] ===
+                  day.date.toISOString().split('T')[0]
+                );
+              });
 
               const { hours, minutes } = dayActivities.reduce(
                 (timeAcc, activity) => {
