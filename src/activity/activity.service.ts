@@ -477,7 +477,7 @@ export class ActivityService {
             (acc, { user, activities }) => {
               const dayActivities = activities.filter((activity) => {
                 const activityDate = new Date(activity.date);
-                activityDate.setDate(activityDate.getDate() + 1);
+                activityDate.setDate(activityDate.getDate());
                 return (
                   activityDate.toISOString().split('T')[0] ===
                   day.date.toISOString().split('T')[0]
