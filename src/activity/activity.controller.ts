@@ -108,7 +108,7 @@ export class ActivityController {
   @UseGuards(JwtAuthGuard)
   @Post('/monthYear/bookedTimePerDay')
   getBookedTimePerDayOfMonthYear(
-    @Body() body: MonthYear,
+    @Body() body: MonthYear, 
     @Req() request: Request,
   ): Promise<Record<string, number>> {
     const user = request.user as { userId: string; username: string };

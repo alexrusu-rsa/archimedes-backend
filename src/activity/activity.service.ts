@@ -319,6 +319,112 @@ export class ActivityService {
     }
   }
 
+  async getActivitiesByDateEmployeeId(
+    date: Date,
+    id: string,
+  ): Promise<Activity[]> {
+    try {
+      // Convert to Date object if it's not already
+      const parsedDate = date instanceof Date ? date : new Date(date);
+
+      // Check if the conversion resulted in a valid date
+      if (isNaN(parsedDate.getTime())) {
+        throw new Error('Invalid Date');
+      }
+
+      const searchDate = `${parsedDate.getFullYear()}-${String(
+        parsedDate.getMonth() + 1,
+      ).padStart(2, '0')}-${String(parsedDate.getDate()).padStart(2, '0')}`;
+
+      const activities = await getConnection()
+        .createQueryBuilder()
+        .select('activity')
+        .from(Activity, 'activity')
+        .where('activity.date = :date', { date: searchDate })
+        .andWhere('activity.employeeId = :employeeId', { employeeId: id })
+        .getMany();
+
+      const activityWithProject = await Promise.all(
+        activities.map(async (activity) => {
+          const project = await this.projectService.getProjectById(
+            activity.projectId,
+          );
+          const { projectId, ...activityWithoutProjectId } = activity;
+          return {
+            ...activityWithoutProjectId,
+            project: projectId ? project : null,
+          };
+        }),
+      );
+
+      if (activityWithProject) return activityWithProject;
+    } catch (err) {
+      throw err;
+    }
+  }
+
+  async getActivitiesByEmployeeId(id: string): Promise<Activity[]> {
+    try {
+      const activitiesByEmployeeId = await getConnection()
+        .createQueryBuilder()
+        .select('activity')
+        .from(Activity, 'activity')
+        .where('activity.employeeId = :employeeId', { employeeId: id })
+        .getMany();
+      if (activitiesByEmployeeId) return activitiesByEmployeeId;
+      throw new HttpException(
+        'No activities were found for this employee.',
+        HttpStatus.NOT_FOUND,
+      );
+    } catch (err) {
+      throw err;
+    }
+  }
+
+  async getActivitiesMonthYear(year: string, month: string) {
+    try {
+      const searchMonth = parseInt(month, 10);
+      const searchYear = parseInt(year, 10);
+
+      const activitiesOfTheMonthYear = await getRepository(Activity)
+        .createQueryBuilder('activity')
+        .where('EXTRACT(MONTH FROM activity.date) = :month', { searchMonth })
+        .andWhere('EXTRACT(YEAR FROM activity.date) = :year', { searchYear })
+        .getMany();
+
+      if (activitiesOfTheMonthYear) return activitiesOfTheMonthYear;
+    } catch (err) {
+      throw err;
+    }
+  }
+
+  async getActivitiesOfMonthYearOfUser(month: number, year: number) {
+    try {
+      const activities = await this.activityRepository.find({
+        where: {
+          employeeId: '',
+        },
+      });
+
+      const filteredActivities = activities.filter((activity) => {
+        const [activityMonth, activityYear] = [
+          activity.date.getUTCMonth(),
+          activity.date.getUTCFullYear(),
+        ];
+
+        return activityMonth === month && activityYear === year;
+      });
+
+      if (filteredActivities) return filteredActivities;
+      throw new HttpException(
+        'We could not find the activites!',
+        HttpStatus.NOT_FOUND,
+      );
+    } catch (err) {
+      throw err;
+    }
+  }
+
   async getActivitiesOfMonthYearAllUsers(
     month: number,
     year: number,
@@ -427,112 +533,6 @@ export class ActivityService {
     }
   }
 
-  async getActivitiesByDateEmployeeId(
-    date: Date,
-    id: string,
-  ): Promise<Activity[]> {
-    try {
-      // Convert to Date object if it's not already
-      const parsedDate = date instanceof Date ? date : new Date(date);
-
-      // Check if the conversion resulted in a valid date
-      if (isNaN(parsedDate.getTime())) {
-        throw new Error('Invalid Date');
-      }
-
-      const searchDate = `${parsedDate.getFullYear()}-${String(
-        parsedDate.getMonth() + 1,
-      ).padStart(2, '0')}-${String(parsedDate.getDate()).padStart(2, '0')}`;
-
-      const activities = await getConnection()
-        .createQueryBuilder()
-        .select('activity')
-        .from(Activity, 'activity')
-        .where('activity.date = :date', { date: searchDate })
-        .andWhere('activity.employeeId = :employeeId', { employeeId: id })
-        .getMany();
-
-      const activityWithProject = await Promise.all(
-        activities.map(async (activity) => {
-          const project = await this.projectService.getProjectById(
-            activity.projectId,
-          );
-          const { projectId, ...activityWithoutProjectId } = activity;
-          return {
-            ...activityWithoutProjectId,
-            project: projectId ? project : null,
-          };
-        }),
-      );
-
-      if (activityWithProject) return activityWithProject;
-    } catch (err) {
-      throw err;
-    }
-  }
-
-  async getActivitiesByEmployeeId(id: string): Promise<Activity[]> {
-    try {
-      const activitiesByEmployeeId = await getConnection()
-        .createQueryBuilder()
-        .select('activity')
-        .from(Activity, 'activity')
-        .where('activity.employeeId = :employeeId', { employeeId: id })
-        .getMany();
-      if (activitiesByEmployeeId) return activitiesByEmployeeId;
-      throw new HttpException(
-        'No activities were found for this employee.',
-        HttpStatus.NOT_FOUND,
-      );
-    } catch (err) {
-      throw err;
-    }
-  }
-
-  async getActivitiesMonthYear(year: string, month: string) {
-    try {
-      const searchMonth = parseInt(month, 10);
-      const searchYear = parseInt(year, 10);
-
-      const activitiesOfTheMonthYear = await getRepository(Activity)
-        .createQueryBuilder('activity')
-        .where('EXTRACT(MONTH FROM activity.date) = :month', { searchMonth })
-        .andWhere('EXTRACT(YEAR FROM activity.date) = :year', { searchYear })
-        .getMany();
-
-      if (activitiesOfTheMonthYear) return activitiesOfTheMonthYear;
-    } catch (err) {
-      throw err;
-    }
-  }
-
-  async getActivitiesOfMonthYearOfUser(month: number, year: number) {
-    try {
-      const activities = await this.activityRepository.find({
-        where: {
-          employeeId: '',
-        },
-      });
-
-      const filteredActivities = activities.filter((activity) => {
-        const [activityMonth, activityYear] = [
-          activity.date.getUTCMonth(),
-          activity.date.getUTCFullYear(),
-        ];
-
-        return activityMonth === month && activityYear === year;
-      });
-
-      if (filteredActivities) return filteredActivities;
-      throw new HttpException(
-        'We could not find the activites!',
-        HttpStatus.NOT_FOUND,
-      );
-    } catch (err) {
-      throw err;
-    }
-  }
-
   async getBookedTimePerDayOfMonthYear(
     month: number,
     year: number,
@@ -556,6 +556,7 @@ export class ActivityService {
 
       // Initialize bookedTimePerDay with 0 minutes for each day in the month
       daysInMonth.forEach((dayDate) => {
+        console.log(dayDate);
         const dateString = this.formatDate(dayDate);
         bookedTimePerDay[dateString] = 0;
       });
@@ -567,6 +568,7 @@ export class ActivityService {
           activityDate.getUTCFullYear() === year &&
           activityDate.getUTCMonth() === month - 1
         ) {
+          activityDate.setDate(activityDate.getDate() + 1);
           const dateString = this.formatDate(activityDate);
           const [hours, minutes] = activity.workedTime.split(':').map(Number);
           const totalMinutes = hours * 60 + minutes;
