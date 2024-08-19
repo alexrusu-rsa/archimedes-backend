@@ -20,6 +20,7 @@ import { ActivityService } from './activity.service';
 import { Request } from 'express';
 import { MonthYear } from 'src/custom/month-year';
 import { BookedDay } from 'src/custom/booked-day';
+import { WidgetDay } from 'src/custom/widget-day';
 @Controller()
 export class ActivityController {
   constructor(private activityService: ActivityService) {}
@@ -108,9 +109,9 @@ export class ActivityController {
   @UseGuards(JwtAuthGuard)
   @Post('/monthYear/bookedTimePerDay')
   getBookedTimePerDayOfMonthYear(
-    @Body() body: MonthYear, 
+    @Body() body: MonthYear,
     @Req() request: Request,
-  ): Promise<Record<string, number>> {
+  ): Promise<WidgetDay[]> {
     const user = request.user as { userId: string; username: string };
     return this.activityService.getBookedTimePerDayOfMonthYear(
       body.month,

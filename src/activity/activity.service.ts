@@ -14,6 +14,7 @@ import { BookedDay } from 'src/custom/booked-day';
 import { UserWithActivities } from 'src/custom/user-with-activities';
 import { User } from 'src/entity/user.entity';
 import { UserTimeBooked } from 'src/custom/user-date-timebooked';
+import { WidgetDay } from 'src/custom/widget-day';
 
 @Injectable()
 export class ActivityService {
@@ -537,46 +538,53 @@ export class ActivityService {
     month: number,
     year: number,
     userId: string,
-  ): Promise<Record<string, number>> {
+  ): Promise<WidgetDay[]> {
     try {
+      const { firstDay, lastDay } = this.getFirstAndLastDayOfMonth(year, month);
+
       const activities = await this.activityRepository.find({
         where: {
           employeeId: userId,
+          date: Between(firstDay, lastDay),
         },
       });
 
-      const daysInMonth = Array.from(
-        {
-          length: new Date(year, month, 0).getDate(),
-        },
-        (_, i) => new Date(Date.UTC(year, month - 1, i + 1)),
-      );
+      const numberOfDays =
+        (lastDay.getTime() - firstDay.getTime()) / (1000 * 60 * 60 * 24) + 1;
 
-      const bookedTimePerDay: Record<string, number> = {};
-
-      // Initialize bookedTimePerDay with 0 minutes for each day in the month
-      daysInMonth.forEach((dayDate) => {
-        dayDate.setDate(dayDate.getDate() + 1);
-        const dateString = this.formatDate(dayDate);
-        bookedTimePerDay[dateString] = 0;
+      const widgetDays = Array.from({ length: numberOfDays }, (_, i) => {
+        const date = new Date(Date.UTC(year, month - 1, i + 1));
+        return {
+          date,
+          timeBooked: '',
+        };
       });
 
-      // Calculate the total booked time for each day
-      activities.forEach((activity) => {
-        const activityDate = activity.date;
-        if (
-          activityDate.getUTCFullYear() === year &&
-          activityDate.getUTCMonth() === month - 1
-        ) {
+      widgetDays.forEach((day) => {
+        const dayActivities = activities.filter((activity) => {
+          const activityDate = new Date(activity.date);
           activityDate.setDate(activityDate.getDate() + 1);
-          const dateString = this.formatDate(activityDate);
-          const [hours, minutes] = activity.workedTime.split(':').map(Number);
-          const totalMinutes = hours * 60 + minutes;
-          bookedTimePerDay[dateString] += totalMinutes;
-        }
+          return (
+            activityDate.toISOString().split('T')[0] ===
+            day.date.toISOString().split('T')[0]
+          );
+        });
+
+        let bookedHours = 0;
+        let bookedMinutes = 0;
+        dayActivities.forEach((activity) => {
+          const hours = activity.workedTime.split(':')[0];
+          const minutes = activity.workedTime.split(':')[1];
+          bookedHours += parseInt(hours);
+          bookedMinutes += parseInt(minutes);
+        });
+
+        const computedHours = bookedHours + bookedMinutes / 60;
+        const computedMinutes = bookedMinutes + (bookedMinutes % 60);
+        day.timeBooked = `${computedHours}:${computedMinutes}`;
       });
 
-      return bookedTimePerDay;
+      return widgetDays;
     } catch (err) {
       throw err;
     }
@@ -591,13 +599,5 @@ export class ActivityService {
     const lastDay = new Date(year, month, 0);
 
     return { firstDay, lastDay };
-  }
-
-  // Helper method to format Date object to 'dd/MM/yyyy' string
-  private formatDate(date: Date): string {
-    const day = String(date.getUTCDate()).padStart(2, '0');
-    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
-    const year = date.getUTCFullYear();
-    return `${day}/${month}/${year}`;
   }
 }
