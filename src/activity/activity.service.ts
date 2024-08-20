@@ -527,7 +527,7 @@ export class ActivityService {
         }`;
         day.expectedHours = expectedHours;
       });
-
+      console.log(calendarDays);
       return calendarDays;
     } catch (err) {
       throw err;
@@ -583,7 +583,7 @@ export class ActivityService {
         const computedMinutes = bookedMinutes + (bookedMinutes % 60);
         day.timeBooked = `${computedHours}:${computedMinutes}`;
       });
-
+      console.log(widgetDays);
       return widgetDays;
     } catch (err) {
       throw err;
