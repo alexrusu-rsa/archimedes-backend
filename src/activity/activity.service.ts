@@ -307,6 +307,7 @@ export class ActivityService {
 
   async getActivitiesByDate(dateToFind: string): Promise<Activity[]> {
     try {
+      console.log(dateToFind);
       const activitiesFound = await getConnection()
         .createQueryBuilder()
         .select('activity')
@@ -336,7 +337,8 @@ export class ActivityService {
       const searchDate = `${parsedDate.getFullYear()}-${String(
         parsedDate.getMonth() + 1,
       ).padStart(2, '0')}-${String(parsedDate.getDate()).padStart(2, '0')}`;
-
+      console.log('searchDate', searchDate);
+      console.log('dateParam', date);
       const activities = await getConnection()
         .createQueryBuilder()
         .select('activity')
@@ -527,7 +529,6 @@ export class ActivityService {
         }`;
         day.expectedHours = expectedHours;
       });
-      console.log(calendarDays);
       return calendarDays;
     } catch (err) {
       throw err;
@@ -583,7 +584,6 @@ export class ActivityService {
         const computedMinutes = bookedMinutes + (bookedMinutes % 60);
         day.timeBooked = `${computedHours}:${computedMinutes}`;
       });
-      console.log(widgetDays);
       return widgetDays;
     } catch (err) {
       throw err;
