@@ -307,7 +307,6 @@ export class ActivityService {
 
   async getActivitiesByDate(dateToFind: string): Promise<Activity[]> {
     try {
-      console.log(dateToFind);
       const activitiesFound = await getConnection()
         .createQueryBuilder()
         .select('activity')
@@ -341,9 +340,6 @@ export class ActivityService {
 
       const [day, month, year] = romaniaDateString.split('/');
       const searchDate = `${year}-${month}-${day}`;
-
-      console.log('searchDate', searchDate);
-      console.log('dateParam', date);
 
       const activities = await getConnection()
         .createQueryBuilder()
