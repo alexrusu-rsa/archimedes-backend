@@ -326,19 +326,25 @@ export class ActivityService {
     id: string,
   ): Promise<Activity[]> {
     try {
-      // Convert to Date object if it's not already
       const parsedDate = date instanceof Date ? date : new Date(date);
 
-      // Check if the conversion resulted in a valid date
       if (isNaN(parsedDate.getTime())) {
         throw new Error('Invalid Date');
       }
 
-      const searchDate = `${parsedDate.getFullYear()}-${String(
-        parsedDate.getMonth() + 1,
-      ).padStart(2, '0')}-${String(parsedDate.getDate()).padStart(2, '0')}`;
+      const romaniaDateString = parsedDate.toLocaleDateString('en-GB', {
+        timeZone: 'Europe/Bucharest',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+      });
+
+      const [day, month, year] = romaniaDateString.split('/');
+      const searchDate = `${year}-${month}-${day}`;
+
       console.log('searchDate', searchDate);
       console.log('dateParam', date);
+
       const activities = await getConnection()
         .createQueryBuilder()
         .select('activity')
@@ -365,7 +371,6 @@ export class ActivityService {
       throw err;
     }
   }
-
   async getActivitiesByEmployeeId(id: string): Promise<Activity[]> {
     try {
       const activitiesByEmployeeId = await getConnection()
