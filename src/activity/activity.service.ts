@@ -462,7 +462,7 @@ export class ActivityService {
       const calendarDays: BookedDay[] = Array.from(
         { length: numberOfDays },
         (_, i) => {
-          const date = new Date(Date.UTC(year, month - 1, i + 1));
+          const date = new Date(year, month - 1, i + 1);
           return {
             date,
             usersTimeBooked: [],
@@ -554,7 +554,7 @@ export class ActivityService {
         (lastDay.getTime() - firstDay.getTime()) / (1000 * 60 * 60 * 24) + 1;
 
       const widgetDays = Array.from({ length: numberOfDays }, (_, i) => {
-        const date = new Date(Date.UTC(year, month - 1, i + 1));
+        const date = new Date(year, month - 1, i + 1);
         return {
           date,
           timeBooked: '',
