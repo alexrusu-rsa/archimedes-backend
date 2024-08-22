@@ -6,31 +6,31 @@ export class Customer {
   id?: string;
 
   @Column()
-  customerName: string;
+  name: string;
 
   @Column()
-  customerCUI: string;
+  CUI: string;
 
   @Column()
-  customerReg: string;
+  Reg: string;
 
   @Column()
-  customerAddress: string;
+  address: string;
 
   @Column()
-  customerCity: string;
+  city: string;
 
   @Column({ nullable: true })
-  customerCountry: string;
+  country: string;
 
   @Column({ nullable: true })
-  customerDirectorName: string;
+  directorName: string;
 
   @Column({ nullable: true })
-  customerDirectorTel: string;
+  directorTel: string;
 
   @Column({ nullable: true })
-  customerDirectorEmail: string;
+  directorEmail: string;
 
   @Column({ nullable: true })
   internal: boolean;
