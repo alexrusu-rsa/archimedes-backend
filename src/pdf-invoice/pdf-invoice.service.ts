@@ -268,7 +268,7 @@ export class PdfInvoiceService {
                 240,
                 { width: 50, align: 'justify' },
               );
-            doc.fillColor('#000000').text(customerOfProject.CUI, 145, 240, {
+            doc.fillColor('#000000').text(customerOfProject.cui, 145, 240, {
               width: 400,
               align: 'left',
             });
@@ -281,7 +281,7 @@ export class PdfInvoiceService {
                 255,
                 { width: 50, align: 'justify' },
               );
-            doc.fillColor('#000000').text(customerOfProject.Reg, 145, 255, {
+            doc.fillColor('#000000').text(customerOfProject.reg, 145, 255, {
               width: 400,
               align: 'justify',
             });
@@ -543,7 +543,7 @@ export class PdfInvoiceService {
                 });
             }
 
-            if (customerOfProject.VAT) {
+            if (customerOfProject.vat) {
               doc.fillColor('#000000').text(
                 this.i18n.t('strings.VAT19', {
                   lang: lang,
@@ -645,7 +645,7 @@ export class PdfInvoiceService {
               doc.fillColor('#000000').text(
                 `${this.i18n.t('strings.CUI', {
                   lang: lang,
-                })} ${internalCompany.CUI}`,
+                })} ${internalCompany.cui}`,
                 45,
                 660,
                 {
@@ -654,7 +654,7 @@ export class PdfInvoiceService {
                 },
               );
 
-              doc.fillColor('#000000').text(`${internalCompany.Reg}`, 45, 675, {
+              doc.fillColor('#000000').text(`${internalCompany.reg}`, 45, 675, {
                 width: 225,
                 align: 'justify',
               });
@@ -702,14 +702,14 @@ export class PdfInvoiceService {
               if (romanianCustomer)
                 doc
                   .fillColor('#000000')
-                  .text(internalCompany.IBANRO, 400, 705, {
+                  .text(internalCompany.ibanRo, 400, 705, {
                     width: 165,
                     align: 'justify',
                   });
               else
                 doc
                   .fillColor('#000000')
-                  .text(internalCompany.IBANEUR, 400, 705, {
+                  .text(internalCompany.ibanEur, 400, 705, {
                     width: 165,
                     align: 'justify',
                   });
@@ -867,7 +867,7 @@ export class PdfInvoiceService {
                     align: 'center',
                   },
                 );
-              if (customerOfProject.VAT) {
+              if (customerOfProject.vat) {
                 doc
                   .font('Helvetica-Bold')
                   .fillColor('#000000')
@@ -971,7 +971,7 @@ export class PdfInvoiceService {
                     align: 'center',
                   },
                 );
-              if (customerOfProject.VAT) {
+              if (customerOfProject.vat) {
                 doc
                   .font('Helvetica-Bold')
                   .fillColor('#000000')
@@ -1077,7 +1077,7 @@ export class PdfInvoiceService {
                     align: 'center',
                   },
                 );
-              if (customerOfProject.VAT) {
+              if (customerOfProject.vat) {
                 doc
                   .font('Helvetica-Bold')
                   .fillColor('#000000')
@@ -1187,7 +1187,7 @@ export class PdfInvoiceService {
                     align: 'center',
                   },
                 );
-              if (customerOfProject.VAT) {
+              if (customerOfProject.vat) {
                 doc
                   .font('Helvetica-Bold')
                   .fillColor('#000000')

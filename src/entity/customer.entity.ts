@@ -9,10 +9,10 @@ export class Customer {
   name: string;
 
   @Column()
-  CUI: string;
+  cui: string;
 
   @Column()
-  Reg: string;
+  reg: string;
 
   @Column()
   address: string;
@@ -36,13 +36,13 @@ export class Customer {
   internal: boolean;
 
   @Column({ nullable: true })
-  VAT: boolean;
+  vat: boolean;
 
   @Column({ nullable: true })
-  IBANRO: string;
+  ibanRo: string;
 
   @Column({ nullable: true })
-  IBANEUR: string;
+  ibanEur: string;
 
   @Column({ nullable: true })
   shortName: string;
