@@ -11,10 +11,9 @@ import {
 import { ActivityDuplicateRange } from 'src/custom/activity-duplicate-range';
 import { ProjectService } from 'src/project/project.service';
 import { BookedDay } from 'src/custom/booked-day';
-import { UserWithActivities } from 'src/custom/user-with-activities';
 import { User } from 'src/entity/user.entity';
-import { UserTimeBooked } from 'src/custom/user-date-timebooked';
 import { WidgetDay } from 'src/custom/widget-day';
+import { Project } from 'src/entity/project.entity';
 
 @Injectable()
 export class ActivityService {
@@ -23,6 +22,8 @@ export class ActivityService {
     private activityRepository: Repository<Activity>,
     @Inject('USER_REPOSITORY')
     private userRepository: Repository<User>,
+    @Inject('PROJECT_REPOSITORY')
+    private projectRepository: Repository<Project>,
     private projectService: ProjectService,
   ) {}
 
@@ -434,15 +435,15 @@ export class ActivityService {
     year: number,
   ): Promise<BookedDay[]> {
     try {
-      //find all users which activities are to be counted for reporting page
+      // Find all users whose activities are to be counted for the reporting page
       const users = await this.userRepository.find();
 
       if (!users || users.length === 0) return [];
 
-      //find first and last day of the month for searching for activities in this interval
+      // Find the first and last day of the month for searching activities within this interval
       const { firstDay, lastDay } = this.getFirstAndLastDayOfMonth(year, month);
 
-      //get an array of users, with all their activities between firstDay and lastDay of the month selected
+      // Get an array of users with all their activities between firstDay and lastDay of the selected month
       const usersWithActivities = await Promise.all(
         users.map(async ({ password, ...user }) => {
           const activities = await this.activityRepository.find({
@@ -451,15 +452,26 @@ export class ActivityService {
               employeeId: user.id,
             },
           });
-          return { user, activities };
+
+          // Fetch the project details for each activity
+          const activitiesWithProjects = await Promise.all(
+            activities.map(async (activity) => {
+              const project = await this.projectRepository.findOne({
+                where: { id: activity.projectId },
+              });
+              return { ...activity, project }; // Merge project data into the activity object
+            }),
+          );
+
+          return { user, activities: activitiesWithProjects };
         }),
       );
 
-      //count the days of the selected month
+      // Count the days of the selected month
       const numberOfDays =
         (lastDay.getTime() - firstDay.getTime()) / (1000 * 60 * 60 * 24) + 1;
 
-      //initialize an array of BookedDay objects, containing reporting data about each day of the month
+      // Initialize an array of BookedDay objects containing reporting data about each day of the month
       const calendarDays: BookedDay[] = Array.from(
         { length: numberOfDays },
         (_, i) => {
@@ -473,8 +485,7 @@ export class ActivityService {
         },
       );
 
-      // for each day in the selected month add data about each individual user reported activities in terms of time and expected time
-      // also data for workedTime VS expectedTime is calculated for each individual user as well as totals
+      // For each day in the selected month, add data about each individual user's reported activities
       calendarDays.forEach((day) => {
         const { totalHours, totalMinutes, expectedHours } =
           usersWithActivities.reduce(
@@ -530,6 +541,7 @@ export class ActivityService {
         }`;
         day.expectedHours = expectedHours;
       });
+
       return calendarDays;
     } catch (err) {
       throw err;
