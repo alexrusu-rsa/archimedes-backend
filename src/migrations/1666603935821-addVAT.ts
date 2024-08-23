@@ -5,7 +5,7 @@ export class addVAT1666603935821 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     const customers = await queryRunner.manager.find(Customer);
     const updatedCustomers = customers.map((customer) => {
-      customer.VAT = true;
+      customer.vat = true;
       return customer;
     });
     await queryRunner.startTransaction();

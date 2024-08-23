@@ -6,43 +6,43 @@ export class Customer {
   id?: string;
 
   @Column()
-  customerName: string;
+  name: string;
 
   @Column()
-  customerCUI: string;
+  cui: string;
 
   @Column()
-  customerReg: string;
+  reg: string;
 
   @Column()
-  customerAddress: string;
+  address: string;
 
   @Column()
-  customerCity: string;
+  city: string;
 
   @Column({ nullable: true })
-  customerCountry: string;
+  country: string;
 
   @Column({ nullable: true })
-  customerDirectorName: string;
+  directorName: string;
 
   @Column({ nullable: true })
-  customerDirectorTel: string;
+  directorTel: string;
 
   @Column({ nullable: true })
-  customerDirectorEmail: string;
+  directorEmail: string;
 
   @Column({ nullable: true })
   internal: boolean;
 
   @Column({ nullable: true })
-  VAT: boolean;
+  vat: boolean;
 
   @Column({ nullable: true })
-  IBANRO: string;
+  ibanRo: string;
 
   @Column({ nullable: true })
-  IBANEUR: string;
+  ibanEur: string;
 
   @Column({ nullable: true })
   shortName: string;
