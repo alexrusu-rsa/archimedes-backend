@@ -255,12 +255,10 @@ export class PdfInvoiceService {
                 225,
                 { width: 50, align: 'justify' },
               );
-            doc
-              .fillColor('#000000')
-              .text(customerOfProject.customerName, 145, 225, {
-                width: 400,
-                align: 'left',
-              });
+            doc.fillColor('#000000').text(customerOfProject.name, 145, 225, {
+              width: 400,
+              align: 'left',
+            });
 
             doc
               .fillColor('#000000')
@@ -270,12 +268,10 @@ export class PdfInvoiceService {
                 240,
                 { width: 50, align: 'justify' },
               );
-            doc
-              .fillColor('#000000')
-              .text(customerOfProject.customerCUI, 145, 240, {
-                width: 400,
-                align: 'left',
-              });
+            doc.fillColor('#000000').text(customerOfProject.cui, 145, 240, {
+              width: 400,
+              align: 'left',
+            });
 
             doc
               .fillColor('#000000')
@@ -285,12 +281,10 @@ export class PdfInvoiceService {
                 255,
                 { width: 50, align: 'justify' },
               );
-            doc
-              .fillColor('#000000')
-              .text(customerOfProject.customerReg, 145, 255, {
-                width: 400,
-                align: 'justify',
-              });
+            doc.fillColor('#000000').text(customerOfProject.reg, 145, 255, {
+              width: 400,
+              align: 'justify',
+            });
 
             doc
               .fillColor('#000000')
@@ -300,12 +294,10 @@ export class PdfInvoiceService {
                 270,
                 { width: 80, align: 'justify' },
               );
-            doc
-              .fillColor('#000000')
-              .text(customerOfProject.customerAddress, 145, 270, {
-                width: 400,
-                align: 'justify',
-              });
+            doc.fillColor('#000000').text(customerOfProject.address, 145, 270, {
+              width: 400,
+              align: 'justify',
+            });
             doc.fontSize(14);
 
             doc.lineWidth(1);
@@ -551,7 +543,7 @@ export class PdfInvoiceService {
                 });
             }
 
-            if (customerOfProject.VAT) {
+            if (customerOfProject.vat) {
               doc.fillColor('#000000').text(
                 this.i18n.t('strings.VAT19', {
                   lang: lang,
@@ -653,7 +645,7 @@ export class PdfInvoiceService {
               doc.fillColor('#000000').text(
                 `${this.i18n.t('strings.CUI', {
                   lang: lang,
-                })} ${internalCompany.customerCUI}`,
+                })} ${internalCompany.cui}`,
                 45,
                 660,
                 {
@@ -662,17 +654,15 @@ export class PdfInvoiceService {
                 },
               );
 
-              doc
-                .fillColor('#000000')
-                .text(`${internalCompany.customerReg}`, 45, 675, {
-                  width: 225,
-                  align: 'justify',
-                });
+              doc.fillColor('#000000').text(`${internalCompany.reg}`, 45, 675, {
+                width: 225,
+                align: 'justify',
+              });
 
               doc.fillColor('#000000').text(
                 `${this.i18n.t('strings.headquarters', {
                   lang: lang,
-                })} ${internalCompany.customerAddress}`,
+                })} ${internalCompany.address}`,
                 45,
                 690,
                 {
@@ -684,7 +674,7 @@ export class PdfInvoiceService {
               doc
                 .fillColor('#000000')
                 .text(
-                  `${internalCompany.customerCity} ${internalCompany.customerCountry}`,
+                  `${internalCompany.city} ${internalCompany.country}`,
                   45,
                   705,
                   {
@@ -696,7 +686,7 @@ export class PdfInvoiceService {
               doc.fillColor('#000000').text(
                 `${this.i18n.t('strings.representative', {
                   lang: lang,
-                })} ${internalCompany.customerDirectorName} , Administrator`,
+                })} ${internalCompany.directorName} , Administrator`,
                 45,
                 720,
                 {
@@ -712,14 +702,14 @@ export class PdfInvoiceService {
               if (romanianCustomer)
                 doc
                   .fillColor('#000000')
-                  .text(internalCompany.IBANRO, 400, 705, {
+                  .text(internalCompany.ibanRo, 400, 705, {
                     width: 165,
                     align: 'justify',
                   });
               else
                 doc
                   .fillColor('#000000')
-                  .text(internalCompany.IBANEUR, 400, 705, {
+                  .text(internalCompany.ibanEur, 400, 705, {
                     width: 165,
                     align: 'justify',
                   });
@@ -877,7 +867,7 @@ export class PdfInvoiceService {
                     align: 'center',
                   },
                 );
-              if (customerOfProject.VAT) {
+              if (customerOfProject.vat) {
                 doc
                   .font('Helvetica-Bold')
                   .fillColor('#000000')
@@ -981,7 +971,7 @@ export class PdfInvoiceService {
                     align: 'center',
                   },
                 );
-              if (customerOfProject.VAT) {
+              if (customerOfProject.vat) {
                 doc
                   .font('Helvetica-Bold')
                   .fillColor('#000000')
@@ -1087,7 +1077,7 @@ export class PdfInvoiceService {
                     align: 'center',
                   },
                 );
-              if (customerOfProject.VAT) {
+              if (customerOfProject.vat) {
                 doc
                   .font('Helvetica-Bold')
                   .fillColor('#000000')
@@ -1197,7 +1187,7 @@ export class PdfInvoiceService {
                     align: 'center',
                   },
                 );
-              if (customerOfProject.VAT) {
+              if (customerOfProject.vat) {
                 doc
                   .font('Helvetica-Bold')
                   .fillColor('#000000')
