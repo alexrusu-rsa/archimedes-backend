@@ -127,6 +127,7 @@ export class ActivityService {
   }
 
   async addActivity(activity: Activity): Promise<Activity> {
+    console.log(activity, 'in service');
     try {
       if (
         !activity.date ||
@@ -135,6 +136,7 @@ export class ActivityService {
         !activity.end ||
         !activity.name
       ) {
+        console.log('we get here');
         throw new HttpException(
           'Make sure you add required information about the activity!',
           HttpStatus.NOT_ACCEPTABLE,
@@ -433,7 +435,7 @@ export class ActivityService {
 
   groupActivitiesByDate(activities: Activity[]): Days {
     return activities.reduce((days: Days, activity: Activity) => {
-      const dateKey = activity.date.toISOString().split('T')[0];
+      const dateKey = activity.date.toISOString();
 
       if (!days[dateKey]) {
         days[dateKey] = {
