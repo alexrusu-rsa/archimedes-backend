@@ -21,6 +21,7 @@ import { Request } from 'express';
 import { MonthYear } from 'src/custom/month-year';
 import { BookedDay } from 'src/custom/booked-day';
 import { WidgetDay } from 'src/custom/widget-day';
+import { Days } from 'src/custom/days';
 @Controller()
 export class ActivityController {
   constructor(private activityService: ActivityService) {}
@@ -149,5 +150,12 @@ export class ActivityController {
       body.month,
       body.year,
     );
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('/monthYear/report')
+  @Roles(Role.Admin)
+  async getBookedDays(@Body() body: MonthYear): Promise<Days> {
+    return this.activityService.getDays(body.month, body.year);
   }
 }

@@ -14,6 +14,7 @@ import { BookedDay } from 'src/custom/booked-day';
 import { User } from 'src/entity/user.entity';
 import { WidgetDay } from 'src/custom/widget-day';
 import { Project } from 'src/entity/project.entity';
+import { Days } from 'src/custom/days';
 
 @Injectable()
 export class ActivityService {
@@ -428,6 +429,61 @@ export class ActivityService {
     } catch (err) {
       throw err;
     }
+  }
+
+  groupActivitiesByDate(activities: Activity[]): Days {
+    return activities.reduce((days: Days, activity: Activity) => {
+      const dateKey = activity.date.toISOString().split('T')[0];
+
+      if (!days[dateKey]) {
+        days[dateKey] = {
+          expectedHours: 8,
+          timeBooked: '00:00',
+          activities: [],
+        };
+      }
+
+      days[dateKey].activities.push(activity);
+
+      const [hours, minutes] = days[dateKey].timeBooked.split(':').map(Number);
+      const [workedHours, workedMinutes] = activity.workedTime
+        .split(':')
+        .map(Number);
+      const totalMinutes =
+        hours * 60 + minutes + workedHours * 60 + workedMinutes;
+      const newHours = Math.floor(totalMinutes / 60);
+      const newMinutes = totalMinutes % 60;
+
+      days[dateKey].timeBooked = `${newHours
+        .toString()
+        .padStart(2, '0')}:${newMinutes.toString().padStart(2, '0')}`;
+
+      return days;
+    }, {});
+  }
+
+  async getDays(month: number, year: number): Promise<Days> {
+    const { firstDay, lastDay } = this.getFirstAndLastDayOfMonth(year, month);
+
+    const activities = await this.activityRepository.find({
+      where: {
+        date: Between(firstDay, lastDay),
+      },
+    });
+
+    const activitiesWithUser = await Promise.all(
+      activities.map(async (activity) => {
+        const { password, ...user } = await this.userRepository.findOne({
+          where: { id: activity.employeeId },
+        });
+
+        return { ...activity, user };
+      }),
+    );
+
+    const monthYearReport = this.groupActivitiesByDate(activitiesWithUser);
+
+    return monthYearReport;
   }
 
   async getActivitiesOfMonthYearAllUsers(
