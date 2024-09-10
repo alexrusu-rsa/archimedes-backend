@@ -77,7 +77,6 @@ export class ActivityController {
   @UseGuards(JwtAuthGuard)
   @Post()
   addNewActivity(@Body() activity: Activity) {
-    console.log(activity);
     return this.activityService.addActivity(activity);
   }
 
