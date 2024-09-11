@@ -231,23 +231,35 @@ export class ActivityService {
       activity.workedTime = `${formattedHours}:${formattedMinutes}`;
 
       if (toUpdateActivity) {
-        const updatedActivity = await this.activityRepository.update(
-          id,
-          activity,
-        );
-
-        if (updatedActivity) {
-          const project = await this.projectService.getProjectById(
-            activity.projectId,
+        if (activity.projectId) {
+          const updatedActivity = await this.activityRepository.update(
+            id,
+            activity,
           );
+
+          if (updatedActivity) {
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const { projectId, ...activityWithoutProjectId } =
+              await this.activityRepository.findOneBy({ id });
+
+            const project = await this.projectRepository.findOneBy({
+              id: projectId,
+            });
+            return {
+              ...activityWithoutProjectId,
+              project: activity?.projectId ? project : null,
+            };
+          }
+        } else {
           const { projectId, ...activityWithoutProjectId } =
             await this.activityRepository.findOneBy({ id });
-
+          const project = { id: '', projectName: 'Other' } as Project;
           return {
             ...activityWithoutProjectId,
-            project: activity?.projectId ? project : null,
+            project: project,
           };
         }
+
         throw new HttpException(
           'We could not update the activity!',
           HttpStatus.BAD_REQUEST,
