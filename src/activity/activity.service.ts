@@ -206,9 +206,11 @@ export class ActivityService {
     }
   }
 
-  async updateById(id: string, activity: Activity): Promise<Activity> {
+  async updateById(activity: Activity): Promise<Activity> {
     try {
-      const toUpdateActivity = await this.activityRepository.findOneBy({ id });
+      const toUpdateActivity = await this.activityRepository.findOneBy({
+        id: activity.id,
+      });
       const startTime = new Date(activity.start);
       const endTime = new Date(activity.end);
 
@@ -231,16 +233,16 @@ export class ActivityService {
       activity.workedTime = `${formattedHours}:${formattedMinutes}`;
 
       if (toUpdateActivity) {
-        if (activity.projectId) {
+        if (activity.projectId !== '') {
           const updatedActivity = await this.activityRepository.update(
-            id,
+            activity.id,
             activity,
           );
 
           if (updatedActivity) {
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const { projectId, ...activityWithoutProjectId } =
-              await this.activityRepository.findOneBy({ id });
+              await this.activityRepository.findOneBy({ id: activity.id });
 
             const project = await this.projectRepository.findOneBy({
               id: projectId,
@@ -251,9 +253,9 @@ export class ActivityService {
             };
           }
         } else {
-          const { projectId, ...activityWithoutProjectId } =
-            await this.activityRepository.findOneBy({ id });
-          const project = { id: '', projectName: 'Other' } as Project;
+          const activityWithoutProjectId =
+            await this.activityRepository.findOneBy({ id: activity.id });
+          const project = null;
           return {
             ...activityWithoutProjectId,
             project: project,
@@ -366,13 +368,20 @@ export class ActivityService {
 
       const activityWithProject = await Promise.all(
         activities.map(async (activity) => {
-          const project = await this.projectService.getProjectById(
-            activity.projectId,
-          );
+          if (activity?.projectId) {
+            const project = await this.projectRepository.findOneBy({
+              id: activity?.projectId,
+            });
+            const { projectId, ...activityWithoutProjectId } = activity;
+            return {
+              ...activityWithoutProjectId,
+              project: activity.projectId ? project : null,
+            };
+          }
           const { projectId, ...activityWithoutProjectId } = activity;
           return {
             ...activityWithoutProjectId,
-            project: projectId ? project : null,
+            project: null,
           };
         }),
       );
@@ -489,12 +498,14 @@ export class ActivityService {
         const { password, ...user } = await this.userRepository.findOne({
           where: { id: activity.employeeId },
         });
+        if (activity.projectId) {
+          const project = await this.projectRepository.findOne({
+            where: { id: activity.projectId },
+          });
+          return { ...activity, user, project };
+        }
 
-        const project = await this.projectRepository.findOne({
-          where: { id: activity.projectId },
-        });
-
-        return { ...activity, user, project };
+        return { ...activity, user, project: null };
       }),
     );
 

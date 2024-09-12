@@ -94,11 +94,8 @@ export class ActivityController {
 
   @UseGuards(JwtAuthGuard)
   @Put(':id')
-  updateActivity(
-    @Body() activity: Activity,
-    @Param('id') id: string,
-  ): Promise<Activity> {
-    return this.activityService.updateById(id, activity);
+  updateActivity(@Body() activity: Activity): Promise<Activity> {
+    return this.activityService.updateById(activity);
   }
 
   @UseGuards(JwtAuthGuard)
