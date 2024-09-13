@@ -240,7 +240,6 @@ export class ActivityService {
           );
 
           if (updatedActivity) {
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const { projectId, ...activityWithoutProjectId } =
               await this.activityRepository.findOneBy({ id: activity.id });
 
@@ -258,7 +257,7 @@ export class ActivityService {
           const project = null;
           return {
             ...activityWithoutProjectId,
-            project: project,
+            project,
           };
         }
 
