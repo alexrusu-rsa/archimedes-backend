@@ -11,10 +11,10 @@ import {
 import { ActivityDuplicateRange } from 'src/custom/activity-duplicate-range';
 import { ProjectService } from 'src/project/project.service';
 import { BookedDay } from 'src/custom/booked-day';
-import { UserWithActivities } from 'src/custom/user-with-activities';
 import { User } from 'src/entity/user.entity';
-import { UserTimeBooked } from 'src/custom/user-date-timebooked';
 import { WidgetDay } from 'src/custom/widget-day';
+import { Project } from 'src/entity/project.entity';
+import { Days } from 'src/custom/days';
 
 @Injectable()
 export class ActivityService {
@@ -23,6 +23,8 @@ export class ActivityService {
     private activityRepository: Repository<Activity>,
     @Inject('USER_REPOSITORY')
     private userRepository: Repository<User>,
+    @Inject('PROJECT_REPOSITORY')
+    private projectRepository: Repository<Project>,
     private projectService: ProjectService,
   ) {}
 
@@ -204,9 +206,11 @@ export class ActivityService {
     }
   }
 
-  async updateById(id: string, activity: Activity): Promise<Activity> {
+  async updateById(activity: Activity): Promise<Activity> {
     try {
-      const toUpdateActivity = await this.activityRepository.findOneBy({ id });
+      const toUpdateActivity = await this.activityRepository.findOneBy({
+        id: activity.id,
+      });
       const startTime = new Date(activity.start);
       const endTime = new Date(activity.end);
 
@@ -229,22 +233,34 @@ export class ActivityService {
       activity.workedTime = `${formattedHours}:${formattedMinutes}`;
 
       if (toUpdateActivity) {
-        const updatedActivity = await this.activityRepository.update(
-          id,
-          activity,
-        );
-
-        if (updatedActivity) {
-          const project = await this.projectService.getProjectById(
-            activity.projectId,
+        if (activity.projectId !== '') {
+          const updatedActivity = await this.activityRepository.update(
+            activity.id,
+            activity,
           );
-          const { projectId, ...activityWithoutProjectId } =
-            await this.activityRepository.findOneBy({ id });
+
+          if (updatedActivity) {
+            const { projectId, ...activityWithoutProjectId } =
+              await this.activityRepository.findOneBy({ id: activity.id });
+
+            const project = await this.projectRepository.findOneBy({
+              id: projectId,
+            });
+            return {
+              ...activityWithoutProjectId,
+              project: activity?.projectId ? project : null,
+            };
+          }
+        } else {
+          const activityWithoutProjectId =
+            await this.activityRepository.findOneBy({ id: activity.id });
+          const project = null;
           return {
             ...activityWithoutProjectId,
-            project: activity?.projectId ? project : null,
+            project,
           };
         }
+
         throw new HttpException(
           'We could not update the activity!',
           HttpStatus.BAD_REQUEST,
@@ -351,13 +367,20 @@ export class ActivityService {
 
       const activityWithProject = await Promise.all(
         activities.map(async (activity) => {
-          const project = await this.projectService.getProjectById(
-            activity.projectId,
-          );
+          if (activity?.projectId) {
+            const project = await this.projectRepository.findOneBy({
+              id: activity?.projectId,
+            });
+            const { projectId, ...activityWithoutProjectId } = activity;
+            return {
+              ...activityWithoutProjectId,
+              project: activity.projectId ? project : null,
+            };
+          }
           const { projectId, ...activityWithoutProjectId } = activity;
           return {
             ...activityWithoutProjectId,
-            project: projectId ? project : null,
+            project: null,
           };
         }),
       );
@@ -429,20 +452,81 @@ export class ActivityService {
     }
   }
 
+  groupActivitiesByDate(activities: Activity[]): Days {
+    return activities.reduce((days: Days, activity: Activity) => {
+      const dateKey = activity.date.toISOString();
+
+      if (!days[dateKey]) {
+        days[dateKey] = {
+          expectedHours: 8,
+          timeBooked: '00:00',
+          activities: [],
+        };
+      }
+
+      days[dateKey].activities.push(activity);
+
+      const [hours, minutes] = days[dateKey].timeBooked.split(':').map(Number);
+      const [workedHours, workedMinutes] = activity.workedTime
+        .split(':')
+        .map(Number);
+      const totalMinutes =
+        hours * 60 + minutes + workedHours * 60 + workedMinutes;
+      const newHours = Math.floor(totalMinutes / 60);
+      const newMinutes = totalMinutes % 60;
+
+      days[dateKey].timeBooked = `${newHours
+        .toString()
+        .padStart(2, '0')}:${newMinutes.toString().padStart(2, '0')}`;
+
+      return days;
+    }, {});
+  }
+
+  async getDays(month: number, year: number): Promise<Days> {
+    const { firstDay, lastDay } = this.getFirstAndLastDayOfMonth(year, month);
+
+    const activities = await this.activityRepository.find({
+      where: {
+        date: Between(firstDay, lastDay),
+      },
+    });
+
+    const activitiesWithUser = await Promise.all(
+      activities.map(async (activity) => {
+        const { password, ...user } = await this.userRepository.findOne({
+          where: { id: activity.employeeId },
+        });
+        if (activity.projectId) {
+          const project = await this.projectRepository.findOne({
+            where: { id: activity.projectId },
+          });
+          return { ...activity, user, project };
+        }
+
+        return { ...activity, user, project: null };
+      }),
+    );
+
+    const monthYearReport = this.groupActivitiesByDate(activitiesWithUser);
+
+    return monthYearReport;
+  }
+
   async getActivitiesOfMonthYearAllUsers(
     month: number,
     year: number,
   ): Promise<BookedDay[]> {
     try {
-      //find all users which activities are to be counted for reporting page
+      // Find all users whose activities are to be counted for the reporting page
       const users = await this.userRepository.find();
 
       if (!users || users.length === 0) return [];
 
-      //find first and last day of the month for searching for activities in this interval
+      // Find the first and last day of the month for searching activities within this interval
       const { firstDay, lastDay } = this.getFirstAndLastDayOfMonth(year, month);
 
-      //get an array of users, with all their activities between firstDay and lastDay of the month selected
+      // Get an array of users with all their activities between firstDay and lastDay of the selected month
       const usersWithActivities = await Promise.all(
         users.map(async ({ password, ...user }) => {
           const activities = await this.activityRepository.find({
@@ -451,15 +535,26 @@ export class ActivityService {
               employeeId: user.id,
             },
           });
-          return { user, activities };
+
+          // Fetch the project details for each activity
+          const activitiesWithProjects = await Promise.all(
+            activities.map(async (activity) => {
+              const project = await this.projectRepository.findOne({
+                where: { id: activity.projectId },
+              });
+              return { ...activity, project }; // Merge project data into the activity object
+            }),
+          );
+
+          return { user, activities: activitiesWithProjects };
         }),
       );
 
-      //count the days of the selected month
+      // Count the days of the selected month
       const numberOfDays =
         (lastDay.getTime() - firstDay.getTime()) / (1000 * 60 * 60 * 24) + 1;
 
-      //initialize an array of BookedDay objects, containing reporting data about each day of the month
+      // Initialize an array of BookedDay objects containing reporting data about each day of the month
       const calendarDays: BookedDay[] = Array.from(
         { length: numberOfDays },
         (_, i) => {
@@ -473,8 +568,7 @@ export class ActivityService {
         },
       );
 
-      // for each day in the selected month add data about each individual user reported activities in terms of time and expected time
-      // also data for workedTime VS expectedTime is calculated for each individual user as well as totals
+      // For each day in the selected month, add data about each individual user's reported activities
       calendarDays.forEach((day) => {
         const { totalHours, totalMinutes, expectedHours } =
           usersWithActivities.reduce(
@@ -530,6 +624,7 @@ export class ActivityService {
         }`;
         day.expectedHours = expectedHours;
       });
+
       return calendarDays;
     } catch (err) {
       throw err;

@@ -1,6 +1,7 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 import { ActivityType } from '../custom/activity-type.enum';
 import { Project } from './project.entity';
+import { User } from './user.entity';
 
 @Entity()
 export class Activity {
@@ -37,4 +38,5 @@ export class Activity {
   @Column({ nullable: true })
   workedTime: string;
   project?: Project;
+  user?: User;
 }
