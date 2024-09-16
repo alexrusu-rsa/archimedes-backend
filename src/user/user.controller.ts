@@ -3,20 +3,19 @@ import {
   Controller,
   Delete,
   Get,
-  HttpException,
   Param,
   Post,
   Put,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { Role } from 'src/auth/role.enum';
 import { Roles } from 'src/auth/roles.decorator';
 import { PasswordChangeData } from 'src/custom/password-change-data';
-import { RequestWrapper } from 'src/custom/requestwrapper';
-import { RequestWrapperWithUserRole } from 'src/custom/requestWrapperWithUserRole';
 import { User } from 'src/entity/user.entity';
 import { UserService } from './user.service';
+import { Request } from 'express';
 
 @Controller()
 export class UserController {
@@ -40,9 +39,10 @@ export class UserController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get(':id')
-  getUser(@Param('id') id: string): Promise<User> {
-    return this.userService.getUser(id);
+  @Get('me')
+  getUserMe(@Req() request: Request): Promise<User> {
+    const user = request.user as { userId: string; username: string };
+    return this.userService.getUser(user.userId);
   }
 
   @Put('/password')

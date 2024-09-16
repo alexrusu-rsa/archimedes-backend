@@ -6,6 +6,7 @@ import {
   Param,
   Post,
   Put,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
@@ -13,15 +14,17 @@ import { Role } from 'src/auth/role.enum';
 import { Roles } from 'src/auth/roles.decorator';
 import { Project } from 'src/entity/project.entity';
 import { ProjectService } from './project.service';
+import { Request } from 'express';
 
 @Controller()
 export class ProjectController {
   constructor(private projectService: ProjectService) {}
 
   @UseGuards(JwtAuthGuard)
-  @Get(':userId')
-  getAllProjectsUser(@Param('userId') userId: string) {
-    return this.projectService.getProjectsUser(userId);
+  @Get('/user')
+  getProjectsMe(@Req() request: Request) {
+    const user = request.user as { userId: string; username: string };
+    return this.projectService.getProjectsByUserId(user.userId);
   }
 
   @UseGuards(JwtAuthGuard)

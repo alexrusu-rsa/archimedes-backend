@@ -1,4 +1,5 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Customer } from './customer.entity';
 
 @Entity()
 export class Project {
@@ -15,11 +16,13 @@ export class Project {
   contract: string;
 
   @Column({ nullable: true })
-  dueDate: string;
+  dueDate: Date;
 
   @Column({ nullable: true })
   invoiceTerm: number;
 
   @Column({ nullable: true })
-  contractSignDate: string;
+  contractSignDate: Date;
+
+  customer?: Customer;
 }

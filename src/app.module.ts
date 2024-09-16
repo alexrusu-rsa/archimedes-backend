@@ -10,20 +10,18 @@ import { RolesGuard } from './auth/roles.guard';
 import { CustomerModule } from './customer/customer.module';
 import { ProjectModule } from './project/project.module';
 import { DateFormatService } from './date-format/date-format.service';
-import { RateController } from './rate/rate.controller';
-import { RateService } from './rate/rate.service';
 import { RateModule } from './rate/rate.module';
 import { AuthRecieveModule } from './auth-recieve/auth-recieve.module';
-import {
-  AcceptLanguageResolver,
-  I18nModule,
-  I18nService,
-  QueryResolver,
-} from 'nestjs-i18n';
-import * as path from 'path';
+import { AcceptLanguageResolver, I18nModule, QueryResolver } from 'nestjs-i18n';
+import { JwtService } from '@nestjs/jwt';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '.env',
+    }),
     ActivityModule,
     I18nModule.forRoot({
       fallbackLanguage: 'en',
@@ -73,6 +71,7 @@ import * as path from 'path';
       provide: APP_GUARD,
       useClass: RolesGuard,
     },
+    JwtService,
     DateFormatService,
   ],
 })

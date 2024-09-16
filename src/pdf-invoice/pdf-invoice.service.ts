@@ -2,7 +2,7 @@ import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { Activity } from 'src/entity/activity.entity';
 import { Customer } from 'src/entity/customer.entity';
 import { Project } from 'src/entity/project.entity';
-import { getRepository, Repository } from 'typeorm';
+import { Between, getRepository, Like, Repository } from 'typeorm';
 import * as PDFDocument from 'pdfkit';
 import { DateFormatService } from 'src/date-format/date-format.service';
 import { Rate } from 'src/entity/rate.entity';
@@ -83,9 +83,6 @@ export class PdfInvoiceService {
           `${parseInt(invoiceCreationYear)}-1-${project.invoiceTerm}`,
         );
       }
-      let invoiceDueDateToDisplay = `${invoiceDueDate.getDate()}/${
-        Number(invoiceDueDate.getMonth()) + 1
-      }/${invoiceDueDate.getFullYear()}`;
 
       if (actualEmisionDate && invoiceTerm) {
         const dateArray = emmisionDateString.split('-');
@@ -98,7 +95,6 @@ export class PdfInvoiceService {
           parseInt(invoiceTerm.toString()),
         );
         actualInvoiceDueDate = this.formatDateToString(checkValue);
-        console.log(actualInvoiceDueDate);
       }
       const internalCompany = await this.customerRepository.findOneBy({
         internal: true,
@@ -112,19 +108,24 @@ export class PdfInvoiceService {
         });
         let lang = 'en';
         const romanianCustomer = customerOfProject.romanianCompany;
-        const customerSWIFT = customerOfProject.swift;
         if (romanianCustomer) lang = 'ro';
-        const appliedVAT = customerOfProject.VAT;
         const VATvalue = 0.19;
-        this.activitiesOfProjectPerMonthYear = await getRepository(Activity)
-          .createQueryBuilder('activity')
-          .where('activity.projectId like :currentprojectid', {
-            currentprojectid: project.id,
-          })
-          .andWhere('activity.date like :date', {
-            date: `%${formattedDate}`,
-          })
-          .getMany();
+
+        const searchYear = parseInt(year, 10);
+        const searchMonth = parseInt(month, 10);
+
+        const startDate = new Date(searchYear, searchMonth - 1, 1);
+        const endDate = new Date(searchYear, searchMonth, 0);
+
+        this.activitiesOfProjectPerMonthYear = await getRepository(
+          Activity,
+        ).find({
+          where: {
+            date: Between(new Date(startDate), new Date(endDate)),
+            projectId: Like(project.id),
+          },
+        });
+
         if (this.activitiesOfProjectPerMonthYear) {
           this.numberOfDaysWorkedOnProjectDuringMonth =
             this.getNumberOfDayWithActivitiesOfProjectFromMonth(
@@ -254,12 +255,10 @@ export class PdfInvoiceService {
                 225,
                 { width: 50, align: 'justify' },
               );
-            doc
-              .fillColor('#000000')
-              .text(customerOfProject.customerName, 145, 225, {
-                width: 400,
-                align: 'left',
-              });
+            doc.fillColor('#000000').text(customerOfProject.name, 145, 225, {
+              width: 400,
+              align: 'left',
+            });
 
             doc
               .fillColor('#000000')
@@ -269,12 +268,10 @@ export class PdfInvoiceService {
                 240,
                 { width: 50, align: 'justify' },
               );
-            doc
-              .fillColor('#000000')
-              .text(customerOfProject.customerCUI, 145, 240, {
-                width: 400,
-                align: 'left',
-              });
+            doc.fillColor('#000000').text(customerOfProject.cui, 145, 240, {
+              width: 400,
+              align: 'left',
+            });
 
             doc
               .fillColor('#000000')
@@ -284,12 +281,10 @@ export class PdfInvoiceService {
                 255,
                 { width: 50, align: 'justify' },
               );
-            doc
-              .fillColor('#000000')
-              .text(customerOfProject.customerReg, 145, 255, {
-                width: 400,
-                align: 'justify',
-              });
+            doc.fillColor('#000000').text(customerOfProject.reg, 145, 255, {
+              width: 400,
+              align: 'justify',
+            });
 
             doc
               .fillColor('#000000')
@@ -299,12 +294,10 @@ export class PdfInvoiceService {
                 270,
                 { width: 80, align: 'justify' },
               );
-            doc
-              .fillColor('#000000')
-              .text(customerOfProject.customerAddress, 145, 270, {
-                width: 400,
-                align: 'justify',
-              });
+            doc.fillColor('#000000').text(customerOfProject.address, 145, 270, {
+              width: 400,
+              align: 'justify',
+            });
             doc.fontSize(14);
 
             doc.lineWidth(1);
@@ -550,7 +543,7 @@ export class PdfInvoiceService {
                 });
             }
 
-            if (customerOfProject.VAT) {
+            if (customerOfProject.vat) {
               doc.fillColor('#000000').text(
                 this.i18n.t('strings.VAT19', {
                   lang: lang,
@@ -652,7 +645,7 @@ export class PdfInvoiceService {
               doc.fillColor('#000000').text(
                 `${this.i18n.t('strings.CUI', {
                   lang: lang,
-                })} ${internalCompany.customerCUI}`,
+                })} ${internalCompany.cui}`,
                 45,
                 660,
                 {
@@ -661,17 +654,15 @@ export class PdfInvoiceService {
                 },
               );
 
-              doc
-                .fillColor('#000000')
-                .text(`${internalCompany.customerReg}`, 45, 675, {
-                  width: 225,
-                  align: 'justify',
-                });
+              doc.fillColor('#000000').text(`${internalCompany.reg}`, 45, 675, {
+                width: 225,
+                align: 'justify',
+              });
 
               doc.fillColor('#000000').text(
                 `${this.i18n.t('strings.headquarters', {
                   lang: lang,
-                })} ${internalCompany.customerAddress}`,
+                })} ${internalCompany.address}`,
                 45,
                 690,
                 {
@@ -683,7 +674,7 @@ export class PdfInvoiceService {
               doc
                 .fillColor('#000000')
                 .text(
-                  `${internalCompany.customerCity} ${internalCompany.customerCountry}`,
+                  `${internalCompany.city} ${internalCompany.country}`,
                   45,
                   705,
                   {
@@ -695,7 +686,7 @@ export class PdfInvoiceService {
               doc.fillColor('#000000').text(
                 `${this.i18n.t('strings.representative', {
                   lang: lang,
-                })} ${internalCompany.customerDirectorName} , Administrator`,
+                })} ${internalCompany.directorName} , Administrator`,
                 45,
                 720,
                 {
@@ -711,14 +702,14 @@ export class PdfInvoiceService {
               if (romanianCustomer)
                 doc
                   .fillColor('#000000')
-                  .text(internalCompany.IBANRO, 400, 705, {
+                  .text(internalCompany.ibanRo, 400, 705, {
                     width: 165,
                     align: 'justify',
                   });
               else
                 doc
                   .fillColor('#000000')
-                  .text(internalCompany.IBANEUR, 400, 705, {
+                  .text(internalCompany.ibanEur, 400, 705, {
                     width: 165,
                     align: 'justify',
                   });
@@ -819,24 +810,11 @@ export class PdfInvoiceService {
             const activitiesOfProjectMonthYearSortedASC2 =
               this.activitiesOfProjectPerMonthYear.sort(
                 (activity1, activity2) =>
-                  new Date(
-                    this.dateFormatService.formatDBDateStringToISO(
-                      activity1.date,
-                    ),
-                  ).getTime() -
-                  new Date(
-                    this.dateFormatService.formatDBDateStringToISO(
-                      activity2.date,
-                    ),
-                  ).getTime(),
+                  activity1.date.getTime() - activity2.date.getTime(),
               );
             activitiesOfProjectMonthYearSortedASC2.forEach((activity) => {
-              const startDateTime = this.dateFormatService.getNewDateWithTime(
-                activity.start,
-              );
-              const endDateTime = this.dateFormatService.getNewDateWithTime(
-                activity.end,
-              );
+              const startDateTime = activity.start;
+              const endDateTime = activity.end;
               const timeForCurrentActivity =
                 this.dateFormatService.millisecondsToHoursAndMinutes(
                   endDateTime.getTime() - startDateTime.getTime(),
@@ -871,6 +849,7 @@ export class PdfInvoiceService {
                     align: 'center',
                   },
                 );
+
               doc
                 .font('Helvetica-Bold')
                 .fillColor('#000000')
@@ -888,7 +867,7 @@ export class PdfInvoiceService {
                     align: 'center',
                   },
                 );
-              if (customerOfProject.VAT) {
+              if (customerOfProject.vat) {
                 doc
                   .font('Helvetica-Bold')
                   .fillColor('#000000')
@@ -992,7 +971,7 @@ export class PdfInvoiceService {
                     align: 'center',
                   },
                 );
-              if (customerOfProject.VAT) {
+              if (customerOfProject.vat) {
                 doc
                   .font('Helvetica-Bold')
                   .fillColor('#000000')
@@ -1098,7 +1077,7 @@ export class PdfInvoiceService {
                     align: 'center',
                   },
                 );
-              if (customerOfProject.VAT) {
+              if (customerOfProject.vat) {
                 doc
                   .font('Helvetica-Bold')
                   .fillColor('#000000')
@@ -1208,7 +1187,7 @@ export class PdfInvoiceService {
                     align: 'center',
                   },
                 );
-              if (customerOfProject.VAT) {
+              if (customerOfProject.vat) {
                 doc
                   .font('Helvetica-Bold')
                   .fillColor('#000000')
@@ -1308,43 +1287,32 @@ export class PdfInvoiceService {
             );
 
             let index = 1;
-            let invoiceHoursTime = 0;
-            let invoiceMinutesTime = 0;
             if (rateForProject.rateType === RateType.PROJECT) {
               this.activitiesOfProjectPerMonthYear =
                 await this.getAllActivitiesOnProject(id);
             }
+
             const activitiesOfProjectMonthYearSortedASC =
               this.activitiesOfProjectPerMonthYear.sort(
                 (activity1, activity2) =>
-                  new Date(
-                    this.dateFormatService.formatDBDateStringToISO(
-                      activity1.date,
-                    ),
-                  ).getTime() -
-                  new Date(
-                    this.dateFormatService.formatDBDateStringToISO(
-                      activity2.date,
-                    ),
-                  ).getTime(),
+                  activity1.date.getTime() - activity2.date.getTime(),
               );
+
             activitiesOfProjectMonthYearSortedASC.forEach((activity) => {
-              const startDateTime = this.dateFormatService.getNewDateWithTime(
-                activity.start,
-              );
-              const endDateTime = this.dateFormatService.getNewDateWithTime(
-                activity.end,
-              );
+              const startDateTime = activity.start;
+              const endDateTime = activity.end;
               const timeForCurrentActivity =
                 this.dateFormatService.millisecondsToHoursAndMinutes(
                   endDateTime.getTime() - startDateTime.getTime(),
                 );
-              invoiceHoursTime =
-                invoiceHoursTime + timeForCurrentActivity.hours;
-              invoiceMinutesTime =
-                invoiceMinutesTime + timeForCurrentActivity.minutes;
+
               doc.fillColor('#000000').text(
-                `${activity.date}. ${activity.name} - ${
+                `${activity.date.getFullYear()}-${(activity.date.getMonth() + 1)
+                  .toString()
+                  .padStart(2, '0')}-${activity.date
+                  .getDate()
+                  .toString()
+                  .padStart(2, '0')} ${activity.name} - ${
                   activity.activityType
                 } - ${this.i18n.t('strings.annexActivityTimeHours', {
                   lang: lang,
