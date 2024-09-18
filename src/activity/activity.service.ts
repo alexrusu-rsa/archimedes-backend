@@ -513,9 +513,9 @@ export class ActivityService {
         return { ...activity, user, project: null };
       }),
     );
-    const rates = await this.userRepository.find();
-    const totalExpectedTimePerDay = rates.reduce((total, user) => {
-      return total + parseInt(user.timePerDay);
+    const rates = await this.rateRepository.find();
+    const totalExpectedTimePerDay = rates.reduce((total, rate) => {
+      return total + rate.employeeTimeCommitement;
     }, 0);
 
     const monthYearReport = this.groupActivitiesByDate(
