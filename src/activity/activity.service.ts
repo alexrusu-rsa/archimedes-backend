@@ -16,6 +16,7 @@ import { WidgetDay } from 'src/custom/widget-day';
 import { Project } from 'src/entity/project.entity';
 import { Days } from 'src/custom/days';
 import { Rate } from 'src/entity/rate.entity';
+import { ActivityFilter } from 'src/custom/activityFilter';
 
 @Injectable()
 export class ActivityService {
@@ -489,14 +490,24 @@ export class ActivityService {
     }, {});
   }
 
-  async getDays(month: number, year: number): Promise<Days> {
+  async getDays(
+    month: number,
+    year: number,
+    filters?: ActivityFilter,
+  ): Promise<Days> {
     const { firstDay, lastDay } = this.getFirstAndLastDayOfMonth(year, month);
 
-    const activities = await this.activityRepository.find({
+    const activityQuery: any = {
       where: {
         date: Between(firstDay, lastDay),
       },
-    });
+    };
+
+    if (filters?.project?.id) {
+      activityQuery.where.projectId = filters.project.id;
+    }
+
+    const activities = await this.activityRepository.find(activityQuery);
 
     const activitiesWithUser = await Promise.all(
       activities.map(async (activity) => {
@@ -513,6 +524,7 @@ export class ActivityService {
         return { ...activity, user, project: null };
       }),
     );
+
     const rates = await this.rateRepository.find();
     const totalExpectedTimePerDay = rates.reduce((total, rate) => {
       return total + rate.employeeTimeCommitement;
@@ -524,124 +536,6 @@ export class ActivityService {
     );
 
     return monthYearReport;
-  }
-
-  async getActivitiesOfMonthYearAllUsers(
-    month: number,
-    year: number,
-  ): Promise<BookedDay[]> {
-    try {
-      // Find all users whose activities are to be counted for the reporting page
-      const users = await this.userRepository.find();
-
-      if (!users || users.length === 0) return [];
-
-      // Find the first and last day of the month for searching activities within this interval
-      const { firstDay, lastDay } = this.getFirstAndLastDayOfMonth(year, month);
-
-      // Get an array of users with all their activities between firstDay and lastDay of the selected month
-      const usersWithActivities = await Promise.all(
-        users.map(async ({ password, ...user }) => {
-          const activities = await this.activityRepository.find({
-            where: {
-              date: Between(firstDay, lastDay),
-              employeeId: user.id,
-            },
-          });
-
-          // Fetch the project details for each activity
-          const activitiesWithProjects = await Promise.all(
-            activities.map(async (activity) => {
-              const project = await this.projectRepository.findOne({
-                where: { id: activity.projectId },
-              });
-              return { ...activity, project }; // Merge project data into the activity object
-            }),
-          );
-
-          return { user, activities: activitiesWithProjects };
-        }),
-      );
-
-      // Count the days of the selected month
-      const numberOfDays =
-        (lastDay.getTime() - firstDay.getTime()) / (1000 * 60 * 60 * 24) + 1;
-
-      // Initialize an array of BookedDay objects containing reporting data about each day of the month
-      const calendarDays: BookedDay[] = Array.from(
-        { length: numberOfDays },
-        (_, i) => {
-          const date = new Date(year, month - 1, i + 1);
-          return {
-            date,
-            usersTimeBooked: [],
-            timeBooked: '',
-            expectedHours: 0,
-          };
-        },
-      );
-
-      // For each day in the selected month, add data about each individual user's reported activities
-      calendarDays.forEach((day) => {
-        const { totalHours, totalMinutes, expectedHours } =
-          usersWithActivities.reduce(
-            (acc, { user, activities }) => {
-              const dayActivities = activities.filter((activity) => {
-                const activityDate = new Date(activity.date);
-                activityDate.setDate(activityDate.getDate());
-                return (
-                  activityDate.toISOString().split('T')[0] ===
-                  day.date.toISOString().split('T')[0]
-                );
-              });
-
-              const { hours, minutes } = dayActivities.reduce(
-                (timeAcc, activity) => {
-                  const [activityHours, activityMinutes] = activity.workedTime
-                    .split(':')
-                    .map(Number);
-                  return {
-                    hours: timeAcc.hours + activityHours,
-                    minutes: timeAcc.minutes + activityMinutes,
-                  };
-                },
-                { hours: 0, minutes: 0 },
-              );
-
-              const totalActivityHours = hours + Math.floor(minutes / 60);
-              const totalActivityMinutes = minutes % 60;
-
-              day.usersTimeBooked.push({
-                user: { user, activities: dayActivities },
-                timeBooked: `${totalActivityHours}:${totalActivityMinutes}`,
-              });
-
-              acc.totalHours += totalActivityHours;
-              acc.totalMinutes += totalActivityMinutes;
-
-              const timePerDay = parseInt(user.timePerDay as string, 10);
-              if (isNaN(timePerDay)) {
-                throw new Error(
-                  `Unable to parse timePerDay value: ${user.timePerDay}`,
-                );
-              }
-              acc.expectedHours += timePerDay;
-
-              return acc;
-            },
-            { totalHours: 0, totalMinutes: 0, expectedHours: 0 },
-          );
-
-        day.timeBooked = `${totalHours + Math.floor(totalMinutes / 60)}:${
-          totalMinutes % 60
-        }`;
-        day.expectedHours = expectedHours;
-      });
-
-      return calendarDays;
-    } catch (err) {
-      throw err;
-    }
   }
 
   async getBookedTimePerDayOfMonthYear(

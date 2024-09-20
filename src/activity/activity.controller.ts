@@ -22,6 +22,7 @@ import { MonthYear } from 'src/custom/month-year';
 import { BookedDay } from 'src/custom/booked-day';
 import { WidgetDay } from 'src/custom/widget-day';
 import { Days } from 'src/custom/days';
+import { ActivityFilter } from 'src/custom/activityFilter';
 @Controller()
 export class ActivityController {
   constructor(private activityService: ActivityService) {}
@@ -119,15 +120,6 @@ export class ActivityController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Post('/monthYear/users')
-  getUsersWithActivities(@Body() body: MonthYear): Promise<BookedDay[]> {
-    return this.activityService.getActivitiesOfMonthYearAllUsers(
-      body.month,
-      body.year,
-    );
-  }
-
-  @UseGuards(JwtAuthGuard)
   @Delete('/deleteAll/:date')
   deleteActivitiesOfUserDay(
     @Param('date') date: string,
@@ -138,21 +130,15 @@ export class ActivityController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Post('/monthYear/users')
-  @Roles(Role.Admin)
-  async getUsersWithBookedActivitiesOfMonth(
-    @Body() body: MonthYear,
-  ): Promise<BookedDay[]> {
-    return this.activityService.getActivitiesOfMonthYearAllUsers(
-      body.month,
-      body.year,
-    );
-  }
-
-  @UseGuards(JwtAuthGuard)
   @Post('/monthYear/report')
   @Roles(Role.Admin)
-  async getBookedDays(@Body() body: MonthYear): Promise<Days> {
-    return this.activityService.getDays(body.month, body.year);
+  async getBookedDays(
+    @Body() body: { monthYear: MonthYear; filters?: ActivityFilter },
+  ): Promise<Days> {
+    return this.activityService.getDays(
+      body.monthYear?.month,
+      body.monthYear?.year,
+      body.filters,
+    );
   }
 }
