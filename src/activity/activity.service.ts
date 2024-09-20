@@ -15,6 +15,7 @@ import { User } from 'src/entity/user.entity';
 import { WidgetDay } from 'src/custom/widget-day';
 import { Project } from 'src/entity/project.entity';
 import { Days } from 'src/custom/days';
+import { Rate } from 'src/entity/rate.entity';
 
 @Injectable()
 export class ActivityService {
@@ -25,6 +26,8 @@ export class ActivityService {
     private userRepository: Repository<User>,
     @Inject('PROJECT_REPOSITORY')
     private projectRepository: Repository<Project>,
+    @Inject('RATE_REPOSITORY')
+    private rateRepository: Repository<Rate>,
     private projectService: ProjectService,
   ) {}
 
@@ -452,13 +455,16 @@ export class ActivityService {
     }
   }
 
-  groupActivitiesByDate(activities: Activity[]): Days {
+  groupActivitiesByDate(
+    activities: Activity[],
+    totalExpectedTimePerDay: number,
+  ): Days {
     return activities.reduce((days: Days, activity: Activity) => {
       const dateKey = activity.date.toISOString();
 
       if (!days[dateKey]) {
         days[dateKey] = {
-          expectedHours: 8,
+          expectedHours: totalExpectedTimePerDay,
           timeBooked: '00:00',
           activities: [],
         };
@@ -507,8 +513,15 @@ export class ActivityService {
         return { ...activity, user, project: null };
       }),
     );
+    const rates = await this.rateRepository.find();
+    const totalExpectedTimePerDay = rates.reduce((total, rate) => {
+      return total + rate.employeeTimeCommitement;
+    }, 0);
 
-    const monthYearReport = this.groupActivitiesByDate(activitiesWithUser);
+    const monthYearReport = this.groupActivitiesByDate(
+      activitiesWithUser,
+      totalExpectedTimePerDay,
+    );
 
     return monthYearReport;
   }
