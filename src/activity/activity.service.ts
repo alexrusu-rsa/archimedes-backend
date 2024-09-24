@@ -496,7 +496,7 @@ export class ActivityService {
     filters?: ActivityFilter,
   ): Promise<Days> {
     const { firstDay, lastDay } = this.getFirstAndLastDayOfMonth(year, month);
-
+    console.log(filters);
     const activityQuery: any = {
       where: {
         date: Between(firstDay, lastDay),
@@ -505,6 +505,10 @@ export class ActivityService {
 
     if (filters?.project?.id) {
       activityQuery.where.projectId = filters.project.id;
+    }
+
+    if (filters?.user?.id) {
+      activityQuery.where.employeeId = filters.user.id;
     }
 
     const activities = await this.activityRepository.find(activityQuery);
