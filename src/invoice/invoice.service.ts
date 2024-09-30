@@ -10,7 +10,6 @@ export class InvoiceService {
   ) {}
 
   async getInvoiceNumber(): Promise<Invoice> {
-    console.log('her');
     try {
       const lastInvoice = await this.invoiceRepository.find();
       if (lastInvoice[0]) {

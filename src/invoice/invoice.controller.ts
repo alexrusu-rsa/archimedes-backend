@@ -10,7 +10,6 @@ export class InvoiceController {
   @UseGuards(JwtAuthGuard)
   @Get()
   getLastInvoiceNumber(): Promise<Invoice> {
-    console.log('here');
     return this.invoiceService.getInvoiceNumber();
   }
 
