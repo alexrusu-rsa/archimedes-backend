@@ -54,6 +54,7 @@ export class PdfInvoiceService {
     const invoiceEmissionDate = new Date();
     const checkEmissionDate = new Date();
     checkEmissionDate.setTime(parseInt(dateMillis));
+    let lang = 'en';
     if (
       invoiceEmissionDate.toISOString().split('T')[0] !==
       checkEmissionDate.toISOString().split('T')[0]
@@ -101,30 +102,137 @@ export class PdfInvoiceService {
       });
 
       const formattedDate = month + '/' + year;
+      const customerOfProject = await this.customerRepository.findOneBy({
+        id: project.customerId,
+      });
+      const romanianCustomer = customerOfProject.romanianCompany;
 
-      if (project) {
-        const customerOfProject = await this.customerRepository.findOneBy({
-          id: project.customerId,
-        });
-        let lang = 'en';
-        const romanianCustomer = customerOfProject.romanianCompany;
-        if (romanianCustomer) lang = 'ro';
-        const VATvalue = 0.19;
+      const searchYear = parseInt(year, 10);
+      const searchMonth = parseInt(month, 10);
 
-        const searchYear = parseInt(year, 10);
-        const searchMonth = parseInt(month, 10);
+      const startDate = new Date(searchYear, searchMonth - 1, 1);
+      const endDate = new Date(searchYear, searchMonth, 0);
 
-        const startDate = new Date(searchYear, searchMonth - 1, 1);
-        const endDate = new Date(searchYear, searchMonth, 0);
-
-        this.activitiesOfProjectPerMonthYear = await getRepository(
-          Activity,
-        ).find({
+      this.activitiesOfProjectPerMonthYear = await getRepository(Activity).find(
+        {
           where: {
             date: Between(new Date(startDate), new Date(endDate)),
             projectId: Like(project.id),
           },
+        },
+      );
+      if (romanianCustomer) {
+        lang = 'ro';
+        const today = new Date();
+        const dd = parseInt(String(today.getDate()).padStart(2, '0'));
+        const mm = parseInt(String(today.getMonth() + 1).padStart(2, '0'));
+        const yyyy = today.getFullYear();
+        const todayString = dd + '/' + mm + '/' + yyyy;
+        const pdfBuffer: Buffer = await new Promise(async (resolve) => {
+          const doc = new PDFDocument({
+            size: 'A4',
+            bufferPages: false,
+            compress: false,
+          });
+          doc.fontSize(25);
+          doc
+            .font('Helvetica-Bold')
+            .fillColor('#2D508F')
+            .text(this.i18n.t('strings.annexTitle', { lang: lang }), {
+              width: 225,
+              align: 'center',
+            });
+          doc.fontSize(14);
+          if (actualEmisionDate) {
+            doc.fillColor('#000000').text(
+              `${this.i18n.t('strings.annex1', {
+                lang: lang,
+              })} ${actualEmisionDate.replaceAll('/', '.')} ${this.i18n.t(
+                'strings.annex2',
+                {
+                  lang: lang,
+                },
+              )} ${project.contract} ${this.i18n.t('strings.annex3', {
+                lang: lang,
+              })} ${invoiceNumber} ${this.i18n.t('strings.annex4', {
+                lang: lang,
+              })} ${actualEmisionDate.replaceAll('/', '.')}`,
+            );
+          } else {
+            doc.fillColor('#000000').text(
+              `${this.i18n.t('strings.annex1', {
+                lang: lang,
+              })} ${todayString} ${this.i18n.t('strings.annex2', {
+                lang: lang,
+              })} ${project.contract} ${this.i18n.t('strings.annex3', {
+                lang: lang,
+              })} ${invoiceNumber} ${this.i18n.t('strings.annex4', {
+                lang: lang,
+              })} ${todayString}`,
+            );
+          }
+
+          doc.fontSize(10);
+          doc.fillColor('#2D508F').text(
+            this.i18n.t('strings.annexTableHeader', {
+              lang: lang,
+            }),
+          );
+
+          let index = 1;
+          if (rateForProject.rateType === RateType.PROJECT) {
+            this.activitiesOfProjectPerMonthYear =
+              await this.getAllActivitiesOnProject(id);
+          }
+
+          const activitiesOfProjectMonthYearSortedASC =
+            this.activitiesOfProjectPerMonthYear.sort(
+              (activity1, activity2) =>
+                activity1.date.getTime() - activity2.date.getTime(),
+            );
+
+          activitiesOfProjectMonthYearSortedASC.forEach((activity) => {
+            const startDateTime = activity.start;
+            const endDateTime = activity.end;
+            const timeForCurrentActivity =
+              this.dateFormatService.millisecondsToHoursAndMinutes(
+                endDateTime.getTime() - startDateTime.getTime(),
+              );
+
+            doc.fillColor('#000000').text(
+              `${activity.date.getFullYear()}-${(activity.date.getMonth() + 1)
+                .toString()
+                .padStart(2, '0')}-${activity.date
+                .getDate()
+                .toString()
+                .padStart(2, '0')} ${activity.name} - ${
+                activity.activityType
+              } - ${this.i18n.t('strings.annexActivityTimeHours', {
+                lang: lang,
+              })} ${timeForCurrentActivity.hours} ${this.i18n.t(
+                'strings.annexActivityTimeMinutes',
+                {
+                  lang: lang,
+                },
+              )} ${timeForCurrentActivity.minutes}`,
+            );
+
+            index = index + 1;
+          });
+
+          doc.save();
+          doc.end();
+          const buffer = [];
+          doc.on('data', buffer.push.bind(buffer));
+          doc.on('end', () => {
+            const data = Buffer.concat(buffer);
+            resolve(data);
+          });
         });
+        return pdfBuffer;
+      }
+      if (project) {
+        const VATvalue = 0.19;
 
         if (this.activitiesOfProjectPerMonthYear) {
           this.numberOfDaysWorkedOnProjectDuringMonth =
