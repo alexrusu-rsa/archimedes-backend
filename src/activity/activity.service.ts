@@ -16,7 +16,9 @@ import { WidgetDay } from 'src/custom/widget-day';
 import { Project } from 'src/entity/project.entity';
 import { Days } from 'src/custom/days';
 import { Rate } from 'src/entity/rate.entity';
-
+import { Express } from 'express';
+import * as fs from 'fs';
+import * as pdf from 'pdf-parse';
 @Injectable()
 export class ActivityService {
   constructor(
@@ -54,6 +56,138 @@ export class ActivityService {
       return true;
     }
     return false;
+  }
+
+  async autofillActivities(
+    file: Express.Multer.File,
+    projectId: string,
+    userId: string,
+  ): Promise<any> {
+    const dataBuffer = file.buffer;
+
+    pdf(dataBuffer).then((data) => {
+      const textInPdf = data.text.split('Totals:')[0];
+      const descriptionOfActivities = textInPdf.split('KM')[1];
+
+      const activitiesAsString = descriptionOfActivities
+        .split('\n')
+        .slice(1)
+        .map((line) => line.slice(10))
+        .map((line) => line.slice(0, 10) + ' ' + line.slice(10))
+        .map((line) => line.slice(0, 19) + ' ' + line.slice(19))
+        .join('\n');
+
+      const resultArray = activitiesAsString.split('\n');
+
+      const mapToActivities = (activities: string[]): Activity[] => {
+        return activities.map((activityString) => {
+          const parts = activityString.split('  ').filter(Boolean);
+          const relevantParts = [parts[0], parts[parts.length - 1]];
+
+          const [dateString, startString, endString] =
+            relevantParts[0].split(' ');
+          const date = new Date(dateString.split('.').reverse().join('-'));
+
+          const startTime = new Date(date);
+          const [startHours, startMinutes, startSeconds] = startString
+            .split(':')
+            .map(Number);
+          startTime.setHours(startHours, startMinutes, startSeconds);
+
+          const endTime = new Date(date);
+          const [endHours, endMinutes, endSeconds] = endString
+            .split(':')
+            .map(Number);
+          endTime.setHours(endHours, endMinutes, endSeconds);
+
+          return {
+            date: date,
+            start: startTime,
+            end: endTime,
+            description: '',
+            extras: '',
+            activityType: ActivityType.WORKONPROJECT,
+            name: relevantParts[1],
+            projectId: projectId,
+            employeeId: userId,
+          } as Activity;
+        });
+      };
+
+      resultArray.pop();
+
+      const activities: any[] = mapToActivities(resultArray);
+
+      if (activities) {
+        activities.forEach(async (activity) => {
+          try {
+            if (
+              !activity.date ||
+              !activity.start ||
+              !activity.employeeId ||
+              !activity.end ||
+              !activity.name
+            ) {
+              throw new HttpException(
+                'Make sure you add required information about the activity!',
+                HttpStatus.NOT_ACCEPTABLE,
+              );
+            }
+
+            const startTime = new Date(activity.start);
+            const endTime = new Date(activity.end);
+
+            if (isNaN(startTime.getTime()) || isNaN(endTime.getTime())) {
+              throw new HttpException(
+                'Invalid date format provided!',
+                HttpStatus.BAD_REQUEST,
+              );
+            }
+
+            const differenceInMilliseconds =
+              endTime.getTime() - startTime.getTime();
+
+            const totalMinutes = Math.floor(differenceInMilliseconds / 60000);
+            const hours = Math.floor(totalMinutes / 60);
+            const minutes = totalMinutes % 60;
+
+            const formattedHours = String(hours).padStart(2, '0');
+            const formattedMinutes = String(minutes).padStart(2, '0');
+
+            activity.workedTime = `${formattedHours}:${formattedMinutes}`;
+            if (!(activity.date instanceof Date)) {
+              activity.date = new Date(activity.date);
+            }
+
+            activity.date.setDate(activity.date.getDate());
+            activity.date.setHours(0, 0, 0, 0);
+
+            const newActivityId: string = (
+              await this.activityRepository.insert(activity)
+            ).identifiers[0]?.id;
+
+            if (newActivityId) {
+              const project = await this.projectService.getProjectById(
+                activity.projectId,
+              );
+              const { projectId, ...activityWithoutProjectId } =
+                await this.activityRepository.findOneBy({ id: newActivityId });
+              return {
+                ...activityWithoutProjectId,
+                project: activity?.projectId ? project : null,
+              };
+            }
+
+            throw new HttpException(
+              'Activity insertion failed!',
+              HttpStatus.NOT_ACCEPTABLE,
+            );
+          } catch (err) {
+            throw err;
+          }
+        });
+      }
+    });
   }
 
   async addActivitiesInRange(duplicateActivityRange: ActivityDuplicateRange) {
