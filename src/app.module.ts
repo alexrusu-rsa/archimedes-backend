@@ -15,6 +15,7 @@ import { AuthRecieveModule } from './auth-recieve/auth-recieve.module';
 import { AcceptLanguageResolver, I18nModule, QueryResolver } from 'nestjs-i18n';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigModule } from '@nestjs/config';
+import { InvoiceModule } from './invoice/invoice.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { ConfigModule } from '@nestjs/config';
       ],
     }),
     UserModule,
+    InvoiceModule,
     CustomerModule,
     ProjectModule,
     AuthModule,
@@ -61,6 +63,7 @@ import { ConfigModule } from '@nestjs/config';
         path: 'rate',
         module: RateModule,
       },
+      { path: 'invoice', module: InvoiceModule },
     ]),
     AuthRecieveModule,
   ],
