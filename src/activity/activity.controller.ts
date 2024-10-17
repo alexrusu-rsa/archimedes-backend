@@ -25,7 +25,6 @@ import { BookedDay } from 'src/custom/booked-day';
 import { WidgetDay } from 'src/custom/widget-day';
 import { Days } from 'src/custom/days';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { request } from 'http';
 @Controller()
 export class ActivityController {
   constructor(private activityService: ActivityService) {}
@@ -35,7 +34,6 @@ export class ActivityController {
   getAllActivities(): Promise<Activity[]> {
     return this.activityService.getActivities();
   }
-
   @UseGuards(JwtAuthGuard)
   @Post('autofill')
   @UseInterceptors(FileInterceptor('pdfFile'))
@@ -43,9 +41,10 @@ export class ActivityController {
     @UploadedFile() file: Express.Multer.File,
     @Body('projectId') projectId: string,
     @Body('userId') userId: string,
-  ): Promise<any> {
+  ): Promise<{ success: boolean; count: number; message: string }> {
     return this.activityService.autofillActivities(file, projectId, userId);
   }
+
   @Post('/duplicate')
   duplicateActivityInDateRange(
     @Body() activityDuplicateRange: ActivityDuplicateRange,
