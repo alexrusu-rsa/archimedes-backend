@@ -115,8 +115,10 @@ export class ActivityService {
         } as Activity;
       });
     };
+    if (resultArray[resultArray.length] === '') {
+      resultArray.pop();
+    }
 
-    resultArray.pop();
     const activities = mapToActivities(resultArray);
 
     const promises = activities.map(async (activity) => {
