@@ -8,6 +8,7 @@ import { DateFormatService } from 'src/date-format/date-format.service';
 import { Rate } from 'src/entity/rate.entity';
 import { RateType } from 'src/custom/rate-type.enum';
 import { I18nService } from 'nestjs-i18n';
+import { Invoice } from 'src/entity/invoice.entity';
 
 @Injectable()
 export class PdfInvoiceService {
@@ -24,6 +25,8 @@ export class PdfInvoiceService {
     private rateRepository: Repository<Rate>,
     @Inject('ACTIVITY_REPOSITORY')
     private activityRepository: Repository<Activity>,
+    @Inject('INVOICE_REPOSITORY')
+    private invoiceRepository: Repository<Invoice>,
     private i18n: I18nService,
   ) {}
 
@@ -1337,6 +1340,33 @@ export class PdfInvoiceService {
               resolve(data);
             });
           });
+          const lastInvoice = await this.invoiceRepository.find();
+          if (lastInvoice) {
+            // if user overwrites the invoice number from database in the frontend input field
+            if (lastInvoice[0].lastSavedInvoiceNumber !== invoiceNumber) {
+              const lastInvoiceNumber = parseInt(invoiceNumber) + 1;
+              this.invoiceRepository.update(
+                { id: lastInvoice[0].id },
+                {
+                  lastSavedInvoiceNumber: lastInvoiceNumber
+                    .toString()
+                    .padStart(3, '0'),
+                },
+              );
+              return pdfBuffer;
+            }
+            //invoice lastSavedNumber from DB is incremented
+            const lastInvoiceNumber =
+              parseInt(lastInvoice[0].lastSavedInvoiceNumber) + 1;
+            const formattedLastInvoiceNumber = lastInvoiceNumber
+              .toString()
+              .padStart(3, '0');
+            this.invoiceRepository.update(
+              { id: lastInvoice[0].id },
+              { lastSavedInvoiceNumber: formattedLastInvoiceNumber },
+            );
+            return pdfBuffer;
+          }
           return pdfBuffer;
         } else {
           throw new HttpException(
