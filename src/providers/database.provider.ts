@@ -5,7 +5,6 @@ import { Rate } from 'src/entity/rate.entity';
 import { User } from 'src/entity/user.entity';
 import { createConnection } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
-import { Invoice } from 'src/entity/invoice.entity';
 
 export const databaseProvider = [
   {
@@ -28,7 +27,7 @@ export const databaseProvider = [
         database:
           configService.get<string>('DATABASE_DATABASE') ||
           process.env.DATABASE_NAME,
-        entities: [Activity, User, Customer, Project, Rate, Invoice],
+        entities: [Activity, User, Customer, Project, Rate],
         ssl: { rejectUnauthorized: false },
         synchronize: false,
       }),

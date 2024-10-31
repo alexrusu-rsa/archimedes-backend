@@ -8,7 +8,6 @@ import { RateProvider } from 'src/providers/rate.provider';
 import { CustomerController } from './customer.controller';
 import { CustomerService } from './customer.service';
 import { PdfInvoiceService } from 'src/pdf-invoice/pdf-invoice.service';
-import { InvoiceProvider } from 'src/providers/invoice.provider';
 
 @Module({
   imports: [DatabaseModule],
@@ -18,7 +17,6 @@ import { InvoiceProvider } from 'src/providers/invoice.provider';
     ...ProjectProvider,
     ...RateProvider,
     ...ActivityProvider,
-    ...InvoiceProvider,
     CustomerService,
     PdfInvoiceService,
     DateFormatService,

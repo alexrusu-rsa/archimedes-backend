@@ -8,7 +8,6 @@ import { DateFormatService } from 'src/date-format/date-format.service';
 import { Rate } from 'src/entity/rate.entity';
 import { RateType } from 'src/custom/rate-type.enum';
 import { I18nService } from 'nestjs-i18n';
-import { Invoice } from 'src/entity/invoice.entity';
 
 @Injectable()
 export class PdfInvoiceService {
@@ -25,8 +24,6 @@ export class PdfInvoiceService {
     private rateRepository: Repository<Rate>,
     @Inject('ACTIVITY_REPOSITORY')
     private activityRepository: Repository<Activity>,
-    @Inject('INVOICE_REPOSITORY')
-    private invoiceRepository: Repository<Invoice>,
     private i18n: I18nService,
   ) {}
 
@@ -57,7 +54,6 @@ export class PdfInvoiceService {
     const invoiceEmissionDate = new Date();
     const checkEmissionDate = new Date();
     checkEmissionDate.setTime(parseInt(dateMillis));
-    let lang = 'en';
     if (
       invoiceEmissionDate.toISOString().split('T')[0] !==
       checkEmissionDate.toISOString().split('T')[0]
@@ -105,137 +101,30 @@ export class PdfInvoiceService {
       });
 
       const formattedDate = month + '/' + year;
-      const customerOfProject = await this.customerRepository.findOneBy({
-        id: project.customerId,
-      });
-      const romanianCustomer = customerOfProject.romanianCompany;
 
-      const searchYear = parseInt(year, 10);
-      const searchMonth = parseInt(month, 10);
+      if (project) {
+        const customerOfProject = await this.customerRepository.findOneBy({
+          id: project.customerId,
+        });
+        let lang = 'en';
+        const romanianCustomer = customerOfProject.romanianCompany;
+        if (romanianCustomer) lang = 'ro';
+        const VATvalue = 0.19;
 
-      const startDate = new Date(searchYear, searchMonth - 1, 1);
-      const endDate = new Date(searchYear, searchMonth, 0);
+        const searchYear = parseInt(year, 10);
+        const searchMonth = parseInt(month, 10);
 
-      this.activitiesOfProjectPerMonthYear = await getRepository(Activity).find(
-        {
+        const startDate = new Date(searchYear, searchMonth - 1, 1);
+        const endDate = new Date(searchYear, searchMonth, 0);
+
+        this.activitiesOfProjectPerMonthYear = await getRepository(
+          Activity,
+        ).find({
           where: {
             date: Between(new Date(startDate), new Date(endDate)),
             projectId: Like(project.id),
           },
-        },
-      );
-      if (romanianCustomer) {
-        lang = 'ro';
-        const today = new Date();
-        const dd = parseInt(String(today.getDate()).padStart(2, '0'));
-        const mm = parseInt(String(today.getMonth() + 1).padStart(2, '0'));
-        const yyyy = today.getFullYear();
-        const todayString = dd + '/' + mm + '/' + yyyy;
-        const pdfBuffer: Buffer = await new Promise(async (resolve) => {
-          const doc = new PDFDocument({
-            size: 'A4',
-            bufferPages: false,
-            compress: false,
-          });
-          doc.fontSize(25);
-          doc
-            .font('Helvetica-Bold')
-            .fillColor('#2D508F')
-            .text(this.i18n.t('strings.annexTitle', { lang: lang }), {
-              width: 225,
-              align: 'center',
-            });
-          doc.fontSize(14);
-          if (actualEmisionDate) {
-            doc.fillColor('#000000').text(
-              `${this.i18n.t('strings.annex1', {
-                lang: lang,
-              })} ${actualEmisionDate.replaceAll('/', '.')} ${this.i18n.t(
-                'strings.annex2',
-                {
-                  lang: lang,
-                },
-              )} ${project.contract} ${this.i18n.t('strings.annex3', {
-                lang: lang,
-              })} ${invoiceNumber} ${this.i18n.t('strings.annex4', {
-                lang: lang,
-              })} ${actualEmisionDate.replaceAll('/', '.')}`,
-            );
-          } else {
-            doc.fillColor('#000000').text(
-              `${this.i18n.t('strings.annex1', {
-                lang: lang,
-              })} ${todayString} ${this.i18n.t('strings.annex2', {
-                lang: lang,
-              })} ${project.contract} ${this.i18n.t('strings.annex3', {
-                lang: lang,
-              })} ${invoiceNumber} ${this.i18n.t('strings.annex4', {
-                lang: lang,
-              })} ${todayString}`,
-            );
-          }
-
-          doc.fontSize(10);
-          doc.fillColor('#2D508F').text(
-            this.i18n.t('strings.annexTableHeader', {
-              lang: lang,
-            }),
-          );
-
-          let index = 1;
-          if (rateForProject.rateType === RateType.PROJECT) {
-            this.activitiesOfProjectPerMonthYear =
-              await this.getAllActivitiesOnProject(id);
-          }
-
-          const activitiesOfProjectMonthYearSortedASC =
-            this.activitiesOfProjectPerMonthYear.sort(
-              (activity1, activity2) =>
-                activity1.date.getTime() - activity2.date.getTime(),
-            );
-
-          activitiesOfProjectMonthYearSortedASC.forEach((activity) => {
-            const startDateTime = activity.start;
-            const endDateTime = activity.end;
-            const timeForCurrentActivity =
-              this.dateFormatService.millisecondsToHoursAndMinutes(
-                endDateTime.getTime() - startDateTime.getTime(),
-              );
-
-            doc.fillColor('#000000').text(
-              `${activity.date.getFullYear()}-${(activity.date.getMonth() + 1)
-                .toString()
-                .padStart(2, '0')}-${activity.date
-                .getDate()
-                .toString()
-                .padStart(2, '0')} ${activity.name} - ${
-                activity.activityType
-              } - ${this.i18n.t('strings.annexActivityTimeHours', {
-                lang: lang,
-              })} ${timeForCurrentActivity.hours} ${this.i18n.t(
-                'strings.annexActivityTimeMinutes',
-                {
-                  lang: lang,
-                },
-              )} ${timeForCurrentActivity.minutes}`,
-            );
-
-            index = index + 1;
-          });
-
-          doc.save();
-          doc.end();
-          const buffer = [];
-          doc.on('data', buffer.push.bind(buffer));
-          doc.on('end', () => {
-            const data = Buffer.concat(buffer);
-            resolve(data);
-          });
         });
-        return pdfBuffer;
-      }
-      if (project) {
-        const VATvalue = 0.19;
 
         if (this.activitiesOfProjectPerMonthYear) {
           this.numberOfDaysWorkedOnProjectDuringMonth =
@@ -1448,33 +1337,6 @@ export class PdfInvoiceService {
               resolve(data);
             });
           });
-          const lastInvoice = await this.invoiceRepository.find();
-          if (lastInvoice) {
-            // if user overwrites the invoice number from database in the frontend input field
-            if (lastInvoice[0].lastSavedInvoiceNumber !== invoiceNumber) {
-              const lastInvoiceNumber = parseInt(invoiceNumber) + 1;
-              this.invoiceRepository.update(
-                { id: lastInvoice[0].id },
-                {
-                  lastSavedInvoiceNumber: lastInvoiceNumber
-                    .toString()
-                    .padStart(3, '0'),
-                },
-              );
-              return pdfBuffer;
-            }
-            //invoice lastSavedNumber from DB is incremented
-            const lastInvoiceNumber =
-              parseInt(lastInvoice[0].lastSavedInvoiceNumber) + 1;
-            const formattedLastInvoiceNumber = lastInvoiceNumber
-              .toString()
-              .padStart(3, '0');
-            this.invoiceRepository.update(
-              { id: lastInvoice[0].id },
-              { lastSavedInvoiceNumber: formattedLastInvoiceNumber },
-            );
-            return pdfBuffer;
-          }
           return pdfBuffer;
         } else {
           throw new HttpException(

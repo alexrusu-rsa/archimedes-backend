@@ -8,9 +8,7 @@ import {
   Put,
   Query,
   Req,
-  UploadedFile,
   UseGuards,
-  UseInterceptors,
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { Role } from 'src/auth/role.enum';
@@ -24,7 +22,6 @@ import { MonthYear } from 'src/custom/month-year';
 import { BookedDay } from 'src/custom/booked-day';
 import { WidgetDay } from 'src/custom/widget-day';
 import { Days } from 'src/custom/days';
-import { FileInterceptor } from '@nestjs/platform-express';
 @Controller()
 export class ActivityController {
   constructor(private activityService: ActivityService) {}
@@ -33,16 +30,6 @@ export class ActivityController {
   @Get()
   getAllActivities(): Promise<Activity[]> {
     return this.activityService.getActivities();
-  }
-  @UseGuards(JwtAuthGuard)
-  @Post('autofill')
-  @UseInterceptors(FileInterceptor('pdfFile'))
-  async autofillActivitiesFromInvoice(
-    @UploadedFile() file: Express.Multer.File,
-    @Body('projectId') projectId: string,
-    @Body('userId') userId: string,
-  ): Promise<{ success: boolean; count: number; message: string }> {
-    return this.activityService.autofillActivities(file, projectId, userId);
   }
 
   @Post('/duplicate')
